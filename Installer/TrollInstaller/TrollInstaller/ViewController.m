@@ -16,6 +16,17 @@
 
 extern uint64_t g_self_proc;
 
+void badLog(const char* a, ...)
+{
+    va_list va;
+    va_start(va, a);
+    NSString* af = [NSString stringWithUTF8String:a];
+    NSString* msg = [[NSString alloc] initWithFormat:af arguments:va];
+    va_end(va);
+    NSLog(@"%@",msg);
+    return;
+}
+
 int runBinary(NSString* path, NSArray* args)
 {
     NSMutableArray* argsM = args.mutableCopy;
@@ -63,7 +74,7 @@ gid_t backup_groupList[200];
 
 int getRoot(void)
 {
-    printf("attempting to get root...\n");
+    NSLog(@"attempting to get root...\n");
     usleep(1000);
     
     backup_groupSize = getgroups(200, &backup_groupList[0]);
@@ -71,19 +82,19 @@ int getRoot(void)
     backup_cred = proc_get_posix_cred(g_self_proc);
     
     struct k_posix_cred zero_cred = {0};
-    printf("setting posix cred to zero cred...\n");
+    NSLog(@"setting posix cred to zero cred...\n");
     usleep(1000);
     proc_set_posix_cred(g_self_proc, zero_cred);
 
     int err = setgroups(0,0);
     if(err)
     {
-        printf("setgroups error %d\n", err);
+        NSLog(@"setgroups error %d\n", err);
         usleep(1000);
     }
     
     int uid = getuid();
-    printf("getuid => %d\n", uid);
+    NSLog(@"getuid => %d\n", uid);
     usleep(1000);
 
     return uid;
@@ -135,6 +146,9 @@ int writeRemountPrivatePreboot(void)
 
 - (void)doInstallation
 {
+    NSLog(@"TrollStore out here, exploitation starting!");
+    usleep(1000);
+    
     [self updateStatus:@"Exploiting..."];
 
     // Run Kernel exploit
@@ -150,6 +164,9 @@ int writeRemountPrivatePreboot(void)
     km.kwrite_32 = kwrite32;
     km.kwrite_64 = kwrite64;
     km.kcleanup = exploitation_cleanup;
+    
+    NSLog(@"Exploitation finished, post exploit stuff next!");
+    usleep(1000);
     
     [self updateStatus:@"Getting root..."];
     
