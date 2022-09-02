@@ -27,7 +27,19 @@ void badLog(const char* a, ...)
     return;
 }
 
-int runBinary(NSString* path, NSArray* args)
+NSString* getNSStringFromFile(int fd)
+{
+    NSMutableString* ms = [NSMutableString new];
+    ssize_t num_read;
+    char c;
+    while((num_read = read(fd, &c, sizeof(c))))
+    {
+        [ms appendString:[NSString stringWithFormat:@"%c", c]];
+    }
+    return ms.copy;
+}
+
+int runBinary(NSString* path, NSArray* args, NSString** output)
 {
     NSMutableArray* argsM = args.mutableCopy;
     [argsM insertObject:path.lastPathComponent atIndex:0];
@@ -41,9 +53,17 @@ int runBinary(NSString* path, NSArray* args)
     }
     argsC[argCount] = NULL;
     
+    posix_spawn_file_actions_t action;
+    posix_spawn_file_actions_init(&action);
+    
+    int out[2];
+    pipe(out);
+    posix_spawn_file_actions_adddup2(&action, out[1], STDERR_FILENO);
+    posix_spawn_file_actions_addclose(&action, out[0]);
+    
     pid_t task_pid;
     int status = 0;
-    int spawnError = posix_spawn(&task_pid, [path UTF8String], NULL, NULL, (char* const*)argsC, NULL);
+    int spawnError = posix_spawn(&task_pid, [path UTF8String], &action, NULL, (char* const*)argsC, NULL);
     for (NSUInteger i = 0; i < argCount; i++)
     {
         free(argsC[i]);
@@ -56,13 +76,25 @@ int runBinary(NSString* path, NSArray* args)
         return spawnError;
     }
     
-    waitpid(task_pid, &status, WEXITED);
+    do
+    {
+        if (waitpid(task_pid, &status, 0) != -1) {
+            //printf("Child status %dn", WEXITSTATUS(status));
+        } else
+        {
+            perror("waitpid");
+            return -222;
+        }
+    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
     
-    waitpid(task_pid, NULL, 0);
+    close(out[1]);
     
-    NSLog(@"status = %d", status);
+    if(output)
+    {
+        *output = getNSStringFromFile(out[0]);
+    }
     
-    return status;
+    return WEXITSTATUS(status);
 }
 
 
@@ -141,7 +173,7 @@ int dropRoot(void)
 
 int writeRemountPrivatePreboot(void)
 {
-    return runBinary(@"/sbin/mount", @[@"-u", @"-w", @"/private/preboot"]);
+    return runBinary(@"/sbin/mount", @[@"-u", @"-w", @"/private/preboot"], nil);
 }
 
 - (void)doInstallation
@@ -150,10 +182,14 @@ int writeRemountPrivatePreboot(void)
     usleep(1000);
     
     [self updateStatus:@"Exploiting..."];
-
-    // Run Kernel exploit
+    
+    // Run kernel exploit
     uint64_t kernel_base;
-    exploit_get_krw_and_kernel_base(&kernel_base);
+    if(exploit_get_krw_and_kernel_base(&kernel_base) != 0)
+    {
+        [self updateStatus:@"Exploit failed :("];
+        return;
+    }
     
     // Initialize KernelManager
     KernelManager* km = [KernelManager sharedInstance];
@@ -190,7 +226,8 @@ int writeRemountPrivatePreboot(void)
     chmod(helperPath.UTF8String, 0755);
     chown(helperPath.UTF8String, 0, 0);
     
-    int ret = runBinary(helperPath, @[@"install-trollstore", tsTarPath]);
+    NSString* helperOutput;
+    int ret = runBinary(helperPath, @[@"install-trollstore", tsTarPath], &helperOutput);
     
     [self updateStatus:@"Cleaning up..."];
     
@@ -213,6 +250,27 @@ int writeRemountPrivatePreboot(void)
             }];
             
             [installedAlertController addAction:closeAction];
+            
+            [self presentViewController:installedAlertController animated:YES completion:nil];
+        });
+    }
+    else
+    {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            UIAlertController* installedAlertController = [UIAlertController alertControllerWithTitle:@"Error" message:[NSString stringWithFormat:@"Failed to install TrollStore. trollstore helper exited with code %d. Output:\n:%@", ret, helperOutput ?: @"<none>"] preferredStyle:UIAlertControllerStyleAlert];
+            
+            UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                exit(0);
+            }];
+            
+            UIAlertAction* copyAction = [UIAlertAction actionWithTitle:@"Copy Output" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+                UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
+                pasteboard.string = helperOutput;
+                exit(0);
+            }];
+            
+            [installedAlertController addAction:closeAction];
+            [installedAlertController addAction:copyAction];
             
             [self presentViewController:installedAlertController animated:YES completion:nil];
         });

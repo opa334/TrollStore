@@ -52,17 +52,25 @@ Installer</string>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Support iOS 15.0 - 15.1.1" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="s80-eR-fY3">
+                                <rect key="frame" x="114.5" y="249" width="185" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="Wzs-Lb-XiN" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="3hT-dN-t3y"/>
+                            <constraint firstItem="s80-eR-fY3" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="CRX-Jh-CcX"/>
                             <constraint firstItem="JVS-Tm-8qS" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="QXJ-WA-nNb"/>
                             <constraint firstItem="1a2-Wm-Mcd" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="c2Z-Vi-FvF"/>
                             <constraint firstItem="Wzs-Lb-XiN" firstAttribute="centerY" secondItem="6Tk-OE-BBY" secondAttribute="centerY" id="gpk-JM-ZKB"/>
                             <constraint firstItem="1a2-Wm-Mcd" firstAttribute="top" secondItem="JVS-Tm-8qS" secondAttribute="bottom" constant="19" id="kjo-EL-B0G"/>
                             <constraint firstItem="Xbu-Hl-yex" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="pWV-JU-YTc"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="Xbu-Hl-yex" secondAttribute="bottom" constant="18" id="rj9-jo-r9k"/>
+                            <constraint firstItem="s80-eR-fY3" firstAttribute="top" secondItem="1a2-Wm-Mcd" secondAttribute="bottom" constant="24.5" id="xcO-OB-aq4"/>
                             <constraint firstItem="JVS-Tm-8qS" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="yNr-e8-C4N"/>
                         </constraints>
                     </view>
