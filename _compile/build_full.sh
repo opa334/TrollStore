@@ -33,7 +33,7 @@ cp ./out/TrollStore.app/trollstorehelper ../PersistenceHelper/Resources/trollsto
 
 cd ../PersistenceHelper
 make clean
-make package FINALPACKAGE=1
+make do FINALPACKAGE=1
 cd -
 
 cp ../PersistenceHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper ./out/TrollStore.app/PersistenceHelper

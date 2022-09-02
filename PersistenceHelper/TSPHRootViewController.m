@@ -171,9 +171,13 @@
 		}
 		else
 		{
-			int ret = spawnRoot(helperPath(), @[@"install-trollstore", location.path]);
+			NSString* tarTmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"TrollStore.tar"];
+			[[NSFileManager defaultManager] copyItemAtPath:location.path toPath:tarTmpPath error:nil];
+
+			int ret = spawnRoot(helperPath(), @[@"install-trollstore", tarTmpPath]);
 			dispatch_async(dispatch_get_main_queue(), ^
 			{
+				[[NSFileManager defaultManager] removeItemAtPath:tarTmpPath error:nil];
 				[self stopActivityWithCompletion:^
 				{
 					[self reloadSpecifiers];
