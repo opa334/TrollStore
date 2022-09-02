@@ -1,0 +1,6 @@
+out/
+.DS_Store
+.theos/
+packages/
+xcuserdata
+.vscode

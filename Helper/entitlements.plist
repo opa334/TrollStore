@@ -1,0 +1,33 @@
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>platform-application</key>
+	<true/>
+	<key>com.apple.private.security.container-required</key>
+	<false/>
+	<key>com.apple.security.exception.files.absolute-path.read-write</key>
+	<array>
+		<string>/</string>
+	</array>
+	<key>com.apple.private.security.container-manager</key>
+	<true/>
+	<key>com.apple.private.coreservices.canmaplsdatabase</key>
+	<true/>
+	<key>com.apple.lsapplicationworkspace.rebuildappdatabases</key>
+	<true/>
+	<key>com.apple.private.security.storage.AppBundles</key>
+	<true/>
+	<key>com.apple.private.MobileContainerManager.allowed</key>
+	<true/>
+	<key>com.apple.private.MobileInstallationHelperService.InstallDaemonOpsEnabled</key>
+	<true/>
+	<key>com.apple.private.MobileInstallationHelperService.allowed</key>
+	<true/>
+	<key>com.apple.private.uninstall.deletion</key>
+	<true/>
+	<key>com.apple.backboardd.launchapplications</key>
+	<true/>
+	<key>com.apple.multitasking.termination</key>
+	<true/>
+</dict>
+</plist>

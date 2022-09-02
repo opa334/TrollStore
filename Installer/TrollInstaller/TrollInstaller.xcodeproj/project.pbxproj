@@ -1,0 +1,478 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 55;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		8C4D6A3528C17B010004DEA4 /* unarchive.m in Sources */ = {isa = PBXBuildFile; fileRef = 8C4D6A3428C17B010004DEA4 /* unarchive.m */; };
+		8C7E16FF28B24C0000D9D33E /* TrollStore.tar in Resources */ = {isa = PBXBuildFile; fileRef = 8C7E16FE28B24C0000D9D33E /* TrollStore.tar */; };
+		8CDF7C4928AE47A200837105 /* kernel_rw.c in Sources */ = {isa = PBXBuildFile; fileRef = 8CDF7C3928AE47A200837105 /* kernel_rw.c */; };
+		8CDF7C4A28AE47A200837105 /* port_utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 8CDF7C3A28AE47A200837105 /* port_utils.c */; };
+		8CDF7C4B28AE47A200837105 /* IOGPU.c in Sources */ = {isa = PBXBuildFile; fileRef = 8CDF7C3B28AE47A200837105 /* IOGPU.c */; };
+		8CDF7C4C28AE47A200837105 /* spray.c in Sources */ = {isa = PBXBuildFile; fileRef = 8CDF7C3D28AE47A200837105 /* spray.c */; };
+		8CDF7C4D28AE47A200837105 /* mcast.c in Sources */ = {isa = PBXBuildFile; fileRef = 8CDF7C3E28AE47A200837105 /* mcast.c */; };
+		8CDF7C4E28AE47A200837105 /* kernel_base.c in Sources */ = {isa = PBXBuildFile; fileRef = 8CDF7C3F28AE47A200837105 /* kernel_base.c */; };
+		8CDF7C4F28AE47A200837105 /* IOSurfaceRoot.c in Sources */ = {isa = PBXBuildFile; fileRef = 8CDF7C4028AE47A200837105 /* IOSurfaceRoot.c */; };
+		8CDF7C5028AE47A200837105 /* necp.c in Sources */ = {isa = PBXBuildFile; fileRef = 8CDF7C4128AE47A200837105 /* necp.c */; };
+		8CDF7C5128AE47A200837105 /* exploit.c in Sources */ = {isa = PBXBuildFile; fileRef = 8CDF7C4828AE47A200837105 /* exploit.c */; };
+		8CE2BD2528AD5D710058FBAD /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 8CE2BD2428AD5D710058FBAD /* AppDelegate.m */; };
+		8CE2BD2828AD5D710058FBAD /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 8CE2BD2728AD5D710058FBAD /* SceneDelegate.m */; };
+		8CE2BD2B28AD5D710058FBAD /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 8CE2BD2A28AD5D710058FBAD /* ViewController.m */; };
+		8CE2BD2E28AD5D720058FBAD /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8CE2BD2C28AD5D720058FBAD /* Main.storyboard */; };
+		8CE2BD3028AD5D730058FBAD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8CE2BD2F28AD5D730058FBAD /* Assets.xcassets */; };
+		8CE2BD3328AD5D730058FBAD /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8CE2BD3128AD5D730058FBAD /* LaunchScreen.storyboard */; };
+		8CE2BD3628AD5D730058FBAD /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 8CE2BD3528AD5D730058FBAD /* main.m */; };
+		8CE2BD7428AD5E060058FBAD /* KernelManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 8CE2BD7228AD5E060058FBAD /* KernelManager.m */; };
+		8CE2BD7728AD5E1A0058FBAD /* kutil.m in Sources */ = {isa = PBXBuildFile; fileRef = 8CE2BD7528AD5E1A0058FBAD /* kutil.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		8C4D6A3428C17B010004DEA4 /* unarchive.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = unarchive.m; sourceTree = "<group>"; };
+		8C4D6A3628C17B0F0004DEA4 /* unarchive.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = unarchive.h; sourceTree = "<group>"; };
+		8C4D6A3728C17B830004DEA4 /* archive_entry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = archive_entry.h; sourceTree = "<group>"; };
+		8C4D6A3828C17B830004DEA4 /* archive.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = archive.h; sourceTree = "<group>"; };
+		8C7E16FE28B24C0000D9D33E /* TrollStore.tar */ = {isa = PBXFileReference; lastKnownFileType = archive.tar; name = TrollStore.tar; path = ../../../_compile/out/TrollStore.tar; sourceTree = "<group>"; };
+		8CDF7C3528AE47A200837105 /* kernel_base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = kernel_base.h; sourceTree = "<group>"; };
+		8CDF7C3628AE47A200837105 /* xpaci.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xpaci.h; sourceTree = "<group>"; };
+		8CDF7C3728AE47A200837105 /* necp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = necp.h; sourceTree = "<group>"; };
+		8CDF7C3828AE47A200837105 /* IOSurfaceRoot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IOSurfaceRoot.h; sourceTree = "<group>"; };
+		8CDF7C3928AE47A200837105 /* kernel_rw.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = kernel_rw.c; sourceTree = "<group>"; };
+		8CDF7C3A28AE47A200837105 /* port_utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = port_utils.c; sourceTree = "<group>"; };
+		8CDF7C3B28AE47A200837105 /* IOGPU.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = IOGPU.c; sourceTree = "<group>"; };
+		8CDF7C3C28AE47A200837105 /* exploit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = exploit.h; sourceTree = "<group>"; };
+		8CDF7C3D28AE47A200837105 /* spray.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = spray.c; sourceTree = "<group>"; };
+		8CDF7C3E28AE47A200837105 /* mcast.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mcast.c; sourceTree = "<group>"; };
+		8CDF7C3F28AE47A200837105 /* kernel_base.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = kernel_base.c; sourceTree = "<group>"; };
+		8CDF7C4028AE47A200837105 /* IOSurfaceRoot.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = IOSurfaceRoot.c; sourceTree = "<group>"; };
+		8CDF7C4128AE47A200837105 /* necp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = necp.c; sourceTree = "<group>"; };
+		8CDF7C4228AE47A200837105 /* iokit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iokit.h; sourceTree = "<group>"; };
+		8CDF7C4328AE47A200837105 /* IOGPU.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IOGPU.h; sourceTree = "<group>"; };
+		8CDF7C4428AE47A200837105 /* port_utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = port_utils.h; sourceTree = "<group>"; };
+		8CDF7C4528AE47A200837105 /* kernel_rw.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = kernel_rw.h; sourceTree = "<group>"; };
+		8CDF7C4628AE47A200837105 /* mcast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mcast.h; sourceTree = "<group>"; };
+		8CDF7C4728AE47A200837105 /* spray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = spray.h; sourceTree = "<group>"; };
+		8CDF7C4828AE47A200837105 /* exploit.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = exploit.c; sourceTree = "<group>"; };
+		8CE2BD2028AD5D710058FBAD /* TrollInstaller.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TrollInstaller.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8CE2BD2328AD5D710058FBAD /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		8CE2BD2428AD5D710058FBAD /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		8CE2BD2628AD5D710058FBAD /* SceneDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneDelegate.h; sourceTree = "<group>"; };
+		8CE2BD2728AD5D710058FBAD /* SceneDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneDelegate.m; sourceTree = "<group>"; };
+		8CE2BD2928AD5D710058FBAD /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		8CE2BD2A28AD5D710058FBAD /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		8CE2BD2D28AD5D720058FBAD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		8CE2BD2F28AD5D730058FBAD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		8CE2BD3228AD5D730058FBAD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		8CE2BD3428AD5D730058FBAD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		8CE2BD3528AD5D730058FBAD /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		8CE2BD7228AD5E060058FBAD /* KernelManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KernelManager.m; sourceTree = "<group>"; };
+		8CE2BD7328AD5E060058FBAD /* KernelManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KernelManager.h; sourceTree = "<group>"; };
+		8CE2BD7528AD5E1A0058FBAD /* kutil.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = kutil.m; sourceTree = "<group>"; };
+		8CE2BD7628AD5E1A0058FBAD /* kutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = kutil.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8CE2BD1D28AD5D710058FBAD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		8C4D6A3128C17A490004DEA4 /* headers */ = {
+			isa = PBXGroup;
+			children = (
+				8C4D6A3728C17B830004DEA4 /* archive_entry.h */,
+				8C4D6A3828C17B830004DEA4 /* archive.h */,
+			);
+			path = headers;
+			sourceTree = "<group>";
+		};
+		8CDF7C3428AE47A200837105 /* exploit */ = {
+			isa = PBXGroup;
+			children = (
+				8CDF7C3528AE47A200837105 /* kernel_base.h */,
+				8CDF7C3628AE47A200837105 /* xpaci.h */,
+				8CDF7C3728AE47A200837105 /* necp.h */,
+				8CDF7C3828AE47A200837105 /* IOSurfaceRoot.h */,
+				8CDF7C3928AE47A200837105 /* kernel_rw.c */,
+				8CDF7C3A28AE47A200837105 /* port_utils.c */,
+				8CDF7C3B28AE47A200837105 /* IOGPU.c */,
+				8CDF7C3C28AE47A200837105 /* exploit.h */,
+				8CDF7C3D28AE47A200837105 /* spray.c */,
+				8CDF7C3E28AE47A200837105 /* mcast.c */,
+				8CDF7C3F28AE47A200837105 /* kernel_base.c */,
+				8CDF7C4028AE47A200837105 /* IOSurfaceRoot.c */,
+				8CDF7C4128AE47A200837105 /* necp.c */,
+				8CDF7C4228AE47A200837105 /* iokit.h */,
+				8CDF7C4328AE47A200837105 /* IOGPU.h */,
+				8CDF7C4428AE47A200837105 /* port_utils.h */,
+				8CDF7C4528AE47A200837105 /* kernel_rw.h */,
+				8CDF7C4628AE47A200837105 /* mcast.h */,
+				8CDF7C4728AE47A200837105 /* spray.h */,
+				8CDF7C4828AE47A200837105 /* exploit.c */,
+			);
+			path = exploit;
+			sourceTree = "<group>";
+		};
+		8CE2BD1728AD5D710058FBAD = {
+			isa = PBXGroup;
+			children = (
+				8CE2BD2228AD5D710058FBAD /* TrollInstaller */,
+				8CE2BD2128AD5D710058FBAD /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		8CE2BD2128AD5D710058FBAD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8CE2BD2028AD5D710058FBAD /* TrollInstaller.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8CE2BD2228AD5D710058FBAD /* TrollInstaller */ = {
+			isa = PBXGroup;
+			children = (
+				8C4D6A3128C17A490004DEA4 /* headers */,
+				8CDF7C3428AE47A200837105 /* exploit */,
+				8CE2BD2328AD5D710058FBAD /* AppDelegate.h */,
+				8CE2BD2428AD5D710058FBAD /* AppDelegate.m */,
+				8CE2BD2628AD5D710058FBAD /* SceneDelegate.h */,
+				8CE2BD2728AD5D710058FBAD /* SceneDelegate.m */,
+				8CE2BD2928AD5D710058FBAD /* ViewController.h */,
+				8CE2BD2A28AD5D710058FBAD /* ViewController.m */,
+				8CE2BD7328AD5E060058FBAD /* KernelManager.h */,
+				8CE2BD7228AD5E060058FBAD /* KernelManager.m */,
+				8CE2BD7628AD5E1A0058FBAD /* kutil.h */,
+				8CE2BD7528AD5E1A0058FBAD /* kutil.m */,
+				8C4D6A3628C17B0F0004DEA4 /* unarchive.h */,
+				8C4D6A3428C17B010004DEA4 /* unarchive.m */,
+				8CE2BD2C28AD5D720058FBAD /* Main.storyboard */,
+				8CE2BD2F28AD5D730058FBAD /* Assets.xcassets */,
+				8CE2BD3128AD5D730058FBAD /* LaunchScreen.storyboard */,
+				8CE2BD3428AD5D730058FBAD /* Info.plist */,
+				8CE2BD3528AD5D730058FBAD /* main.m */,
+				8C7E16FE28B24C0000D9D33E /* TrollStore.tar */,
+			);
+			path = TrollInstaller;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8CE2BD1F28AD5D710058FBAD /* TrollInstaller */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8CE2BD3928AD5D730058FBAD /* Build configuration list for PBXNativeTarget "TrollInstaller" */;
+			buildPhases = (
+				8CE2BD1C28AD5D710058FBAD /* Sources */,
+				8CE2BD1D28AD5D710058FBAD /* Frameworks */,
+				8CE2BD1E28AD5D710058FBAD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TrollInstaller;
+			productName = TrollInstaller;
+			productReference = 8CE2BD2028AD5D710058FBAD /* TrollInstaller.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		8CE2BD1828AD5D710058FBAD /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1340;
+				TargetAttributes = {
+					8CE2BD1F28AD5D710058FBAD = {
+						CreatedOnToolsVersion = 13.4.1;
+					};
+				};
+			};
+			buildConfigurationList = 8CE2BD1B28AD5D710058FBAD /* Build configuration list for PBXProject "TrollInstaller" */;
+			compatibilityVersion = "Xcode 13.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 8CE2BD1728AD5D710058FBAD;
+			productRefGroup = 8CE2BD2128AD5D710058FBAD /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8CE2BD1F28AD5D710058FBAD /* TrollInstaller */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8CE2BD1E28AD5D710058FBAD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8CE2BD3328AD5D730058FBAD /* LaunchScreen.storyboard in Resources */,
+				8C7E16FF28B24C0000D9D33E /* TrollStore.tar in Resources */,
+				8CE2BD3028AD5D730058FBAD /* Assets.xcassets in Resources */,
+				8CE2BD2E28AD5D720058FBAD /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8CE2BD1C28AD5D710058FBAD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8CDF7C4B28AE47A200837105 /* IOGPU.c in Sources */,
+				8CDF7C4C28AE47A200837105 /* spray.c in Sources */,
+				8CE2BD2B28AD5D710058FBAD /* ViewController.m in Sources */,
+				8CDF7C4D28AE47A200837105 /* mcast.c in Sources */,
+				8CDF7C5128AE47A200837105 /* exploit.c in Sources */,
+				8CDF7C4F28AE47A200837105 /* IOSurfaceRoot.c in Sources */,
+				8CE2BD2528AD5D710058FBAD /* AppDelegate.m in Sources */,
+				8CDF7C4A28AE47A200837105 /* port_utils.c in Sources */,
+				8CDF7C5028AE47A200837105 /* necp.c in Sources */,
+				8CE2BD7728AD5E1A0058FBAD /* kutil.m in Sources */,
+				8CDF7C4928AE47A200837105 /* kernel_rw.c in Sources */,
+				8C4D6A3528C17B010004DEA4 /* unarchive.m in Sources */,
+				8CE2BD7428AD5E060058FBAD /* KernelManager.m in Sources */,
+				8CDF7C4E28AE47A200837105 /* kernel_base.c in Sources */,
+				8CE2BD3628AD5D730058FBAD /* main.m in Sources */,
+				8CE2BD2828AD5D710058FBAD /* SceneDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		8CE2BD2C28AD5D720058FBAD /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				8CE2BD2D28AD5D720058FBAD /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		8CE2BD3128AD5D730058FBAD /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				8CE2BD3228AD5D730058FBAD /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		8CE2BD3728AD5D730058FBAD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		8CE2BD3828AD5D730058FBAD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		8CE2BD3A28AD5D730058FBAD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3Z56NQJ65R;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TrollInstaller/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					IOKit,
+					"-larchive",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.opa334.TrollInstaller;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8CE2BD3B28AD5D730058FBAD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3Z56NQJ65R;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TrollInstaller/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					IOKit,
+					"-larchive",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.opa334.TrollInstaller;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		8CE2BD1B28AD5D710058FBAD /* Build configuration list for PBXProject "TrollInstaller" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8CE2BD3728AD5D730058FBAD /* Debug */,
+				8CE2BD3828AD5D730058FBAD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8CE2BD3928AD5D730058FBAD /* Build configuration list for PBXNativeTarget "TrollInstaller" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8CE2BD3A28AD5D730058FBAD /* Debug */,
+				8CE2BD3B28AD5D730058FBAD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 8CE2BD1828AD5D710058FBAD /* Project object */;
+}
