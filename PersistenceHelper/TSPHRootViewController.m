@@ -224,7 +224,7 @@
 	UIAlertAction* continueAction = [UIAlertAction actionWithTitle:@"Continue" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action)
 	{
 		spawnRoot(helperPath(), @[@"uninstall-trollstore"]);
-		exit(0);
+		[self reloadSpecifiers];
 	}];
 	[uninstallWarningAlert addAction:continueAction];
 
