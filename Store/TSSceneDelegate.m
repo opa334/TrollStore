@@ -5,44 +5,85 @@
 
 @implementation TSSceneDelegate
 
-- (void)handleURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts
+- (void)handleURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts scene:(UIWindowScene*)scene
 {
+    UIWindow* keyWindow = nil;
+    for(UIWindow* window in scene.windows)
+    {
+        if(window.isKeyWindow)
+        {
+            keyWindow = window;
+            break;
+        }
+    }
+
     for(UIOpenURLContext* context in URLContexts)
     {
         NSLog(@"openURLContexts %@", context.URL);
         NSURL* url = context.URL;
         if (url != nil && [url isFileURL]) {
-            BOOL shouldExit = NO;
-            
             [url startAccessingSecurityScopedResource];
             NSURL* tmpCopyURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:url.lastPathComponent]];
             
             [[NSFileManager defaultManager] copyItemAtURL:url toURL:tmpCopyURL error:nil];
+
+            void (^doneBlock)(BOOL) = ^(BOOL shouldExit)
+            {
+                [[NSFileManager defaultManager] removeItemAtURL:tmpCopyURL error:nil];
+                [url stopAccessingSecurityScopedResource];
+                [[NSFileManager defaultManager] removeItemAtURL:url error:nil];
+
+                if(shouldExit)
+                {
+                    NSLog(@"Respring + Exit");
+                    respring();
+                    exit(0);
+                }
+            };  
             
-            if ([url.pathExtension isEqualToString:@"ipa"]) {
-                // Install IPA
-                NSError* error;
-                int ret = [[TSApplicationsManager sharedInstance] installIpa:tmpCopyURL.path error:&error];
-                NSLog(@"installed app! ret:%d, error: %@", ret, error);
-                
+            if ([url.pathExtension isEqualToString:@"ipa"])
+            {
+                UIAlertController* infoAlert = [UIAlertController alertControllerWithTitle:@"Installing" message:@"" preferredStyle:UIAlertControllerStyleAlert];
+                UIActivityIndicatorView* activityIndicator = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake(5,5,50,50)];
+                activityIndicator.hidesWhenStopped = YES;
+                activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyleMedium;
+                [activityIndicator startAnimating];
+                [infoAlert.view addSubview:activityIndicator];
+
+                [keyWindow.rootViewController presentViewController:infoAlert animated:YES completion:nil];
+
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
+                {
+                    // Install IPA
+                    int ret = [[TSApplicationsManager sharedInstance] installIpa:tmpCopyURL.path];
+                    NSError* error = [[TSApplicationsManager sharedInstance] errorForCode:ret];
+
+                    NSLog(@"installed app! ret:%d, error: %@", ret, error);
+                    dispatch_async(dispatch_get_main_queue(), ^
+                    {
+                        [infoAlert dismissViewControllerAnimated:YES completion:^
+                        {
+                            if(ret != 0)
+                            {
+                                UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Install Error %d", ret] message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
+                                UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
+                                [errorAlert addAction:closeAction];
+
+                                [keyWindow.rootViewController presentViewController:errorAlert animated:YES completion:nil];
+                            }
+
+                            doneBlock(NO);
+                        }];
+                    });
+                });
             }
             else if([url.pathExtension isEqualToString:@"tar"])
             {
                 // Update TrollStore itself
                 NSLog(@"Updating TrollStore...");
                 int ret = spawnRoot(helperPath(), @[@"install-trollstore", tmpCopyURL.path]);
-                if(ret == 0) shouldExit = YES;
+                doneBlock(ret == 0);
                 NSLog(@"Updated TrollStore!");
-            }
-            
-            [[NSFileManager defaultManager] removeItemAtURL:tmpCopyURL error:nil];
-            [url stopAccessingSecurityScopedResource];
-            
-            if(shouldExit)
-            {
-                NSLog(@"Respring + Exit");
-                respring();
-                exit(0);
             }
         }
     }
@@ -55,16 +96,16 @@
     // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
     
     NSLog(@"scene:%@ willConnectToSession:%@ options:%@", scene, session, connectionOptions);
-    if(connectionOptions.URLContexts.count)
-    {
-        [self handleURLContexts:connectionOptions.URLContexts];
-    }
-
     UIWindowScene* windowScene = (UIWindowScene*)scene;
     _window = [[UIWindow alloc] initWithWindowScene:windowScene];
     _rootViewController = [[TSRootViewController alloc] init];
     _window.rootViewController = _rootViewController;
 	[_window makeKeyAndVisible];
+
+    if(connectionOptions.URLContexts.count)
+    {
+        [self handleURLContexts:connectionOptions.URLContexts scene:(UIWindowScene*)scene];
+    }
 }
 
 
@@ -103,7 +144,7 @@
 - (void)scene:(UIScene *)scene openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts
 {
     NSLog(@"scene:%@ openURLContexts:%@", scene, URLContexts);
-    [self handleURLContexts:URLContexts];
+    [self handleURLContexts:URLContexts scene:(UIWindowScene*)scene];
 }
 
 @end

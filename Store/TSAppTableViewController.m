@@ -6,7 +6,10 @@
 
 - (void)reloadTable
 {
-    [self.tableView reloadData];
+    dispatch_async(dispatch_get_main_queue(), ^
+    {
+        [self.tableView reloadData];
+    });
 }
 
 - (void)loadView
@@ -52,7 +55,7 @@
     {
         NSString* appPath = [[TSApplicationsManager sharedInstance] installedAppPaths][indexPath.row];
         NSString* appId = [[TSApplicationsManager sharedInstance] appIdForAppPath:appPath];
-        [[TSApplicationsManager sharedInstance] uninstallApp:appId error:nil];
+        [[TSApplicationsManager sharedInstance] uninstallApp:appId];
     }
 }
 

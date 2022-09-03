@@ -2,6 +2,8 @@
 #import "TSUtil.h"
 #import "../Helper/Shared.h"
 
+#define TrollStoreErrorDomain @"TrollStoreErrorDomain"
+
 @implementation TSApplicationsManager
 
 + (instancetype)sharedInstance
@@ -50,16 +52,42 @@
     return displayName;
 }
 
-- (int)installIpa:(NSString*)pathToIpa error:(NSError**)error
+- (NSError*)errorForCode:(int)code
 {
-    int ret = spawnRoot(helperPath(), @[@"install", pathToIpa]) == 0;
+    NSString* errorDescription = @"Unknown Error";
+    switch(code)
+    {
+        case 166:
+        errorDescription = @"The IPA file does not exist or is not accessible.";
+        break;
+        case 167:
+        errorDescription = @"The IPA file does not appear to contain an app.";
+        break;
+        case 170:
+        errorDescription = @"Failed to create container for app bundle.";
+        break;
+        case 171:
+        errorDescription = @"A non-TrollStore app with the same identifier is already installed. If you are absolutely sure it is not, try refreshing icon cache in TrollStore settings or try rebooting your device.";
+        break;
+        case 172:
+        errorDescription = @"The app does not seem to contain an Info.plist";
+        break;
+    }
+
+    NSError* error = [NSError errorWithDomain:TrollStoreErrorDomain code:code userInfo:@{NSLocalizedDescriptionKey : errorDescription}];
+    return error;
+}
+
+- (int)installIpa:(NSString*)pathToIpa
+{
+    int ret = spawnRoot(helperPath(), @[@"install", pathToIpa]);
     [[NSNotificationCenter defaultCenter] postNotificationName:@"ApplicationsChanged" object:nil];
     return ret;
 }
 
-- (int)uninstallApp:(NSString*)appId error:(NSError**)error
+- (int)uninstallApp:(NSString*)appId
 {
-    int ret = spawnRoot(helperPath(), @[@"uninstall", appId]) == 0;
+    int ret = spawnRoot(helperPath(), @[@"uninstall", appId]);
     [[NSNotificationCenter defaultCenter] postNotificationName:@"ApplicationsChanged" object:nil];
     return ret;
 }

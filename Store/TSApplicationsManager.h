@@ -13,7 +13,8 @@
 - (NSString*)appIdForAppPath:(NSString*)appPath;
 - (NSString*)displayNameForAppPath:(NSString*)appPath;
 
-- (int)installIpa:(NSString*)pathToIpa error:(NSError**)error;
-- (int)uninstallApp:(NSString*)appId error:(NSError**)error;
+- (NSError*)errorForCode:(int)code;
+- (int)installIpa:(NSString*)pathToIpa;
+- (int)uninstallApp:(NSString*)appId;
 
 @end

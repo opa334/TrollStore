@@ -103,6 +103,7 @@
 											detail:nil
 											cell:PSStaticTextCell
 											edit:nil];
+			[ldidInstalledSpecifier setProperty:@NO forKey:@"enabled"];
 			ldidInstalledSpecifier.identifier = @"ldidInstalled";
 			[_specifiers addObject:ldidInstalledSpecifier];
 		}
@@ -135,6 +136,7 @@
 											detail:nil
 											cell:PSStaticTextCell
 											edit:nil];
+			[installedPersistenceHelperSpecifier setProperty:@NO forKey:@"enabled"];
 			installedPersistenceHelperSpecifier.identifier = @"persistenceHelperInstalled";
 			[_specifiers addObject:installedPersistenceHelperSpecifier];
 		}
@@ -153,7 +155,7 @@
 												detail:nil
 												cell:PSStaticTextCell
 												edit:nil];
-
+				[installedPersistenceHelperSpecifier setProperty:@NO forKey:@"enabled"];
 				installedPersistenceHelperSpecifier.identifier = @"persistenceHelperInstalled";
 				[_specifiers addObject:installedPersistenceHelperSpecifier];
 
