@@ -357,7 +357,7 @@ BOOL signApp(NSString* appPath, NSError** error)
 	else
 	{
 		// app has entitlements, keep them
-		ldidRet = runLdid(@[@"-S", @"-M", certArg, appPath], nil, &errorOutput);
+		ldidRet = runLdid(@[@"-s", certArg, appPath], nil, &errorOutput);
 	}
 
 	NSLog(@"ldid exited with status %d", ldidRet);
