@@ -285,6 +285,8 @@ int writeRemountPrivatePreboot(void)
     
     [self updateStatus:@"Done!"];
     
+    NSLog(@"%@", helperOutput);
+    
     // Print installed message
     if(ret == 0)
     {

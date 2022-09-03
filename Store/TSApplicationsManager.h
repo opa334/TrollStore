@@ -14,6 +14,7 @@
 - (NSString*)displayNameForAppPath:(NSString*)appPath;
 
 - (NSError*)errorForCode:(int)code;
+- (int)installIpa:(NSString*)pathToIpa force:(BOOL)force;
 - (int)installIpa:(NSString*)pathToIpa;
 - (int)uninstallApp:(NSString*)appId;
 
