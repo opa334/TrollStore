@@ -36,6 +36,8 @@ make clean
 make package FINALPACKAGE=1
 cd -
 
+rm ../PersistenceHelper/Resources/trollstorehelper
+
 cp ../PersistenceHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper ./out/TrollStore.app/PersistenceHelper
 ldid -S -M -Kcert.p12 ./out/TrollStore.app/PersistenceHelper
 
