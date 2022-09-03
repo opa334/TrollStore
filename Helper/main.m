@@ -8,8 +8,53 @@
 #import <objc/runtime.h>
 #import "CoreServices.h"
 #import "Shared.h"
+#import <mach-o/getsect.h>
+#import <mach-o/dyld.h>
+#import <mach/mach.h>
+#import <mach-o/loader.h>
+#import <mach-o/nlist.h>
+#import <mach-o/reloc.h>
+#import <mach-o/dyld_images.h>
+#import <mach-o/fat.h>
+#import <sys/utsname.h>
 
 #import <SpringBoardServices/SpringBoardServices.h>
+
+#ifdef __LP64__
+#define segment_command_universal segment_command_64
+#define mach_header_universal mach_header_64
+#define MH_MAGIC_UNIVERSAL MH_MAGIC_64
+#define MH_CIGAM_UNIVERSAL MH_CIGAM_64
+#else
+#define segment_command_universal segment_command
+#define mach_header_universal mach_header
+#define MH_MAGIC_UNIVERSAL MH_MAGIC
+#define MH_CIGAM_UNIVERSAL MH_CIGAM
+#endif
+
+#define SWAP32(x) ((((x) & 0xff000000) >> 24) | (((x) & 0xff0000) >> 8) | (((x) & 0xff00) << 8) | (((x) & 0xff) << 24))
+uint32_t s32(uint32_t toSwap, BOOL shouldSwap)
+{
+	return shouldSwap ? SWAP32(toSwap) : toSwap;
+}
+
+#define CPU_SUBTYPE_ARM64E_NEW_ABI 0x80000002
+
+struct CSSuperBlob {
+	uint32_t magic;
+	uint32_t length;
+	uint32_t count;
+};
+
+struct CSBlob {
+	uint32_t type;
+	uint32_t offset;
+};
+
+#define CS_MAGIC_EMBEDDED_SIGNATURE 0xfade0cc0
+#define CS_MAGIC_EMBEDDED_SIGNATURE_REVERSED 0xc00cdefa
+#define CS_MAGIC_EMBEDDED_ENTITLEMENTS 0xfade7171
+
 
 extern mach_msg_return_t SBReloadIconForIdentifier(mach_port_t machport, const char* identifier);
 @interface SBSHomeScreenService : NSObject
@@ -176,38 +221,111 @@ int runLdid(NSArray* args, NSString** output, NSString** errorOutput)
 	return WEXITSTATUS(status);
 }
 
-NSString* dumpEntitlements(NSString* binaryPath)
+NSDictionary* dumpEntitlements(NSString* binaryPath)
 {
-	NSString* output;
-	NSString* errorOutput;
+	char* entitlementsData = NULL;
+	uint32_t entitlementsLength = 0;
 
-	int ldidRet = runLdid(@[@"-e", binaryPath], &output, &errorOutput);
+	FILE* machoFile = fopen(binaryPath.UTF8String, "rb");
+	struct mach_header_universal header;
+	fread(&header,sizeof(header),1,machoFile);
 
-	NSLog(@"entitlements dump exited with status %d", ldidRet);
+	if(header.magic == FAT_MAGIC || header.magic == FAT_CIGAM)
+	{
+		fseek(machoFile,0,SEEK_SET);
+
+		struct fat_header fatHeader;
+		fread(&fatHeader,sizeof(fatHeader),1,machoFile);
+
+		BOOL swpFat = fatHeader.magic == FAT_CIGAM;
+
+		for(int i = 0; i < s32(fatHeader.nfat_arch, swpFat); i++)
+		{
+			struct fat_arch fatArch;
+			fseek(machoFile,sizeof(fatHeader) + sizeof(fatArch) * i,SEEK_SET);
+			fread(&fatArch,sizeof(fatArch),1,machoFile);
+
+			if(s32(fatArch.cputype, swpFat) != CPU_TYPE_ARM64)
+			{
+				continue;
+			}
+
+			fseek(machoFile,s32(fatArch.offset, swpFat),SEEK_SET);
+			struct mach_header_universal header;
+			fread(&header,sizeof(header),1,machoFile);
+
+			BOOL swp = header.magic == MH_CIGAM_UNIVERSAL;
+
+			// This code is cursed, don't stare at it too long or it will stare back at you
+			uint32_t offset = s32(fatArch.offset, swpFat) + sizeof(header);
+			for(int c = 0; c < s32(header.ncmds, swp); c++)
+			{
+				fseek(machoFile,offset,SEEK_SET);
+				struct load_command cmd;
+				fread(&cmd,sizeof(cmd),1,machoFile);
+				uint32_t normalizedCmd = s32(cmd.cmd,swp);
+				if(normalizedCmd == LC_CODE_SIGNATURE)
+				{
+					struct linkedit_data_command codeSignCommand;
+					fseek(machoFile,offset,SEEK_SET);
+					fread(&codeSignCommand,sizeof(codeSignCommand),1,machoFile);
+					uint32_t codeSignCmdOffset = s32(fatArch.offset, swpFat) + s32(codeSignCommand.dataoff, swp);
+					fseek(machoFile, codeSignCmdOffset, SEEK_SET);
+					struct CSSuperBlob superBlob;
+					fread(&superBlob, sizeof(superBlob), 1, machoFile);
+					if(SWAP32(superBlob.magic) == CS_MAGIC_EMBEDDED_SIGNATURE)
+					{
+						uint32_t itemCount = SWAP32(superBlob.count);
+						for(int i = 0; i < itemCount; i++)
+						{
+							fseek(machoFile, codeSignCmdOffset + sizeof(superBlob) + i * sizeof(struct CSBlob),SEEK_SET);
+							struct CSBlob blob;
+							fread(&blob, sizeof(struct CSBlob), 1, machoFile);
+							fseek(machoFile, codeSignCmdOffset + SWAP32(blob.offset),SEEK_SET);
+							uint32_t blobMagic;
+							fread(&blobMagic, sizeof(uint32_t), 1, machoFile);
+							if(SWAP32(blobMagic) == CS_MAGIC_EMBEDDED_ENTITLEMENTS)
+							{
+								uint32_t entitlementsLengthTmp;
+								fread(&entitlementsLengthTmp, sizeof(uint32_t), 1, machoFile);
+								entitlementsLength = SWAP32(entitlementsLengthTmp);
+								entitlementsData = malloc(entitlementsLength - 8);
+								fread(&entitlementsData[0], entitlementsLength - 8, 1, machoFile);
+								break;
+							}
+						}
+					}
+
+					break;
+				}
+
+				offset += cmd.cmdsize;
+			}
+		}
+	}
+
+	fclose(machoFile);
+
+	NSData* entitlementsNSData = nil;
+
+	if(entitlementsData)
+	{
+		entitlementsNSData = [NSData dataWithBytes:entitlementsData length:entitlementsLength];
+		free(entitlementsData);
+	}
+
+	if(entitlementsNSData)
+	{
+		NSDictionary* plist = [NSPropertyListSerialization propertyListWithData:entitlementsNSData options:NSPropertyListImmutable format:nil error:nil];
+		NSLog(@"%@ dumped entitlements %@", binaryPath, plist);
+		return plist;
+	}
+	else
+	{
+		NSLog(@"Failed to dump entitlements of %@... This is bad", binaryPath);
+	}
 	
-	NSLog(@"- dump error output start -");
-
-	printMultilineNSString(errorOutput);
-
-	NSLog(@"- dump error output end -");
-
-	NSLog(@"- dumped entitlements output start -");
-
-	printMultilineNSString(output);
-
-	NSLog(@"- dumped entitlements output end -");
-
-	return output;
-}
-
-NSDictionary* dumpEntitlementsDict(NSString* binaryPath)
-{
-	NSString* entitlementsString = dumpEntitlements(binaryPath);
-	NSData* plistData = [entitlementsString dataUsingEncoding:NSUTF8StringEncoding];
-	NSError *error;
-	NSPropertyListFormat format;
-	NSDictionary* plist = [NSPropertyListSerialization propertyListWithData:plistData options:NSPropertyListImmutable format:&format error:&error];
-	return plist;
+	return nil;
 }
 
 BOOL signApp(NSString* appPath, NSError** error)
@@ -227,8 +345,8 @@ BOOL signApp(NSString* appPath, NSError** error)
 	NSString* errorOutput;
 	int ldidRet;
 
-	NSString* entitlements = dumpEntitlements(executablePath);
-	if(entitlements.length == 0)
+	NSDictionary* entitlements = dumpEntitlements(executablePath);
+	if(!entitlements)
 	{
 		NSLog(@"app main binary has no entitlements, signing app with fallback entitlements...");
 		// app has no entitlements, sign with fallback entitlements

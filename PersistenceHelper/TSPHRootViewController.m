@@ -76,6 +76,19 @@
 			[refreshAppRegistrationsSpecifier setProperty:@YES forKey:@"enabled"];
 			refreshAppRegistrationsSpecifier.buttonAction = @selector(refreshAppRegistrations);
 			[_specifiers addObject:refreshAppRegistrationsSpecifier];
+
+			PSSpecifier* uninstallTrollStoreSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Uninstall TrollStore"
+										target:self
+										set:nil
+										get:nil
+										detail:nil
+										cell:PSButtonCell
+										edit:nil];
+			uninstallTrollStoreSpecifier.identifier = @"uninstallTrollStore";
+			[uninstallTrollStoreSpecifier setProperty:@YES forKey:@"enabled"];
+			[uninstallTrollStoreSpecifier setProperty:NSClassFromString(@"PSDeleteButtonCell") forKey:@"cellClass"];
+			uninstallTrollStoreSpecifier.buttonAction = @selector(uninstallTrollStorePressed);
+			[_specifiers addObject:uninstallTrollStoreSpecifier];
 		}
 		else
 		{
@@ -201,6 +214,22 @@
 	[downloadTask resume];
 }
 
+- (void)uninstallTrollStorePressed
+{
+	UIAlertController* uninstallWarningAlert = [UIAlertController alertControllerWithTitle:@"Warning" message:@"About to uninstall TrollStore and all of the apps installed by it. Continue?" preferredStyle:UIAlertControllerStyleAlert];
+	
+	UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+	[uninstallWarningAlert addAction:cancelAction];
+
+	UIAlertAction* continueAction = [UIAlertAction actionWithTitle:@"Continue" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action)
+	{
+		spawnRoot(helperPath(), @[@"uninstall-trollstore"]);
+		exit(0);
+	}];
+	[uninstallWarningAlert addAction:continueAction];
+
+	[self presentViewController:uninstallWarningAlert animated:YES completion:nil];
+}
 
 - (void)uninstallPersistenceHelperPressed
 {

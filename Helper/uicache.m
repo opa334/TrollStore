@@ -6,7 +6,7 @@
 
 // uicache on steroids
 
-extern NSDictionary* dumpEntitlementsDict(NSString* binaryPath);
+extern NSDictionary* dumpEntitlements(NSString* binaryPath);
 
 NSDictionary* constructGroupsContainersForEntitlements(NSDictionary* entitlements, BOOL systemGroups)
 {
@@ -118,7 +118,7 @@ void registerPath(char* cPath, int unregister)
 		// Add entitlements
 
 		NSString* appExecutablePath = [path stringByAppendingPathComponent:appInfoPlist[@"CFBundleExecutable"]];
-		NSDictionary* entitlements = dumpEntitlementsDict(appExecutablePath);
+		NSDictionary* entitlements = dumpEntitlements(appExecutablePath);
 		if(entitlements)
 		{
 			dictToRegister[@"Entitlements"] = entitlements;
@@ -185,7 +185,7 @@ void registerPath(char* cPath, int unregister)
 			// Add entitlements
 
 			NSString* pluginExecutablePath = [pluginPath stringByAppendingPathComponent:pluginInfoPlist[@"CFBundleExecutable"]];
-			NSDictionary* pluginEntitlements = dumpEntitlementsDict(pluginExecutablePath);
+			NSDictionary* pluginEntitlements = dumpEntitlements(pluginExecutablePath);
 			if(pluginEntitlements)
 			{
 				pluginDict[@"Entitlements"] = pluginEntitlements;

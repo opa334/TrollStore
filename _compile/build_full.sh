@@ -47,3 +47,19 @@ cd out
 COPYFILE_DISABLE=1 tar -czvf TrollStore.tar ./TrollStore.app
 rm -rf ./TrollStore.app
 cd -
+
+# Step five: compile installer
+xcodebuild -project ../Installer/TrollInstaller/TrollInstaller.xcodeproj -scheme TrollInstaller -destination generic/platform=iOS -archivePath ./out/Installer.xcarchive archive
+
+if [[ -f "./out/Installer.xcarchive/Products/Applications/TrollInstaller.app/embedded.mobileprovision" ]]; then
+    rm ./out/Installer.xcarchive/Products/Applications/TrollInstaller.app/embedded.mobileprovision
+fi
+
+ldid -s ./out/Installer.xcarchive/Products/Applications/TrollInstaller.app
+mkdir ./out/Payload
+mv ./out/Installer.xcarchive/Products/Applications/TrollInstaller.app ./out/Payload/TrollInstaller.app
+cd out
+zip -vr TrollInstaller.ipa Payload
+cd -
+rm -rf ./out/Payload
+rm -rf ./out/Installer.xcarchive
