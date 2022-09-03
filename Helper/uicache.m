@@ -4,89 +4,247 @@
 #import <objc/runtime.h>
 #import "dlfcn.h"
 
-void registerPath(char *path, int unregister)
+// uicache on steroids
+
+extern NSDictionary* dumpEntitlementsDict(NSString* binaryPath);
+
+NSDictionary* constructGroupsContainersForEntitlements(NSDictionary* entitlements, BOOL systemGroups)
 {
-    if(!path) return;
+	if(!entitlements) return nil;
 
-    LSApplicationWorkspace *workspace =
-        [LSApplicationWorkspace defaultWorkspace];
-    if (unregister && ![[NSFileManager defaultManager] fileExistsAtPath:[NSString stringWithUTF8String:path]]) {
-        LSApplicationProxy *app = [LSApplicationProxy
-            applicationProxyForIdentifier:[NSString stringWithUTF8String:path]];
-        if (app.bundleURL)
-            path = (char *)[[app bundleURL] fileSystemRepresentation];
-    }
+	NSString* entitlementForGroups;
+	NSString* mcmClass;
+	if(systemGroups)
+	{
+		entitlementForGroups = @"com.apple.security.system-groups";
+		mcmClass = @"MCMSystemDataContainer";
+	}
+	else
+	{
+		entitlementForGroups = @"com.apple.security.application-groups";
+		mcmClass = @"MCMSharedDataContainer";
+	}
 
-    NSString *rawPath = [NSString stringWithUTF8String:path];
-    rawPath = [rawPath stringByResolvingSymlinksInPath];
+	NSArray* groupIDs = entitlements[entitlementForGroups];
+	if(groupIDs && [groupIDs isKindOfClass:[NSArray class]])
+	{
+		NSMutableDictionary* groupContainers = [NSMutableDictionary new];
 
-    NSDictionary *infoPlist = [NSDictionary
-        dictionaryWithContentsOfFile:
-            [rawPath stringByAppendingPathComponent:@"Info.plist"]];
-    NSString *bundleID = [infoPlist objectForKey:@"CFBundleIdentifier"];
+		for(NSString* groupID in groupIDs)
+		{
+			MCMContainer* container = [NSClassFromString(mcmClass) containerWithIdentifier:groupID createIfNecessary:YES existed:nil error:nil];
+			if(container.url)
+			{
+				groupContainers[groupID] = container.url.path;
+			}
+		}
 
-    NSURL *url = [NSURL fileURLWithPath:rawPath];
+		return groupContainers.copy;
+	}
 
-    if (bundleID && !unregister) {
-        MCMContainer *appContainer = [objc_getClass("MCMAppDataContainer")
-            containerWithIdentifier:bundleID
-                  createIfNecessary:YES
-                            existed:nil
-                              error:nil];
-        NSString *containerPath = [appContainer url].path;
+	return nil;
+}
 
-        NSMutableDictionary *plist = [NSMutableDictionary dictionary];
-        [plist setObject:@"System" forKey:@"ApplicationType"];
-        [plist setObject:@1 forKey:@"BundleNameIsLocalized"];
-        [plist setObject:bundleID forKey:@"CFBundleIdentifier"];
-        [plist setObject:@0 forKey:@"CompatibilityState"];
-        if (containerPath) [plist setObject:containerPath forKey:@"Container"];
-        [plist setObject:@0 forKey:@"IsDeletable"];
-        [plist setObject:rawPath forKey:@"Path"];
+BOOL constructContainerizationForEntitlements(NSDictionary* entitlements)
+{
+	NSNumber* noContainer = entitlements[@"com.apple.private.security.no-container"];
+	if(noContainer && [noContainer isKindOfClass:[NSNumber class]])
+	{
+		if(noContainer.boolValue)
+		{
+			return NO;
+		}
+	}
 
-        NSString *pluginsPath =
-            [rawPath stringByAppendingPathComponent:@"PlugIns"];
-        NSArray *plugins = [[NSFileManager defaultManager]
-            contentsOfDirectoryAtPath:pluginsPath
-                                error:nil];
+	NSNumber* containerRequired = entitlements[@"com.apple.private.security.container-required"];
+	if(containerRequired && [containerRequired isKindOfClass:[NSNumber class]])
+	{
+		if(!containerRequired.boolValue)
+		{
+			return NO;
+		}
+	}
 
-        NSMutableDictionary *bundlePlugins = [NSMutableDictionary dictionary];
-        for (NSString *pluginName in plugins) {
-            NSString *fullPath =
-                [pluginsPath stringByAppendingPathComponent:pluginName];
+	return YES;
+}
 
-            NSDictionary *infoPlist = [NSDictionary
-                dictionaryWithContentsOfFile:
-                    [fullPath stringByAppendingPathComponent:@"Info.plist"]];
-            NSString *pluginBundleID =
-                [infoPlist objectForKey:@"CFBundleIdentifier"];
-            if (!pluginBundleID) continue;
-            MCMContainer *pluginContainer =
-                [objc_getClass("MCMPluginKitPluginDataContainer")
-                    containerWithIdentifier:pluginBundleID
-                          createIfNecessary:YES
-                                    existed:nil
-                                      error:nil];
-            NSString *pluginContainerPath = [pluginContainer url].path;
+NSString* constructTeamIdentifierForEntitlements(NSDictionary* entitlements)
+{
+	NSString* teamIdentifier = entitlements[@"com.apple.developer.team-identifier"];
+	if(teamIdentifier && [teamIdentifier isKindOfClass:[NSString class]])
+	{
+		return teamIdentifier;
+	}
+	return nil;
+}
 
-            NSMutableDictionary *pluginPlist = [NSMutableDictionary dictionary];
-            [pluginPlist setObject:@"PluginKitPlugin"
-                            forKey:@"ApplicationType"];
-            [pluginPlist setObject:@1 forKey:@"BundleNameIsLocalized"];
-            [pluginPlist setObject:pluginBundleID forKey:@"CFBundleIdentifier"];
-            [pluginPlist setObject:@0 forKey:@"CompatibilityState"];
-            [pluginPlist setObject:pluginContainerPath forKey:@"Container"];
-            [pluginPlist setObject:fullPath forKey:@"Path"];
-            [pluginPlist setObject:bundleID forKey:@"PluginOwnerBundleID"];
-            [bundlePlugins setObject:pluginPlist forKey:pluginBundleID];
-        }
-        [plist setObject:bundlePlugins forKey:@"_LSBundlePlugins"];
-        if (![workspace registerApplicationDictionary:plist]) {
-            fprintf(stderr, "Error: Unable to register %s\n", path);
-        }
-    } else {
-        if (![workspace unregisterApplication:url]) {
-            fprintf(stderr, "Error: Unable to unregister %s\n", path);
-        }
-    }
+NSDictionary* constructEnvironmentVariablesForContainerPath(NSString* containerPath)
+{
+	NSString* tmpDir = [containerPath stringByAppendingPathComponent:@"tmp"];
+	return @{
+		@"CFFIXED_USER_HOME" : containerPath,
+		@"HOME" : containerPath,
+		@"TMPDIR" : tmpDir
+	};
+}
+
+void registerPath(char* cPath, int unregister)
+{
+	if(!cPath) return;
+	NSString* path = [NSString stringWithUTF8String:cPath];
+
+	LSApplicationWorkspace* workspace = [LSApplicationWorkspace defaultWorkspace];
+	if(unregister && ![[NSFileManager defaultManager] fileExistsAtPath:path])
+	{
+		LSApplicationProxy* app = [LSApplicationProxy applicationProxyForIdentifier:path];
+		if(app.bundleURL)
+		{
+			path = [app bundleURL].path;
+		}
+	}
+
+	path = [path stringByResolvingSymlinksInPath];
+
+	NSDictionary* appInfoPlist = [NSDictionary dictionaryWithContentsOfFile:[path stringByAppendingPathComponent:@"Info.plist"]];
+	NSString* appBundleID = [appInfoPlist objectForKey:@"CFBundleIdentifier"];
+
+	if(appBundleID && !unregister)
+	{
+		MCMContainer* appContainer = [NSClassFromString(@"MCMAppDataContainer") containerWithIdentifier:appBundleID createIfNecessary:YES existed:nil error:nil];
+		NSString* containerPath = [appContainer url].path;
+
+		NSMutableDictionary* dictToRegister = [NSMutableDictionary dictionary];
+
+		// Add entitlements
+
+		NSString* appExecutablePath = [path stringByAppendingPathComponent:appInfoPlist[@"CFBundleExecutable"]];
+		NSDictionary* entitlements = dumpEntitlementsDict(appExecutablePath);
+		if(entitlements)
+		{
+			dictToRegister[@"Entitlements"] = entitlements;
+		}
+
+		// Misc
+
+		dictToRegister[@"ApplicationType"] = @"System";
+		dictToRegister[@"BundleNameIsLocalized"] = @1;
+		dictToRegister[@"CFBundleIdentifier"] = appBundleID;
+		dictToRegister[@"CodeInfoIdentifier"] = appBundleID;
+		dictToRegister[@"CompatibilityState"] = @0;
+		if(containerPath)
+		{
+			dictToRegister[@"Container"] = containerPath;
+			dictToRegister[@"EnvironmentVariables"] = constructEnvironmentVariablesForContainerPath(containerPath);
+		}
+		dictToRegister[@"IsDeletable"] = @0;
+		dictToRegister[@"Path"] = path;
+		dictToRegister[@"IsContainerized"] = @(constructContainerizationForEntitlements(entitlements));
+
+		NSString* teamIdentifier = constructTeamIdentifierForEntitlements(entitlements);
+		if(teamIdentifier) dictToRegister[@"TeamIdentifier"] = teamIdentifier;
+
+		// Add group containers
+
+		NSDictionary* appGroupContainers = constructGroupsContainersForEntitlements(entitlements, NO);
+		NSDictionary* systemGroupContainers = constructGroupsContainersForEntitlements(entitlements, NO);
+		NSMutableDictionary* groupContainers = [NSMutableDictionary new];
+		[groupContainers addEntriesFromDictionary:appGroupContainers];
+		[groupContainers addEntriesFromDictionary:systemGroupContainers];
+		if(groupContainers.count)
+		{
+			if(appGroupContainers.count)
+			{
+				dictToRegister[@"HasAppGroupContainers"] = @YES;
+			}
+			if(systemGroupContainers.count)
+			{
+				dictToRegister[@"HasSystemGroupContainers"] = @YES;
+			}
+			dictToRegister[@"GroupContainers"] = groupContainers.copy;
+		}
+
+		// Add plugins
+
+		NSString* pluginsPath = [path stringByAppendingPathComponent:@"PlugIns"];
+		NSArray* plugins = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:pluginsPath error:nil];
+
+		NSMutableDictionary* bundlePlugins = [NSMutableDictionary dictionary];
+		for (NSString* pluginName in plugins)
+		{
+			NSString* pluginPath = [pluginsPath stringByAppendingPathComponent:pluginName];
+
+			NSDictionary* pluginInfoPlist = [NSDictionary dictionaryWithContentsOfFile:[pluginPath stringByAppendingPathComponent:@"Info.plist"]];
+			NSString* pluginBundleID = [pluginInfoPlist objectForKey:@"CFBundleIdentifier"];
+
+			if(!pluginBundleID) continue;
+			MCMContainer* pluginContainer = [NSClassFromString(@"MCMPluginKitPluginDataContainer") containerWithIdentifier:pluginBundleID createIfNecessary:YES existed:nil error:nil];
+			NSString* pluginContainerPath = [pluginContainer url].path;
+
+			NSMutableDictionary* pluginDict = [NSMutableDictionary dictionary];
+
+			// Add entitlements
+
+			NSString* pluginExecutablePath = [pluginPath stringByAppendingPathComponent:pluginInfoPlist[@"CFBundleExecutable"]];
+			NSDictionary* pluginEntitlements = dumpEntitlementsDict(pluginExecutablePath);
+			if(pluginEntitlements)
+			{
+				pluginDict[@"Entitlements"] = pluginEntitlements;
+			}
+
+			// Misc
+
+			pluginDict[@"ApplicationType"] = @"PluginKitPlugin";
+			pluginDict[@"BundleNameIsLocalized"] = @1;
+			pluginDict[@"CFBundleIdentifier"] = pluginBundleID;
+			pluginDict[@"CodeInfoIdentifier"] = pluginBundleID;
+			pluginDict[@"CompatibilityState"] = @0;
+			if(pluginContainerPath)
+			{
+				pluginDict[@"Container"] = pluginContainerPath;
+				pluginDict[@"EnvironmentVariables"] = constructEnvironmentVariablesForContainerPath(pluginContainerPath);
+			}
+			pluginDict[@"Path"] = pluginPath;
+			pluginDict[@"PluginOwnerBundleID"] = appBundleID;
+			pluginDict[@"IsContainerized"] = @(constructContainerizationForEntitlements(pluginEntitlements));
+
+			NSString* pluginTeamIdentifier = constructTeamIdentifierForEntitlements(pluginEntitlements);
+			if(pluginTeamIdentifier) pluginDict[@"TeamIdentifier"] = pluginTeamIdentifier;
+
+			// Add plugin group containers
+
+			NSDictionary* pluginAppGroupContainers = constructGroupsContainersForEntitlements(pluginEntitlements, NO);
+			NSDictionary* pluginSystemGroupContainers = constructGroupsContainersForEntitlements(pluginEntitlements, NO);
+			NSMutableDictionary* pluginGroupContainers = [NSMutableDictionary new];
+			[pluginGroupContainers addEntriesFromDictionary:pluginAppGroupContainers];
+			[pluginGroupContainers addEntriesFromDictionary:pluginSystemGroupContainers];
+			if(pluginGroupContainers.count)
+			{
+				if(pluginAppGroupContainers.count)
+				{
+					pluginDict[@"HasAppGroupContainers"] = @YES;
+				}
+				if(pluginSystemGroupContainers.count)
+				{
+					pluginDict[@"HasSystemGroupContainers"] = @YES;
+				}
+				pluginDict[@"GroupContainers"] = pluginGroupContainers.copy;
+			}
+
+			[bundlePlugins setObject:pluginDict forKey:pluginBundleID];
+		}
+		[dictToRegister setObject:bundlePlugins forKey:@"_LSBundlePlugins"];
+
+		if(![workspace registerApplicationDictionary:dictToRegister])
+		{
+			NSLog(@"Error: Unable to register %@", path);
+		}
+	}
+	else
+	{
+		NSURL* url = [NSURL fileURLWithPath:path];
+		if(![workspace unregisterApplication:url])
+		{
+			NSLog(@"Error: Unable to unregister %@", path);
+		}
+	}
 }

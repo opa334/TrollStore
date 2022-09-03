@@ -5,7 +5,7 @@
 
 @implementation TSSceneDelegate
 
-- (void)handleURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts scene:(UIWindowScene*)scene
+- (void)doIPAInstall:(NSString*)ipaPath scene:(UIWindowScene*)scene force:(BOOL)force completion:(void (^)(void))completion
 {
     UIWindow* keyWindow = nil;
     for(UIWindow* window in scene.windows)
@@ -17,6 +17,60 @@
         }
     }
 
+    UIAlertController* infoAlert = [UIAlertController alertControllerWithTitle:@"Installing" message:@"" preferredStyle:UIAlertControllerStyleAlert];
+    UIActivityIndicatorView* activityIndicator = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake(5,5,50,50)];
+    activityIndicator.hidesWhenStopped = YES;
+    activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyleMedium;
+    [activityIndicator startAnimating];
+    [infoAlert.view addSubview:activityIndicator];
+
+    [keyWindow.rootViewController presentViewController:infoAlert animated:YES completion:nil];
+
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
+    {
+        // Install IPA
+        int ret = [[TSApplicationsManager sharedInstance] installIpa:ipaPath force:force];
+        NSError* error = [[TSApplicationsManager sharedInstance] errorForCode:ret];
+
+        NSLog(@"installed app! ret:%d, error: %@", ret, error);
+        dispatch_async(dispatch_get_main_queue(), ^
+        {
+            [infoAlert dismissViewControllerAnimated:YES completion:^
+            {
+                if(ret != 0)
+                {
+                    UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Install Error %d", ret] message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
+                    UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+                    {
+                        if(ret == 171)
+                        {
+                            completion();
+                        }
+                    }];
+                    if(ret == 171)
+                    {
+                        UIAlertAction* forceInstallAction = [UIAlertAction actionWithTitle:@"Force Installation" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+                        {
+                            [self doIPAInstall:ipaPath scene:scene force:YES completion:completion];
+                        }];
+                        [errorAlert addAction:forceInstallAction];
+                    }
+                    [errorAlert addAction:closeAction];
+
+                    [keyWindow.rootViewController presentViewController:errorAlert animated:YES completion:nil];
+                }
+
+                if(ret != 171)
+                {
+                    completion();
+                }
+            }];
+        });
+    });
+}
+
+- (void)handleURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts scene:(UIWindowScene*)scene
+{
     for(UIOpenURLContext* context in URLContexts)
     {
         NSLog(@"openURLContexts %@", context.URL);
@@ -39,43 +93,13 @@
                     respring();
                     exit(0);
                 }
-            };  
+            };
             
             if ([url.pathExtension isEqualToString:@"ipa"])
             {
-                UIAlertController* infoAlert = [UIAlertController alertControllerWithTitle:@"Installing" message:@"" preferredStyle:UIAlertControllerStyleAlert];
-                UIActivityIndicatorView* activityIndicator = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake(5,5,50,50)];
-                activityIndicator.hidesWhenStopped = YES;
-                activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyleMedium;
-                [activityIndicator startAnimating];
-                [infoAlert.view addSubview:activityIndicator];
-
-                [keyWindow.rootViewController presentViewController:infoAlert animated:YES completion:nil];
-
-                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
-                {
-                    // Install IPA
-                    int ret = [[TSApplicationsManager sharedInstance] installIpa:tmpCopyURL.path];
-                    NSError* error = [[TSApplicationsManager sharedInstance] errorForCode:ret];
-
-                    NSLog(@"installed app! ret:%d, error: %@", ret, error);
-                    dispatch_async(dispatch_get_main_queue(), ^
-                    {
-                        [infoAlert dismissViewControllerAnimated:YES completion:^
-                        {
-                            if(ret != 0)
-                            {
-                                UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Install Error %d", ret] message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
-                                UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
-                                [errorAlert addAction:closeAction];
-
-                                [keyWindow.rootViewController presentViewController:errorAlert animated:YES completion:nil];
-                            }
-
-                            doneBlock(NO);
-                        }];
-                    });
-                });
+                [self doIPAInstall:url.path scene:(UIWindowScene*)scene force:NO completion:^{
+                    doneBlock(NO);
+                }];
             }
             else if([url.pathExtension isEqualToString:@"tar"])
             {

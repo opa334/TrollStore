@@ -200,6 +200,16 @@ NSString* dumpEntitlements(NSString* binaryPath)
 	return output;
 }
 
+NSDictionary* dumpEntitlementsDict(NSString* binaryPath)
+{
+	NSString* entitlementsString = dumpEntitlements(binaryPath);
+	NSData* plistData = [entitlementsString dataUsingEncoding:NSUTF8StringEncoding];
+	NSError *error;
+	NSPropertyListFormat format;
+	NSDictionary* plist = [NSPropertyListSerialization propertyListWithData:plistData options:NSPropertyListImmutable format:&format error:&error];
+	return plist;
+}
+
 BOOL signApp(NSString* appPath, NSError** error)
 {
 	if(!isLdidInstalled()) return NO;
@@ -246,8 +256,10 @@ BOOL signApp(NSString* appPath, NSError** error)
 // 170: failed to create container for app bundle
 // 171: a non trollstore app with the same identifier is already installled
 // 172: no info.plist found in app
-int installApp(NSString* appPath, BOOL sign, NSError** error)
+int installApp(NSString* appPath, BOOL sign, BOOL force, NSError** error)
 {
+	NSLog(@"[installApp force = %d]", force);
+
 	NSString* appId = appIdForAppPath(appPath);
 	if(!appId) return 172;
 
@@ -281,11 +293,14 @@ int installApp(NSString* appPath, BOOL sign, NSError** error)
 
 	// Make sure there isn't already an app store app installed with the same identifier
 	NSURL* trollStoreMarkURL = [appContainer.url URLByAppendingPathComponent:@"_TrollStore"];
-	if(existed && !isEmpty && ![trollStoreMarkURL checkResourceIsReachableAndReturnError:nil])
+	if(existed && !isEmpty && ![trollStoreMarkURL checkResourceIsReachableAndReturnError:nil] && !force)
 	{
 		NSLog(@"[installApp] already installed and not a TrollStore app... bailing out");
 		return 171;
 	}
+
+	// Mark app as TrollStore app
+	[[NSFileManager defaultManager] createFileAtPath:trollStoreMarkURL.path contents:[NSData data] attributes:nil];
 
 	// Apply correct permissions
 	NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
@@ -342,7 +357,7 @@ int installApp(NSString* appPath, BOOL sign, NSError** error)
 		while(fileURL = [enumerator nextObject])
 		{
 			// do not under any circumstance delete this file as it makes iOS loose the app registration
-			if([fileURL.lastPathComponent isEqualToString:@".com.apple.mobile_container_manager.metadata.plist"])
+			if([fileURL.lastPathComponent isEqualToString:@".com.apple.mobile_container_manager.metadata.plist"] || [fileURL.lastPathComponent isEqualToString:@"_TrollStore"])
 			{
 				NSLog(@"[installApp] skip removal of %@", fileURL);
 				continue;
@@ -359,9 +374,6 @@ int installApp(NSString* appPath, BOOL sign, NSError** error)
 	BOOL suc = [[NSFileManager defaultManager] copyItemAtPath:appPath toPath:newAppPath error:error];
 	if(suc)
 	{
-		// Mark app as TrollStore app
-		[[NSFileManager defaultManager] createFileAtPath:trollStoreMarkURL.path contents:[NSData data] attributes:nil];
-
 		NSLog(@"[installApp] app installed, adding to icon cache now...");
 		registerPath((char*)newAppPath.UTF8String, 0);
 		return 0;
@@ -382,6 +394,7 @@ int uninstallApp(NSString* appId, NSError** error)
 
 
 	MCMContainer *appContainer = [objc_getClass("MCMAppDataContainer") containerWithIdentifier:appId createIfNecessary:NO existed:nil error:nil];
+	NSLog(@"1");
 	NSString *containerPath = [appContainer url].path;
 	if(containerPath)
 	{
@@ -391,11 +404,11 @@ int uninstallApp(NSString* appId, NSError** error)
 	}
 
 	// delete group container paths
-	for(NSURL* groupURL in [appProxy groupContainerURLs])
+	[[appProxy groupContainerURLs] enumerateKeysAndObjectsUsingBlock:^(NSString* groupID, NSURL* groupURL, BOOL* stop)
 	{
-		[[NSFileManager defaultManager] removeItemAtPath:groupURL.path error:error];
-		NSLog(@"deleting %@", groupURL.path);
-	}
+		[[NSFileManager defaultManager] removeItemAtURL:groupURL error:nil];
+		NSLog(@"deleting %@", groupURL);
+	}];
 
 	// delete app plugin paths
 	for(LSPlugInKitProxy* pluginProxy in appProxy.plugInKitPlugins)
@@ -427,7 +440,7 @@ int uninstallApp(NSString* appId, NSError** error)
 // 166: IPA does not exist or is not accessible
 // 167: IPA does not appear to contain an app
 
-int installIpa(NSString* ipaPath, NSError** error)
+int installIpa(NSString* ipaPath, BOOL force, NSError** error)
 {
 	if(![[NSFileManager defaultManager] fileExistsAtPath:ipaPath]) return 166;
 
@@ -455,7 +468,7 @@ int installIpa(NSString* ipaPath, NSError** error)
 	}
 	if(!tmpAppPath) return 167;
 	
-	int ret = installApp(tmpAppPath, YES, error);
+	int ret = installApp(tmpAppPath, YES, force, error);
 	
 	[[NSFileManager defaultManager] removeItemAtPath:tmpAppPath error:nil];
 
@@ -530,7 +543,7 @@ BOOL installTrollStore(NSString* pathToTar)
 		_installPersistenceHelper(persistenceHelperApp, trollStorePersistenceHelper, trollStoreRootHelper);
 	}
 
-	return installApp(tmpTrollStore, NO, nil);;
+	return installApp(tmpTrollStore, NO, YES, nil);;
 }
 
 void refreshAppRegistrations()
@@ -663,9 +676,19 @@ int main(int argc, char *argv[], char *envp[]) {
 		NSString* cmd = [NSString stringWithUTF8String:argv[1]];
 		if([cmd isEqualToString:@"install"])
 		{
+			NSLog(@"argc = %d", argc);
+			BOOL force = NO;
 			if(argc <= 2) return -3;
+			if(argc > 3)
+			{
+				NSLog(@"argv3 = %s", argv[3]);
+				if(!strcmp(argv[3], "force"))
+				{
+					force = YES;
+				}
+			}
 			NSString* ipaPath = [NSString stringWithUTF8String:argv[2]];
-			ret = installIpa(ipaPath, &error);
+			ret = installIpa(ipaPath, force, &error);
 		} else if([cmd isEqualToString:@"uninstall"])
 		{
 			if(argc <= 2) return -3;

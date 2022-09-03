@@ -67,7 +67,7 @@
         errorDescription = @"Failed to create container for app bundle.";
         break;
         case 171:
-        errorDescription = @"A non-TrollStore app with the same identifier is already installed. If you are absolutely sure it is not, try refreshing icon cache in TrollStore settings or try rebooting your device.";
+        errorDescription = @"A non-TrollStore app with the same identifier is already installed. If you are absolutely sure it is not, you can force install it.";
         break;
         case 172:
         errorDescription = @"The app does not seem to contain an Info.plist";
@@ -78,11 +78,24 @@
     return error;
 }
 
-- (int)installIpa:(NSString*)pathToIpa
+- (int)installIpa:(NSString*)pathToIpa force:(BOOL)force
 {
-    int ret = spawnRoot(helperPath(), @[@"install", pathToIpa]);
+    int ret;
+    if(force)
+    {
+        ret = spawnRoot(helperPath(), @[@"install", pathToIpa, @"force"]);
+    }
+    else
+    {
+        ret = spawnRoot(helperPath(), @[@"install", pathToIpa]);
+    }
     [[NSNotificationCenter defaultCenter] postNotificationName:@"ApplicationsChanged" object:nil];
     return ret;
+}
+
+- (int)installIpa:(NSString*)pathToIpa
+{
+    return [self installIpa:pathToIpa force:NO];
 }
 
 - (int)uninstallApp:(NSString*)appId
