@@ -13,8 +13,10 @@
 #import "unarchive.h"
 #import <spawn.h>
 #import <sys/stat.h>
+#include <sys/utsname.h>
 
 extern uint64_t g_self_proc;
+extern int g_exp_fallback;
 
 void badLog(const char* a, ...)
 {
@@ -154,6 +156,9 @@ int dropRoot(void)
 }
 
 @interface ViewController ()
+@property (weak, nonatomic) IBOutlet UILabel *modelLabel;
+@property (weak, nonatomic) IBOutlet UILabel *exploitValueLabel;
+@property (weak, nonatomic) IBOutlet UIStepper *exploitValueStepper;
 @property (weak, nonatomic) IBOutlet UILabel *statusLabel;
 @end
 
@@ -162,6 +167,47 @@ int dropRoot(void)
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    
+    struct utsname u;
+    uname(&u);
+    NSString* nsMachine = [NSString stringWithUTF8String:u.machine];
+    _modelLabel.text = [NSString stringWithFormat:@"Model: %@", nsMachine];
+}
+
+- (void)reloadExploitValue {
+    _exploitValueLabel.text = [NSString stringWithFormat:@"Exploit value: %d", g_exp_fallback];
+}
+
+- (IBAction)stepperValueChanged:(id)sender {
+    int toSet = _exploitValueStepper.value;
+    if(toSet == 0)
+    {
+        if(g_exp_fallback == -1)
+        {
+            toSet = 1;
+        }
+        else
+        {
+            toSet = -1;
+        }
+    }
+    
+    if(toSet < -1)
+    {
+        toSet = -1;
+    }
+    else if(toSet > 5)
+    {
+        toSet = 5;
+    }
+    
+    if(_exploitValueStepper.value != toSet)
+    {
+        _exploitValueStepper.value = toSet;
+    }
+    
+    g_exp_fallback = toSet;
+    [self reloadExploitValue];
 }
 
 - (void)updateStatus:(NSString*)status

@@ -53,7 +53,25 @@ Installer</string>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Supports iOS 15.0 - 15.1.1" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="s80-eR-fY3">
-                                <rect key="frame" x="110.5" y="249" width="193" height="21"/>
+                                <rect key="frame" x="110.5" y="238" width="193" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Exploit value: -1" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iBq-Z7-lRu">
+                                <rect key="frame" x="87" y="267" width="120" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <stepper opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" maximumValue="100" translatesAutoresizingMaskIntoConstraints="NO" id="DFM-s0-Qyv">
+                                <rect key="frame" x="215" y="261" width="94" height="32"/>
+                                <connections>
+                                    <action selector="stepperValueChanged:" destination="BYZ-38-t0r" eventType="valueChanged" id="R0o-Gd-byG"/>
+                                </connections>
+                            </stepper>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Model: " textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2NU-06-Bab">
+                                <rect key="frame" x="178.5" y="771" width="57" height="21"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
@@ -62,20 +80,29 @@ Installer</string>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
+                            <constraint firstItem="DFM-s0-Qyv" firstAttribute="top" secondItem="s80-eR-fY3" secondAttribute="bottom" constant="2" id="33d-ZZ-Sav"/>
                             <constraint firstItem="Wzs-Lb-XiN" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="3hT-dN-t3y"/>
                             <constraint firstItem="s80-eR-fY3" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="CRX-Jh-CcX"/>
+                            <constraint firstItem="DFM-s0-Qyv" firstAttribute="leading" secondItem="iBq-Z7-lRu" secondAttribute="trailing" constant="8" symbolic="YES" id="Dcz-cB-4cr"/>
+                            <constraint firstItem="iBq-Z7-lRu" firstAttribute="top" secondItem="s80-eR-fY3" secondAttribute="bottom" constant="8" symbolic="YES" id="Du5-wG-JGr"/>
                             <constraint firstItem="JVS-Tm-8qS" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="QXJ-WA-nNb"/>
+                            <constraint firstItem="s80-eR-fY3" firstAttribute="top" secondItem="1a2-Wm-Mcd" secondAttribute="bottom" constant="13.5" id="ZBp-CB-kGa"/>
                             <constraint firstItem="1a2-Wm-Mcd" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="c2Z-Vi-FvF"/>
                             <constraint firstItem="Wzs-Lb-XiN" firstAttribute="centerY" secondItem="6Tk-OE-BBY" secondAttribute="centerY" id="gpk-JM-ZKB"/>
                             <constraint firstItem="1a2-Wm-Mcd" firstAttribute="top" secondItem="JVS-Tm-8qS" secondAttribute="bottom" constant="19" id="kjo-EL-B0G"/>
+                            <constraint firstItem="2NU-06-Bab" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="kxx-DH-gPg"/>
+                            <constraint firstItem="Xbu-Hl-yex" firstAttribute="top" secondItem="2NU-06-Bab" secondAttribute="bottom" constant="8" symbolic="YES" id="lnR-go-0yB"/>
                             <constraint firstItem="Xbu-Hl-yex" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="pWV-JU-YTc"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="Xbu-Hl-yex" secondAttribute="bottom" constant="18" id="rj9-jo-r9k"/>
-                            <constraint firstItem="s80-eR-fY3" firstAttribute="top" secondItem="1a2-Wm-Mcd" secondAttribute="bottom" constant="24.5" id="xcO-OB-aq4"/>
+                            <constraint firstItem="iBq-Z7-lRu" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="87" id="tiJ-nD-cFR"/>
                             <constraint firstItem="JVS-Tm-8qS" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="yNr-e8-C4N"/>
                         </constraints>
                     </view>
                     <connections>
-                        <outlet property="statusLabel" destination="Wzs-Lb-XiN" id="Vrz-B5-otQ"/>
+                        <outlet property="exploitValueLabel" destination="iBq-Z7-lRu" id="oOb-6o-snU"/>
+                        <outlet property="exploitValueStepper" destination="DFM-s0-Qyv" id="bXF-zH-1ha"/>
+                        <outlet property="modelLabel" destination="2NU-06-Bab" id="YDx-Kj-Wuo"/>
+                        <outlet property="statusLabel" destination="2NU-06-Bab" id="YAZ-G0-Avm"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
