@@ -230,6 +230,9 @@ NSDictionary* dumpEntitlements(NSString* binaryPath)
 	struct mach_header_universal header;
 	fread(&header,sizeof(header),1,machoFile);
 
+	uint32_t archOffset = 0;
+
+	// Get arch offset if FAT binary
 	if(header.magic == FAT_MAGIC || header.magic == FAT_CIGAM)
 	{
 		fseek(machoFile,0,SEEK_SET);
@@ -250,57 +253,61 @@ NSDictionary* dumpEntitlements(NSString* binaryPath)
 				continue;
 			}
 
-			fseek(machoFile,s32(fatArch.offset, swpFat),SEEK_SET);
-			struct mach_header_universal header;
-			fread(&header,sizeof(header),1,machoFile);
+			archOffset = s32(fatArch.offset, swpFat);
+			break;
+		}
+	}
 
-			BOOL swp = header.magic == MH_CIGAM_UNIVERSAL;
+	fseek(machoFile,archOffset,SEEK_SET);
+	fread(&header,sizeof(header),1,machoFile);
 
-			// This code is cursed, don't stare at it too long or it will stare back at you
-			uint32_t offset = s32(fatArch.offset, swpFat) + sizeof(header);
-			for(int c = 0; c < s32(header.ncmds, swp); c++)
+	if(header.magic == MH_MAGIC_UNIVERSAL || header.magic == MH_CIGAM_UNIVERSAL)
+	{
+		BOOL swp = header.magic == MH_CIGAM_UNIVERSAL;
+		// This code is cursed, don't stare at it too long or it will stare back at you
+		uint32_t offset = archOffset + sizeof(header);
+		for(int c = 0; c < s32(header.ncmds, swp); c++)
+		{
+			fseek(machoFile,offset,SEEK_SET);
+			struct load_command cmd;
+			fread(&cmd,sizeof(cmd),1,machoFile);
+			uint32_t normalizedCmd = s32(cmd.cmd,swp);
+			if(normalizedCmd == LC_CODE_SIGNATURE)
 			{
+				struct linkedit_data_command codeSignCommand;
 				fseek(machoFile,offset,SEEK_SET);
-				struct load_command cmd;
-				fread(&cmd,sizeof(cmd),1,machoFile);
-				uint32_t normalizedCmd = s32(cmd.cmd,swp);
-				if(normalizedCmd == LC_CODE_SIGNATURE)
+				fread(&codeSignCommand,sizeof(codeSignCommand),1,machoFile);
+				uint32_t codeSignCmdOffset = archOffset + s32(codeSignCommand.dataoff, swp);
+				fseek(machoFile, codeSignCmdOffset, SEEK_SET);
+				struct CSSuperBlob superBlob;
+				fread(&superBlob, sizeof(superBlob), 1, machoFile);
+				if(SWAP32(superBlob.magic) == CS_MAGIC_EMBEDDED_SIGNATURE) // YES starting here everything is swapped no matter if CIGAM or MAGIC...
 				{
-					struct linkedit_data_command codeSignCommand;
-					fseek(machoFile,offset,SEEK_SET);
-					fread(&codeSignCommand,sizeof(codeSignCommand),1,machoFile);
-					uint32_t codeSignCmdOffset = s32(fatArch.offset, swpFat) + s32(codeSignCommand.dataoff, swp);
-					fseek(machoFile, codeSignCmdOffset, SEEK_SET);
-					struct CSSuperBlob superBlob;
-					fread(&superBlob, sizeof(superBlob), 1, machoFile);
-					if(SWAP32(superBlob.magic) == CS_MAGIC_EMBEDDED_SIGNATURE)
+					uint32_t itemCount = SWAP32(superBlob.count);
+					for(int i = 0; i < itemCount; i++)
 					{
-						uint32_t itemCount = SWAP32(superBlob.count);
-						for(int i = 0; i < itemCount; i++)
+						fseek(machoFile, codeSignCmdOffset + sizeof(superBlob) + i * sizeof(struct CSBlob),SEEK_SET);
+						struct CSBlob blob;
+						fread(&blob, sizeof(struct CSBlob), 1, machoFile);
+						fseek(machoFile, codeSignCmdOffset + SWAP32(blob.offset),SEEK_SET);
+						uint32_t blobMagic;
+						fread(&blobMagic, sizeof(uint32_t), 1, machoFile);
+						if(SWAP32(blobMagic) == CS_MAGIC_EMBEDDED_ENTITLEMENTS)
 						{
-							fseek(machoFile, codeSignCmdOffset + sizeof(superBlob) + i * sizeof(struct CSBlob),SEEK_SET);
-							struct CSBlob blob;
-							fread(&blob, sizeof(struct CSBlob), 1, machoFile);
-							fseek(machoFile, codeSignCmdOffset + SWAP32(blob.offset),SEEK_SET);
-							uint32_t blobMagic;
-							fread(&blobMagic, sizeof(uint32_t), 1, machoFile);
-							if(SWAP32(blobMagic) == CS_MAGIC_EMBEDDED_ENTITLEMENTS)
-							{
-								uint32_t entitlementsLengthTmp;
-								fread(&entitlementsLengthTmp, sizeof(uint32_t), 1, machoFile);
-								entitlementsLength = SWAP32(entitlementsLengthTmp);
-								entitlementsData = malloc(entitlementsLength - 8);
-								fread(&entitlementsData[0], entitlementsLength - 8, 1, machoFile);
-								break;
-							}
+							uint32_t entitlementsLengthTmp;
+							fread(&entitlementsLengthTmp, sizeof(uint32_t), 1, machoFile);
+							entitlementsLength = SWAP32(entitlementsLengthTmp);
+							entitlementsData = malloc(entitlementsLength - 8);
+							fread(&entitlementsData[0], entitlementsLength - 8, 1, machoFile);
+							break;
 						}
 					}
-
-					break;
 				}
 
-				offset += cmd.cmdsize;
+				break;
 			}
+
+			offset += cmd.cmdsize;
 		}
 	}
 
