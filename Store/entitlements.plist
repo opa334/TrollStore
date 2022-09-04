@@ -30,5 +30,7 @@
 	<true/>
     <key>com.apple.private.uninstall.deletion</key>
 	<true/>
+	<key>com.apple.private.security.storage.MobileDocuments</key>
+	<true/>
 </dict>
 </plist>

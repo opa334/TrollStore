@@ -100,7 +100,16 @@
 
 - (int)uninstallApp:(NSString*)appId
 {
+    if(!appId) return -200;
     int ret = spawnRoot(helperPath(), @[@"uninstall", appId]);
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"ApplicationsChanged" object:nil];
+    return ret;
+}
+
+- (int)uninstallAppByPath:(NSString*)path
+{
+    if(!path) return -200;
+    int ret = spawnRoot(helperPath(), @[@"uninstall-path", path]);
     [[NSNotificationCenter defaultCenter] postNotificationName:@"ApplicationsChanged" object:nil];
     return ret;
 }

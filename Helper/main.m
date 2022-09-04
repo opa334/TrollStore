@@ -378,6 +378,19 @@ BOOL signApp(NSString* appPath, NSError** error)
 	return ldidRet == 0;
 }
 
+void applyPatchesToInfoDictionary(NSString* appPath)
+{
+	NSURL* appURL = [NSURL fileURLWithPath:appPath];
+	NSURL* infoPlistURL = [appURL URLByAppendingPathComponent:@"Info.plist"];
+	NSMutableDictionary* infoDictM = [[NSDictionary dictionaryWithContentsOfURL:infoPlistURL error:nil] mutableCopy];
+	if(!infoDictM) return;
+
+	// enable notifications
+	infoDictM[@"SBAppUsesLocalNotifications"] = @1;
+
+	[infoDictM writeToURL:infoPlistURL error:nil];
+}
+
 // 170: failed to create container for app bundle
 // 171: a non trollstore app with the same identifier is already installled
 // 172: no info.plist found in app
@@ -387,6 +400,8 @@ int installApp(NSString* appPath, BOOL sign, BOOL force, NSError** error)
 
 	NSString* appId = appIdForAppPath(appPath);
 	if(!appId) return 172;
+
+	applyPatchesToInfoDictionary(appPath);
 
 	if(sign)
 	{
@@ -427,13 +442,25 @@ int installApp(NSString* appPath, BOOL sign, BOOL force, NSError** error)
 	// Mark app as TrollStore app
 	[[NSFileManager defaultManager] createFileAtPath:trollStoreMarkURL.path contents:[NSData data] attributes:nil];
 
-	// Apply correct permissions
-	NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
+	// Apply correct permissions (First run, set everything to 644, owner 33)
 	NSURL* fileURL;
+	NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
 	while(fileURL = [enumerator nextObject])
 	{
 		NSString* filePath = fileURL.path;
 		chown(filePath.UTF8String, 33, 33);
+		chmod(filePath.UTF8String, 0644);
+	}
+
+	// Apply correct permissions (Second run, set executables and directories to 0755)
+	enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
+	while(fileURL = [enumerator nextObject])
+	{
+		NSString* filePath = fileURL.path;
+
+		BOOL isDir;
+		[[NSFileManager defaultManager] fileExistsAtPath:fileURL.path isDirectory:&isDir];
+
 		if([filePath.lastPathComponent isEqualToString:@"Info.plist"])
 		{
 			NSDictionary* infoDictionary = [NSDictionary dictionaryWithContentsOfFile:filePath];
@@ -444,8 +471,13 @@ int installApp(NSString* appPath, BOOL sign, BOOL force, NSError** error)
 				chmod(executablePath.UTF8String, 0755);
 			}
 		}
-		else if([filePath.pathExtension isEqualToString:@"dylib"])
+		else if(!isDir && [filePath.pathExtension isEqualToString:@"dylib"])
 		{
+			chmod(filePath.UTF8String, 0755);
+		}
+		else if(isDir)
+		{
+			// apparently all dirs are writable by default
 			chmod(filePath.UTF8String, 0755);
 		}
 	}
@@ -509,17 +541,10 @@ int installApp(NSString* appPath, BOOL sign, BOOL force, NSError** error)
 	}
 }
 
-int uninstallApp(NSString* appId, NSError** error)
+int uninstallApp(NSString* appPath, NSString* appId, NSError** error)
 {
-	NSString* appPath = appPathForAppId(appId, error);
-	if(!appPath) return 1;
-
 	LSApplicationProxy* appProxy = [LSApplicationProxy applicationProxyForIdentifier:appId];
-	NSLog(@"appProxy: %@", appProxy);
-
-
 	MCMContainer *appContainer = [objc_getClass("MCMAppDataContainer") containerWithIdentifier:appId createIfNecessary:NO existed:nil error:nil];
-	NSLog(@"1");
 	NSString *containerPath = [appContainer url].path;
 	if(containerPath)
 	{
@@ -531,8 +556,8 @@ int uninstallApp(NSString* appId, NSError** error)
 	// delete group container paths
 	[[appProxy groupContainerURLs] enumerateKeysAndObjectsUsingBlock:^(NSString* groupID, NSURL* groupURL, BOOL* stop)
 	{
-		[[NSFileManager defaultManager] removeItemAtURL:groupURL error:nil];
 		NSLog(@"deleting %@", groupURL);
+		[[NSFileManager defaultManager] removeItemAtURL:groupURL error:nil];
 	}];
 
 	// delete app plugin paths
@@ -541,15 +566,15 @@ int uninstallApp(NSString* appId, NSError** error)
 		NSURL* pluginURL = pluginProxy.dataContainerURL;
 		if(pluginURL)
 		{
-			[[NSFileManager defaultManager] removeItemAtPath:pluginURL.path error:error];
-			NSLog(@"deleting %@", pluginURL.path);
+			NSLog(@"deleting %@", pluginURL);
+			[[NSFileManager defaultManager] removeItemAtURL:pluginURL error:error];
 		}
 	}
 
 	// unregister app
 	registerPath((char*)appPath.UTF8String, 1);
-	NSLog(@"deleting %@", [appPath stringByDeletingLastPathComponent]);
 
+	NSLog(@"deleting %@", [appPath stringByDeletingLastPathComponent]);
 	// delete app
 	BOOL deleteSuc = [[NSFileManager defaultManager] removeItemAtPath:[appPath stringByDeletingLastPathComponent] error:error];
 	if(deleteSuc)
@@ -560,6 +585,22 @@ int uninstallApp(NSString* appId, NSError** error)
 	{
 		return 1;
 	}
+}
+
+int uninstallAppByPath(NSString* appPath, NSError** error)
+{
+	if(!appPath) return 1;
+	NSString* appId = appIdForAppPath(appPath);
+	if(!appId) return 1;
+	return uninstallApp(appPath, appId, error);
+}
+
+int uninstallAppById(NSString* appId, NSError** error)
+{
+	if(!appId) return 1;
+	NSString* appPath = appPathForAppId(appId, error);
+	if(!appPath) return 1;
+	return uninstallApp(appPath, appId, error);
 }
 
 // 166: IPA does not exist or is not accessible
@@ -604,7 +645,7 @@ void uninstallAllApps(void)
 {
 	for(NSString* appPath in trollStoreInstalledAppBundlePaths())
 	{
-		uninstallApp(appIdForAppPath(appPath), nil);
+		uninstallAppById(appIdForAppPath(appPath), nil);
 	}
 }
 
@@ -818,8 +859,13 @@ int main(int argc, char *argv[], char *envp[]) {
 		{
 			if(argc <= 2) return -3;
 			NSString* appId = [NSString stringWithUTF8String:argv[2]];
-			ret = uninstallApp(appId, &error);
-		} else if([cmd isEqualToString:@"install-trollstore"])
+			ret = uninstallAppById(appId, &error);
+		} else if([cmd isEqualToString:@"uninstall-path"])
+		{
+			if(argc <= 2) return -3;
+			NSString* appPath = [NSString stringWithUTF8String:argv[2]];
+			ret = uninstallAppByPath(appPath, &error);
+		}else if([cmd isEqualToString:@"install-trollstore"])
 		{
 			if(argc <= 2) return -3;
 			NSString* tsTar = [NSString stringWithUTF8String:argv[2]];

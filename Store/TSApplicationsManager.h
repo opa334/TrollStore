@@ -17,5 +17,6 @@
 - (int)installIpa:(NSString*)pathToIpa force:(BOOL)force;
 - (int)installIpa:(NSString*)pathToIpa;
 - (int)uninstallApp:(NSString*)appId;
+- (int)uninstallAppByPath:(NSString*)path;
 
 @end

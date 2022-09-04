@@ -77,13 +77,8 @@
         NSURL* url = context.URL;
         if (url != nil && [url isFileURL]) {
             [url startAccessingSecurityScopedResource];
-            NSURL* tmpCopyURL = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:url.lastPathComponent]];
-            
-            [[NSFileManager defaultManager] copyItemAtURL:url toURL:tmpCopyURL error:nil];
-
             void (^doneBlock)(BOOL) = ^(BOOL shouldExit)
             {
-                [[NSFileManager defaultManager] removeItemAtURL:tmpCopyURL error:nil];
                 [url stopAccessingSecurityScopedResource];
                 [[NSFileManager defaultManager] removeItemAtURL:url error:nil];
 
@@ -105,7 +100,7 @@
             {
                 // Update TrollStore itself
                 NSLog(@"Updating TrollStore...");
-                int ret = spawnRoot(helperPath(), @[@"install-trollstore", tmpCopyURL.path]);
+                int ret = spawnRoot(helperPath(), @[@"install-trollstore", url.path]);
                 doneBlock(ret == 0);
                 NSLog(@"Updated TrollStore!");
             }
