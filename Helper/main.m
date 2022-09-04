@@ -346,6 +346,19 @@ BOOL signApp(NSString* appPath, NSError** error)
 	NSString* executablePath = [appPath stringByAppendingPathComponent:executable];
 
 	if(![[NSFileManager defaultManager] fileExistsAtPath:executablePath]) return NO;
+    
+    NSObject *tsBundleIsPreSigned = appInfoDict[@"TSBundlePreSigned"];
+    if([tsBundleIsPreSigned isKindOfClass:[NSNumber class]])
+    {
+        
+        // if TSBundlePreSigned = YES, this bundle has been externally signed so we can skip over signing it now
+        NSNumber *tsBundleIsPreSignedNum = (NSNumber *)tsBundleIsPreSigned;
+        if([tsBundleIsPreSignedNum boolValue] == YES)
+        {
+            NSLog(@"[signApp] taking fast path for app which declares it has already been CT-signed (%@)", executablePath);
+            return YES;
+        }
+    }
 
 	NSString* certPath = [trollStoreAppPath() stringByAppendingPathComponent:@"cert.p12"];
 	NSString* certArg = [@"-K" stringByAppendingPathComponent:certPath];
