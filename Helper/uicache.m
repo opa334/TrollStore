@@ -139,6 +139,9 @@ void registerPath(char* cPath, int unregister)
 		dictToRegister[@"IsDeletable"] = @0;
 		dictToRegister[@"Path"] = path;
 		dictToRegister[@"IsContainerized"] = @(constructContainerizationForEntitlements(entitlements));
+		dictToRegister[@"SignerOrganization"] = @"Apple Inc.";
+		dictToRegister[@"SignatureVersion"] = @132352;
+		dictToRegister[@"SignerIdentity"] = @"Apple iPhone OS Application Signing";
 
 		NSString* teamIdentifier = constructTeamIdentifierForEntitlements(entitlements);
 		if(teamIdentifier) dictToRegister[@"TeamIdentifier"] = teamIdentifier;
@@ -206,6 +209,9 @@ void registerPath(char* cPath, int unregister)
 			pluginDict[@"Path"] = pluginPath;
 			pluginDict[@"PluginOwnerBundleID"] = appBundleID;
 			pluginDict[@"IsContainerized"] = @(constructContainerizationForEntitlements(pluginEntitlements));
+			pluginDict[@"SignerOrganization"] = @"Apple Inc.";
+			pluginDict[@"SignatureVersion"] = @132352;
+			pluginDict[@"SignerIdentity"] = @"Apple iPhone OS Application Signing";
 
 			NSString* pluginTeamIdentifier = constructTeamIdentifierForEntitlements(pluginEntitlements);
 			if(pluginTeamIdentifier) pluginDict[@"TeamIdentifier"] = pluginTeamIdentifier;
