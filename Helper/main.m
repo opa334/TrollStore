@@ -24,7 +24,7 @@ extern NSString* BKSOpenApplicationOptionKeyActivateForEvent;
 extern void BKSTerminateApplicationForReasonAndReportWithDescription(NSString *bundleID, int reasonID, bool report, NSString *description);
 
 typedef CF_OPTIONS(uint32_t, SecCSFlags) {
-    kSecCSDefaultFlags = 0
+	kSecCSDefaultFlags = 0
 };
 
 
@@ -202,213 +202,213 @@ int runLdid(NSArray* args, NSString** output, NSString** errorOutput)
 
 SecStaticCodeRef getStaticCodeRef(NSString *binaryPath)
 {
-    if(binaryPath == nil)
-    {
-        return NULL;
-    }
-    
-    CFURLRef binaryURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (__bridge CFStringRef)binaryPath, kCFURLPOSIXPathStyle, false);
-    if(binaryURL == NULL)
-    {
-        NSLog(@"[getStaticCodeRef] failed to get URL to binary %@", binaryPath);
-        return NULL;
-    }
-    
-    SecStaticCodeRef codeRef = NULL;
-    OSStatus result;
-    
-    result = SecStaticCodeCreateWithPathAndAttributes(binaryURL, kSecCSDefaultFlags, NULL, &codeRef);
-    
-    CFRelease(binaryURL);
-    
-    if(result != errSecSuccess)
-    {
-        NSLog(@"[getStaticCodeRef] failed to create static code for binary %@", binaryPath);
-        return NULL;
-    }
-        
-    return codeRef;
+	if(binaryPath == nil)
+	{
+		return NULL;
+	}
+	
+	CFURLRef binaryURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (__bridge CFStringRef)binaryPath, kCFURLPOSIXPathStyle, false);
+	if(binaryURL == NULL)
+	{
+		NSLog(@"[getStaticCodeRef] failed to get URL to binary %@", binaryPath);
+		return NULL;
+	}
+	
+	SecStaticCodeRef codeRef = NULL;
+	OSStatus result;
+	
+	result = SecStaticCodeCreateWithPathAndAttributes(binaryURL, kSecCSDefaultFlags, NULL, &codeRef);
+	
+	CFRelease(binaryURL);
+	
+	if(result != errSecSuccess)
+	{
+		NSLog(@"[getStaticCodeRef] failed to create static code for binary %@", binaryPath);
+		return NULL;
+	}
+		
+	return codeRef;
 }
 
 NSDictionary* dumpEntitlements(SecStaticCodeRef codeRef)
 {
-    if(codeRef == NULL)
-    {
-        NSLog(@"[dumpEntitlements] attempting to dump entitlements without a StaticCodeRef");
-        return nil;
-    }
-    
-    CFDictionaryRef signingInfo = NULL;
-    OSStatus result;
-    
-    result = SecCodeCopySigningInformation(codeRef, kSecCSRequirementInformation, &signingInfo);
-    
-    if(result != errSecSuccess)
-    {
-        NSLog(@"[dumpEntitlements] failed to copy signing info from static code");
-        return nil;
-    }
-    
-    NSDictionary *entitlementsNSDict = nil;
-    
-    CFDictionaryRef entitlements = CFDictionaryGetValue(signingInfo, kSecCodeInfoEntitlementsDict);
-    if(entitlements == NULL)
-    {
-        NSLog(@"[dumpEntitlements] no entitlements specified");
-    }
-    else if(CFGetTypeID(entitlements) != CFDictionaryGetTypeID())
-    {
-        NSLog(@"[dumpEntitlements] invalid entitlements");
-    }
-    else
-    {
-        entitlementsNSDict = (__bridge NSDictionary *)(entitlements);
-        NSLog(@"[dumpEntitlements] dumped %@", entitlementsNSDict);
-    }
-    
-    CFRelease(signingInfo);
-    return entitlementsNSDict;
+	if(codeRef == NULL)
+	{
+		NSLog(@"[dumpEntitlements] attempting to dump entitlements without a StaticCodeRef");
+		return nil;
+	}
+	
+	CFDictionaryRef signingInfo = NULL;
+	OSStatus result;
+	
+	result = SecCodeCopySigningInformation(codeRef, kSecCSRequirementInformation, &signingInfo);
+	
+	if(result != errSecSuccess)
+	{
+		NSLog(@"[dumpEntitlements] failed to copy signing info from static code");
+		return nil;
+	}
+	
+	NSDictionary *entitlementsNSDict = nil;
+	
+	CFDictionaryRef entitlements = CFDictionaryGetValue(signingInfo, kSecCodeInfoEntitlementsDict);
+	if(entitlements == NULL)
+	{
+		NSLog(@"[dumpEntitlements] no entitlements specified");
+	}
+	else if(CFGetTypeID(entitlements) != CFDictionaryGetTypeID())
+	{
+		NSLog(@"[dumpEntitlements] invalid entitlements");
+	}
+	else
+	{
+		entitlementsNSDict = (__bridge NSDictionary *)(entitlements);
+		NSLog(@"[dumpEntitlements] dumped %@", entitlementsNSDict);
+	}
+	
+	CFRelease(signingInfo);
+	return entitlementsNSDict;
 }
 
 NSDictionary* dumpEntitlementsFromBinaryAtPath(NSString *binaryPath)
 {
-    // This function is intended for one-shot checks. Main-event functions should retain/release their own SecStaticCodeRefs
-    
-    if(binaryPath == nil)
-    {
-        return nil;
-    }
-    
-    SecStaticCodeRef codeRef = getStaticCodeRef(binaryPath);
-    if(codeRef == NULL)
-    {
-        return nil;
-    }
-    
-    NSDictionary *entitlements = dumpEntitlements(codeRef);
-    CFRelease(codeRef);
-    
-    return entitlements;
+	// This function is intended for one-shot checks. Main-event functions should retain/release their own SecStaticCodeRefs
+	
+	if(binaryPath == nil)
+	{
+		return nil;
+	}
+	
+	SecStaticCodeRef codeRef = getStaticCodeRef(binaryPath);
+	if(codeRef == NULL)
+	{
+		return nil;
+	}
+	
+	NSDictionary *entitlements = dumpEntitlements(codeRef);
+	CFRelease(codeRef);
+	
+	return entitlements;
 }
 
 BOOL certificateHasDataForExtensionOID(SecCertificateRef certificate, CFStringRef oidString)
 {
-    if(certificate == NULL || oidString == NULL)
-    {
-        NSLog(@"[certificateHasDataForExtensionOID] attempted to check null certificate or OID");
-        return NO;
-    }
-    
-    CFDataRef extensionData = SecCertificateCopyExtensionValue(certificate, oidString, NULL);
-    if(extensionData != NULL)
-    {
-        CFRelease(extensionData);
-        return YES;
-    }
-    
-    return NO;
+	if(certificate == NULL || oidString == NULL)
+	{
+		NSLog(@"[certificateHasDataForExtensionOID] attempted to check null certificate or OID");
+		return NO;
+	}
+	
+	CFDataRef extensionData = SecCertificateCopyExtensionValue(certificate, oidString, NULL);
+	if(extensionData != NULL)
+	{
+		CFRelease(extensionData);
+		return YES;
+	}
+	
+	return NO;
 }
 
 BOOL codeCertChainContainsFakeAppStoreExtensions(SecStaticCodeRef codeRef)
 {
-    if(codeRef == NULL)
-    {
-        NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] attempted to check cert chain of null static code object");
-        return NO;
-    }
-    
-    CFDictionaryRef signingInfo = NULL;
-    OSStatus result;
+	if(codeRef == NULL)
+	{
+		NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] attempted to check cert chain of null static code object");
+		return NO;
+	}
+	
+	CFDictionaryRef signingInfo = NULL;
+	OSStatus result;
   
-    result = SecCodeCopySigningInformation(codeRef, kSecCSSigningInformation, &signingInfo);
+	result = SecCodeCopySigningInformation(codeRef, kSecCSSigningInformation, &signingInfo);
 
-    if(result != errSecSuccess)
-    {
-        NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] failed to copy signing info from static code");
-        return NO;
-    }
-    
-    CFArrayRef certificates = CFDictionaryGetValue(signingInfo, kSecCodeInfoCertificates);
+	if(result != errSecSuccess)
+	{
+		NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] failed to copy signing info from static code");
+		return NO;
+	}
+	
+	CFArrayRef certificates = CFDictionaryGetValue(signingInfo, kSecCodeInfoCertificates);
 	if(certificates == NULL || CFArrayGetCount(certificates) == 0)
 	{
 		return NO;
 	}
 
-    // If we match the standard Apple policy, we are signed properly, but we haven't been deliberately signed with a custom root
-    
-    SecPolicyRef appleAppStorePolicy = SecPolicyCreateWithProperties(kSecPolicyAppleiPhoneApplicationSigning, NULL);
+	// If we match the standard Apple policy, we are signed properly, but we haven't been deliberately signed with a custom root
+	
+	SecPolicyRef appleAppStorePolicy = SecPolicyCreateWithProperties(kSecPolicyAppleiPhoneApplicationSigning, NULL);
 
-    SecTrustRef trust = NULL;
-    SecTrustCreateWithCertificates(certificates, appleAppStorePolicy, &trust);
+	SecTrustRef trust = NULL;
+	SecTrustCreateWithCertificates(certificates, appleAppStorePolicy, &trust);
 
-    if(SecTrustEvaluateWithError(trust, nil))
-    {
-        CFRelease(trust);
-        CFRelease(appleAppStorePolicy);
-        CFRelease(signingInfo);
-        
-        NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] found certificate extension, but was issued by Apple (App Store)");
-        return NO;
-    }
+	if(SecTrustEvaluateWithError(trust, nil))
+	{
+		CFRelease(trust);
+		CFRelease(appleAppStorePolicy);
+		CFRelease(signingInfo);
+		
+		NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] found certificate extension, but was issued by Apple (App Store)");
+		return NO;
+	}
 
-    // We haven't matched Apple, so keep going. Is the app profile signed?
-        
-    CFRelease(appleAppStorePolicy);
-    
-    SecPolicyRef appleProfileSignedPolicy = SecPolicyCreateWithProperties(kSecPolicyAppleiPhoneProfileApplicationSigning, NULL);
-    if(SecTrustSetPolicies(trust, appleProfileSignedPolicy) != errSecSuccess)
-    {
-        NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] error replacing trust policy to check for profile-signed app");
-        CFRelease(trust);
-        CFRelease(signingInfo);
-        return NO;
-    }
-        
-    if(SecTrustEvaluateWithError(trust, nil))
-    {
-        CFRelease(trust);
-        CFRelease(appleProfileSignedPolicy);
-        CFRelease(signingInfo);
-        
-        NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] found certificate extension, but was issued by Apple (profile-signed)");
-        return NO;
-    }
-    
-    // Still haven't matched Apple. Are we using a custom root that would take the App Store fastpath?
-    CFRelease(appleProfileSignedPolicy);
-    
-    // Cert chain should be of length 3
-    if(CFArrayGetCount(certificates) != 3)
-    {
-        CFRelease(signingInfo);
-        
-        NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] certificate chain length != 3");
-        return NO;
-    }
-        
-    // AppleCodeSigning only checks for the codeSigning EKU by default
-    SecPolicyRef customRootPolicy = SecPolicyCreateWithProperties(kSecPolicyAppleCodeSigning, NULL);
-    SecPolicySetOptionsValue(customRootPolicy, CFSTR("LeafMarkerOid"), CFSTR("1.2.840.113635.100.6.1.3"));
-    
-    if(SecTrustSetPolicies(trust, customRootPolicy) != errSecSuccess)
-    {
-        NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] error replacing trust policy to check for custom root");
-        CFRelease(trust);
-        CFRelease(signingInfo);
-        return NO;
-    }
+	// We haven't matched Apple, so keep going. Is the app profile signed?
+		
+	CFRelease(appleAppStorePolicy);
+	
+	SecPolicyRef appleProfileSignedPolicy = SecPolicyCreateWithProperties(kSecPolicyAppleiPhoneProfileApplicationSigning, NULL);
+	if(SecTrustSetPolicies(trust, appleProfileSignedPolicy) != errSecSuccess)
+	{
+		NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] error replacing trust policy to check for profile-signed app");
+		CFRelease(trust);
+		CFRelease(signingInfo);
+		return NO;
+	}
+		
+	if(SecTrustEvaluateWithError(trust, nil))
+	{
+		CFRelease(trust);
+		CFRelease(appleProfileSignedPolicy);
+		CFRelease(signingInfo);
+		
+		NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] found certificate extension, but was issued by Apple (profile-signed)");
+		return NO;
+	}
+	
+	// Still haven't matched Apple. Are we using a custom root that would take the App Store fastpath?
+	CFRelease(appleProfileSignedPolicy);
+	
+	// Cert chain should be of length 3
+	if(CFArrayGetCount(certificates) != 3)
+	{
+		CFRelease(signingInfo);
+		
+		NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] certificate chain length != 3");
+		return NO;
+	}
+		
+	// AppleCodeSigning only checks for the codeSigning EKU by default
+	SecPolicyRef customRootPolicy = SecPolicyCreateWithProperties(kSecPolicyAppleCodeSigning, NULL);
+	SecPolicySetOptionsValue(customRootPolicy, CFSTR("LeafMarkerOid"), CFSTR("1.2.840.113635.100.6.1.3"));
+	
+	if(SecTrustSetPolicies(trust, customRootPolicy) != errSecSuccess)
+	{
+		NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] error replacing trust policy to check for custom root");
+		CFRelease(trust);
+		CFRelease(signingInfo);
+		return NO;
+	}
 
-    // Need to add our certificate chain to the anchor as it is expected to be a self-signed root
-    SecTrustSetAnchorCertificates(trust, certificates);
-    
-    BOOL evaluatesToCustomAnchor = SecTrustEvaluateWithError(trust, nil);
-    NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] app signed with non-Apple certificate %@ using valid custom certificates", evaluatesToCustomAnchor ? @"IS" : @"is NOT");
-    
-    CFRelease(trust);
-    CFRelease(customRootPolicy);
-    CFRelease(signingInfo);
-    
-    return evaluatesToCustomAnchor;
+	// Need to add our certificate chain to the anchor as it is expected to be a self-signed root
+	SecTrustSetAnchorCertificates(trust, certificates);
+	
+	BOOL evaluatesToCustomAnchor = SecTrustEvaluateWithError(trust, nil);
+	NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] app signed with non-Apple certificate %@ using valid custom certificates", evaluatesToCustomAnchor ? @"IS" : @"is NOT");
+	
+	CFRelease(trust);
+	CFRelease(customRootPolicy);
+	CFRelease(signingInfo);
+	
+	return evaluatesToCustomAnchor;
 }
 
 BOOL signApp(NSString* appPath, NSError** error)
@@ -420,33 +420,33 @@ BOOL signApp(NSString* appPath, NSError** error)
 	NSString* executablePath = [appPath stringByAppendingPathComponent:executable];
 
 	if(![[NSFileManager defaultManager] fileExistsAtPath:executablePath]) return NO;
-    
-    NSObject *tsBundleIsPreSigned = appInfoDict[@"TSBundlePreSigned"];
-    if([tsBundleIsPreSigned isKindOfClass:[NSNumber class]])
-    {
-        
-        // if TSBundlePreSigned = YES, this bundle has been externally signed so we can skip over signing it now
-        NSNumber *tsBundleIsPreSignedNum = (NSNumber *)tsBundleIsPreSigned;
-        if([tsBundleIsPreSignedNum boolValue] == YES)
-        {
-            NSLog(@"[signApp] taking fast path for app which declares it has already been signed (%@)", executablePath);
-            return YES;
-        }
-    }
-    
-    SecStaticCodeRef codeRef = getStaticCodeRef(executablePath);
-    if(codeRef != NULL)
-    {
+	
+	NSObject *tsBundleIsPreSigned = appInfoDict[@"TSBundlePreSigned"];
+	if([tsBundleIsPreSigned isKindOfClass:[NSNumber class]])
+	{
+		
+		// if TSBundlePreSigned = YES, this bundle has been externally signed so we can skip over signing it now
+		NSNumber *tsBundleIsPreSignedNum = (NSNumber *)tsBundleIsPreSigned;
+		if([tsBundleIsPreSignedNum boolValue] == YES)
+		{
+			NSLog(@"[signApp] taking fast path for app which declares it has already been signed (%@)", executablePath);
+			return YES;
+		}
+	}
+	
+	SecStaticCodeRef codeRef = getStaticCodeRef(executablePath);
+	if(codeRef != NULL)
+	{
 		if(codeCertChainContainsFakeAppStoreExtensions(codeRef))
 		{
 			NSLog(@"[signApp] taking fast path for app signed using a custom root certificate (%@)", executablePath);
 			CFRelease(codeRef);
 			return YES;
 		}
-    }
+	}
 	else
 	{
-        NSLog(@"[signApp] failed to get static code, can't derive entitlements from %@, continuing anways...", executablePath);
+		NSLog(@"[signApp] failed to get static code, can't derive entitlements from %@, continuing anways...", executablePath);
 	}
 
 	if(!isLdidInstalled()) return NO;
@@ -456,9 +456,9 @@ BOOL signApp(NSString* appPath, NSError** error)
 	NSString* errorOutput;
 	int ldidRet;
 
-    NSDictionary* entitlements = dumpEntitlements(codeRef);
-    CFRelease(codeRef);
-    
+	NSDictionary* entitlements = dumpEntitlements(codeRef);
+	CFRelease(codeRef);
+	
 	if(!entitlements)
 	{
 		NSLog(@"app main binary has no entitlements, signing app with fallback entitlements...");
