@@ -202,7 +202,6 @@ int runLdid(NSArray* args, NSString** output, NSString** errorOutput)
 
 SecStaticCodeRef getStaticCodeRef(NSString *binaryPath)
 {
-    
     if(binaryPath == nil)
     {
         return NULL;
@@ -233,7 +232,6 @@ SecStaticCodeRef getStaticCodeRef(NSString *binaryPath)
 
 NSDictionary* dumpEntitlements(SecStaticCodeRef codeRef)
 {
-    
     if(codeRef == NULL)
     {
         NSLog(@"[dumpEntitlements] attempting to dump entitlements without a StaticCodeRef");
@@ -295,7 +293,6 @@ NSDictionary* dumpEntitlementsFromBinaryAtPath(NSString *binaryPath)
 
 BOOL certificateHasDataForExtensionOID(SecCertificateRef certificate, CFStringRef oidString)
 {
-    
     if(certificate == NULL || oidString == NULL)
     {
         NSLog(@"[certificateHasDataForExtensionOID] attempted to check null certificate or OID");
@@ -314,7 +311,6 @@ BOOL certificateHasDataForExtensionOID(SecCertificateRef certificate, CFStringRe
 
 BOOL codeCertChainContainsFakeAppStoreExtensions(SecStaticCodeRef codeRef)
 {
-    
     if(codeRef == NULL)
     {
         NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] attempted to check cert chain of null static code object");
@@ -325,7 +321,7 @@ BOOL codeCertChainContainsFakeAppStoreExtensions(SecStaticCodeRef codeRef)
     OSStatus result;
   
     result = SecCodeCopySigningInformation(codeRef, kSecCSSigningInformation, &signingInfo);
-    
+
     if(result != errSecSuccess)
     {
         NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] failed to copy signing info from static code");
@@ -333,14 +329,18 @@ BOOL codeCertChainContainsFakeAppStoreExtensions(SecStaticCodeRef codeRef)
     }
     
     CFArrayRef certificates = CFDictionaryGetValue(signingInfo, kSecCodeInfoCertificates);
+	if(certificates == NULL || CFArrayGetCount(certificates) == 0)
+	{
+		return NO;
+	}
 
     // If we match the standard Apple policy, we are signed properly, but we haven't been deliberately signed with a custom root
     
     SecPolicyRef appleAppStorePolicy = SecPolicyCreateWithProperties(kSecPolicyAppleiPhoneApplicationSigning, NULL);
-    
+
     SecTrustRef trust = NULL;
     SecTrustCreateWithCertificates(certificates, appleAppStorePolicy, &trust);
-    
+
     if(SecTrustEvaluateWithError(trust, nil))
     {
         CFRelease(trust);
@@ -350,7 +350,7 @@ BOOL codeCertChainContainsFakeAppStoreExtensions(SecStaticCodeRef codeRef)
         NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] found certificate extension, but was issued by Apple (App Store)");
         return NO;
     }
-    
+
     // We haven't matched Apple, so keep going. Is the app profile signed?
         
     CFRelease(appleAppStorePolicy);
@@ -397,7 +397,7 @@ BOOL codeCertChainContainsFakeAppStoreExtensions(SecStaticCodeRef codeRef)
         CFRelease(signingInfo);
         return NO;
     }
-    
+
     // Need to add our certificate chain to the anchor as it is expected to be a self-signed root
     SecTrustSetAnchorCertificates(trust, certificates);
     
@@ -413,8 +413,6 @@ BOOL codeCertChainContainsFakeAppStoreExtensions(SecStaticCodeRef codeRef)
 
 BOOL signApp(NSString* appPath, NSError** error)
 {
-	if(!isLdidInstalled()) return NO;
-
 	NSDictionary* appInfoDict = [NSDictionary dictionaryWithContentsOfFile:[appPath stringByAppendingPathComponent:@"Info.plist"]];
 	if(!appInfoDict) return NO;
 
@@ -437,18 +435,21 @@ BOOL signApp(NSString* appPath, NSError** error)
     }
     
     SecStaticCodeRef codeRef = getStaticCodeRef(executablePath);
-    if(codeRef == NULL)
+    if(codeRef != NULL)
     {
-        NSLog(@"[signApp] failed to get static code, can't derive entitlements from %@", executablePath);
-        return NO;
+		if(codeCertChainContainsFakeAppStoreExtensions(codeRef))
+		{
+			NSLog(@"[signApp] taking fast path for app signed using a custom root certificate (%@)", executablePath);
+			CFRelease(codeRef);
+			return YES;
+		}
     }
-    
-    if(codeCertChainContainsFakeAppStoreExtensions(codeRef))
-    {
-        NSLog(@"[signApp] taking fast path for app signed using a custom root certificate (%@)", executablePath);
-        CFRelease(codeRef);
-        return YES;
-    }
+	else
+	{
+        NSLog(@"[signApp] failed to get static code, can't derive entitlements from %@, continuing anways...", executablePath);
+	}
+
+	if(!isLdidInstalled()) return NO;
 
 	NSString* certPath = [trollStoreAppPath() stringByAppendingPathComponent:@"cert.p12"];
 	NSString* certArg = [@"-K" stringByAppendingPathComponent:certPath];
@@ -499,6 +500,7 @@ void applyPatchesToInfoDictionary(NSString* appPath)
 // 170: failed to create container for app bundle
 // 171: a non trollstore app with the same identifier is already installled
 // 172: no info.plist found in app
+// 173: app is not signed and cannot be signed because ldid not installed or didn't work
 int installApp(NSString* appPath, BOOL sign, BOOL force, NSError** error)
 {
 	NSLog(@"[installApp force = %d]", force);
@@ -510,8 +512,7 @@ int installApp(NSString* appPath, BOOL sign, BOOL force, NSError** error)
 
 	if(sign)
 	{
-		// if it fails to sign, we don't care
-		signApp(appPath, error);
+		if(!signApp(appPath, error)) return 173;
 	}
 
 	BOOL existed;
