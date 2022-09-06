@@ -72,6 +72,9 @@
         case 172:
         errorDescription = @"The app does not seem to contain an Info.plist";
         break;
+        case 173:
+        errorDescription = @"The app is not signed with a fake CoreTrust certificate and ldid does not seem to be installed. Make sure ldid is installed in the settings tab and try again.";
+        break;
     }
 
     NSError* error = [NSError errorWithDomain:TrollStoreErrorDomain code:code userInfo:@{NSLocalizedDescriptionKey : errorDescription}];
