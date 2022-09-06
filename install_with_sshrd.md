@@ -31,7 +31,7 @@
 
 15. Run `scp -P222 trollstorehelper root@localhost:/mnt2/containers/Bundle/Application/<udid>/<appname>.app/trollstorehelper`
 
-16. In the window you sshed into the phone in, run `reboot`, your phone will reboot into iOS
+16. In the window you sshed into the phone in, run `chown 33 <appname> & chmod 755 <appname> trollstorehelper`, `chown 0 trollstorehelper`, and run `reboot`, your phone will reboot into iOS
 
 17. Open up the app you replaced, it should show some buttons like install trollstore, click install trollstore
 
