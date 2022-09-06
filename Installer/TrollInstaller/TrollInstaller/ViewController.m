@@ -14,6 +14,7 @@
 #import <spawn.h>
 #import <sys/stat.h>
 #include <sys/utsname.h>
+#import <sys/sysctl.h>
 
 extern uint64_t g_self_proc;
 extern int g_exp_fallback;
@@ -171,7 +172,12 @@ int dropRoot(void)
     struct utsname u;
     uname(&u);
     NSString* nsMachine = [NSString stringWithUTF8String:u.machine];
-    _modelLabel.text = [NSString stringWithFormat:@"Model: %@", nsMachine];
+    
+    cpu_subtype_t cpuFamily = 0;
+    size_t cpuFamilySize = sizeof(cpuFamily);
+    sysctlbyname("hw.cpufamily", &cpuFamily, &cpuFamilySize, NULL, 0);
+    
+    _modelLabel.text = [NSString stringWithFormat:@"Model: %@, CPU: 0x%X", nsMachine, cpuFamily];
 }
 
 - (void)reloadExploitValue {
@@ -212,6 +218,8 @@ int dropRoot(void)
 
 - (void)updateStatus:(NSString*)status
 {
+    NSLog(@"status: %@", status);
+    usleep(1000);
     dispatch_async(dispatch_get_main_queue(), ^{
         self.statusLabel.text = status;
     });
