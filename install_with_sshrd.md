@@ -16,9 +16,23 @@
 
 8. Run `cd /mnt2/containers/Bundle/Application`
 
-9. For the app you would like to replace, run `grep -r "appname" .`
-    - you can put your own shsh for the second argument, although option
+9. For the app you would like to replace, run `grep -r "<appname>" .`
+    - you can put something like Tips, must be a deletable system app
 
-10. Depending on the app you chose, doesn't have to be tips, a look for a filepath that looks like <udid>/appname.app
+10. look for a filepath that looks like ./<udid>/<appname>.app
 
-11. run `cd <udid>/appname.app
+11. run `cd <udid>/<appname>.app`
+
+12. run `mv <appname>appname <appname>_TROLLSTORE_BACKUP`
+
+13. Now, in another terminal window, cd into the folder of the tar you extracted earlier
+
+14. Run `scp -P222 PersistenceHelper root@localhost:/mnt2/containers/Bundle/Application/<udid>/<appname>.app/<appname>`
+
+15. Run `scp -P222 trollstorehelper root@localhost:/mnt2/containers/Bundle/Application/<udid>/<appname>.app/trollstorehelper`
+
+16. In the window you sshed into the phone in, run `reboot`, your phone will reboot into iOS
+
+17. Open up the app you replaced, it should show some buttons like install trollstore, click install trollstore
+
+18. TrollStore is installed!
