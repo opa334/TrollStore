@@ -6,7 +6,7 @@
 
 // uicache on steroids
 
-extern NSDictionary* dumpEntitlements(NSString* binaryPath);
+extern NSDictionary* dumpEntitlementsFromBinaryAtPath(NSString* binaryPath);
 
 NSDictionary* constructGroupsContainersForEntitlements(NSDictionary* entitlements, BOOL systemGroups)
 {
@@ -118,7 +118,7 @@ void registerPath(char* cPath, int unregister)
 		// Add entitlements
 
 		NSString* appExecutablePath = [path stringByAppendingPathComponent:appInfoPlist[@"CFBundleExecutable"]];
-		NSDictionary* entitlements = dumpEntitlements(appExecutablePath);
+        NSDictionary* entitlements = dumpEntitlementsFromBinaryAtPath(appExecutablePath);
 		if(entitlements)
 		{
 			dictToRegister[@"Entitlements"] = entitlements;
@@ -139,6 +139,9 @@ void registerPath(char* cPath, int unregister)
 		dictToRegister[@"IsDeletable"] = @0;
 		dictToRegister[@"Path"] = path;
 		dictToRegister[@"IsContainerized"] = @(constructContainerizationForEntitlements(entitlements));
+		dictToRegister[@"SignerOrganization"] = @"Apple Inc.";
+		dictToRegister[@"SignatureVersion"] = @132352;
+		dictToRegister[@"SignerIdentity"] = @"Apple iPhone OS Application Signing";
 
 		NSString* teamIdentifier = constructTeamIdentifierForEntitlements(entitlements);
 		if(teamIdentifier) dictToRegister[@"TeamIdentifier"] = teamIdentifier;
@@ -185,7 +188,7 @@ void registerPath(char* cPath, int unregister)
 			// Add entitlements
 
 			NSString* pluginExecutablePath = [pluginPath stringByAppendingPathComponent:pluginInfoPlist[@"CFBundleExecutable"]];
-			NSDictionary* pluginEntitlements = dumpEntitlements(pluginExecutablePath);
+            NSDictionary* pluginEntitlements = dumpEntitlementsFromBinaryAtPath(pluginExecutablePath);
 			if(pluginEntitlements)
 			{
 				pluginDict[@"Entitlements"] = pluginEntitlements;
@@ -206,6 +209,9 @@ void registerPath(char* cPath, int unregister)
 			pluginDict[@"Path"] = pluginPath;
 			pluginDict[@"PluginOwnerBundleID"] = appBundleID;
 			pluginDict[@"IsContainerized"] = @(constructContainerizationForEntitlements(pluginEntitlements));
+			pluginDict[@"SignerOrganization"] = @"Apple Inc.";
+			pluginDict[@"SignatureVersion"] = @132352;
+			pluginDict[@"SignerIdentity"] = @"Apple iPhone OS Application Signing";
 
 			NSString* pluginTeamIdentifier = constructTeamIdentifierForEntitlements(pluginEntitlements);
 			if(pluginTeamIdentifier) pluginDict[@"TeamIdentifier"] = pluginTeamIdentifier;

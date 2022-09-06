@@ -8,52 +8,10 @@
 #import <objc/runtime.h>
 #import "CoreServices.h"
 #import "Shared.h"
-#import <mach-o/getsect.h>
-#import <mach-o/dyld.h>
-#import <mach/mach.h>
-#import <mach-o/loader.h>
-#import <mach-o/nlist.h>
-#import <mach-o/reloc.h>
-#import <mach-o/dyld_images.h>
-#import <mach-o/fat.h>
 #import <sys/utsname.h>
 
 #import <SpringBoardServices/SpringBoardServices.h>
-
-#ifdef __LP64__
-#define segment_command_universal segment_command_64
-#define mach_header_universal mach_header_64
-#define MH_MAGIC_UNIVERSAL MH_MAGIC_64
-#define MH_CIGAM_UNIVERSAL MH_CIGAM_64
-#else
-#define segment_command_universal segment_command
-#define mach_header_universal mach_header
-#define MH_MAGIC_UNIVERSAL MH_MAGIC
-#define MH_CIGAM_UNIVERSAL MH_CIGAM
-#endif
-
-#define SWAP32(x) ((((x) & 0xff000000) >> 24) | (((x) & 0xff0000) >> 8) | (((x) & 0xff00) << 8) | (((x) & 0xff) << 24))
-uint32_t s32(uint32_t toSwap, BOOL shouldSwap)
-{
-	return shouldSwap ? SWAP32(toSwap) : toSwap;
-}
-
-#define CPU_SUBTYPE_ARM64E_NEW_ABI 0x80000002
-
-struct CSSuperBlob {
-	uint32_t magic;
-	uint32_t length;
-	uint32_t count;
-};
-
-struct CSBlob {
-	uint32_t type;
-	uint32_t offset;
-};
-
-#define CS_MAGIC_EMBEDDED_SIGNATURE 0xfade0cc0
-#define CS_MAGIC_EMBEDDED_SIGNATURE_REVERSED 0xc00cdefa
-#define CS_MAGIC_EMBEDDED_ENTITLEMENTS 0xfade7171
+#import <Security/Security.h>
 
 
 extern mach_msg_return_t SBReloadIconForIdentifier(mach_port_t machport, const char* identifier);
@@ -64,6 +22,27 @@ extern NSString* BKSActivateForEventOptionTypeBackgroundContentFetching;
 extern NSString* BKSOpenApplicationOptionKeyActivateForEvent;
 
 extern void BKSTerminateApplicationForReasonAndReportWithDescription(NSString *bundleID, int reasonID, bool report, NSString *description);
+
+typedef CF_OPTIONS(uint32_t, SecCSFlags) {
+	kSecCSDefaultFlags = 0
+};
+
+
+#define kSecCSRequirementInformation 1 << 2
+#define kSecCSSigningInformation 1 << 1
+
+typedef struct __SecCode const *SecStaticCodeRef;
+
+extern CFStringRef kSecCodeInfoEntitlementsDict;
+extern CFStringRef kSecCodeInfoCertificates;
+extern CFStringRef kSecPolicyAppleiPhoneApplicationSigning;
+extern CFStringRef kSecPolicyAppleiPhoneProfileApplicationSigning;
+extern CFStringRef kSecPolicyLeafMarkerOid;
+
+OSStatus SecStaticCodeCreateWithPathAndAttributes(CFURLRef path, SecCSFlags flags, CFDictionaryRef attributes, SecStaticCodeRef *staticCode);
+OSStatus SecCodeCopySigningInformation(SecStaticCodeRef code, SecCSFlags flags, CFDictionaryRef *information);
+CFDataRef SecCertificateCopyExtensionValue(SecCertificateRef certificate, CFTypeRef extensionOID, bool *isCritical);
+void SecPolicySetOptionsValue(SecPolicyRef policy, CFStringRef key, CFTypeRef value);
 
 #define kCFPreferencesNoContainer CFSTR("kCFPreferencesNoContainer")
 
@@ -221,117 +200,219 @@ int runLdid(NSArray* args, NSString** output, NSString** errorOutput)
 	return WEXITSTATUS(status);
 }
 
-NSDictionary* dumpEntitlements(NSString* binaryPath)
+SecStaticCodeRef getStaticCodeRef(NSString *binaryPath)
 {
-	char* entitlementsData = NULL;
-	uint32_t entitlementsLength = 0;
-
-	FILE* machoFile = fopen(binaryPath.UTF8String, "rb");
-	struct mach_header_universal header;
-	fread(&header,sizeof(header),1,machoFile);
-
-	if(header.magic == FAT_MAGIC || header.magic == FAT_CIGAM)
+	if(binaryPath == nil)
 	{
-		fseek(machoFile,0,SEEK_SET);
-
-		struct fat_header fatHeader;
-		fread(&fatHeader,sizeof(fatHeader),1,machoFile);
-
-		BOOL swpFat = fatHeader.magic == FAT_CIGAM;
-
-		for(int i = 0; i < s32(fatHeader.nfat_arch, swpFat); i++)
-		{
-			struct fat_arch fatArch;
-			fseek(machoFile,sizeof(fatHeader) + sizeof(fatArch) * i,SEEK_SET);
-			fread(&fatArch,sizeof(fatArch),1,machoFile);
-
-			if(s32(fatArch.cputype, swpFat) != CPU_TYPE_ARM64)
-			{
-				continue;
-			}
-
-			fseek(machoFile,s32(fatArch.offset, swpFat),SEEK_SET);
-			struct mach_header_universal header;
-			fread(&header,sizeof(header),1,machoFile);
-
-			BOOL swp = header.magic == MH_CIGAM_UNIVERSAL;
-
-			// This code is cursed, don't stare at it too long or it will stare back at you
-			uint32_t offset = s32(fatArch.offset, swpFat) + sizeof(header);
-			for(int c = 0; c < s32(header.ncmds, swp); c++)
-			{
-				fseek(machoFile,offset,SEEK_SET);
-				struct load_command cmd;
-				fread(&cmd,sizeof(cmd),1,machoFile);
-				uint32_t normalizedCmd = s32(cmd.cmd,swp);
-				if(normalizedCmd == LC_CODE_SIGNATURE)
-				{
-					struct linkedit_data_command codeSignCommand;
-					fseek(machoFile,offset,SEEK_SET);
-					fread(&codeSignCommand,sizeof(codeSignCommand),1,machoFile);
-					uint32_t codeSignCmdOffset = s32(fatArch.offset, swpFat) + s32(codeSignCommand.dataoff, swp);
-					fseek(machoFile, codeSignCmdOffset, SEEK_SET);
-					struct CSSuperBlob superBlob;
-					fread(&superBlob, sizeof(superBlob), 1, machoFile);
-					if(SWAP32(superBlob.magic) == CS_MAGIC_EMBEDDED_SIGNATURE)
-					{
-						uint32_t itemCount = SWAP32(superBlob.count);
-						for(int i = 0; i < itemCount; i++)
-						{
-							fseek(machoFile, codeSignCmdOffset + sizeof(superBlob) + i * sizeof(struct CSBlob),SEEK_SET);
-							struct CSBlob blob;
-							fread(&blob, sizeof(struct CSBlob), 1, machoFile);
-							fseek(machoFile, codeSignCmdOffset + SWAP32(blob.offset),SEEK_SET);
-							uint32_t blobMagic;
-							fread(&blobMagic, sizeof(uint32_t), 1, machoFile);
-							if(SWAP32(blobMagic) == CS_MAGIC_EMBEDDED_ENTITLEMENTS)
-							{
-								uint32_t entitlementsLengthTmp;
-								fread(&entitlementsLengthTmp, sizeof(uint32_t), 1, machoFile);
-								entitlementsLength = SWAP32(entitlementsLengthTmp);
-								entitlementsData = malloc(entitlementsLength - 8);
-								fread(&entitlementsData[0], entitlementsLength - 8, 1, machoFile);
-								break;
-							}
-						}
-					}
-
-					break;
-				}
-
-				offset += cmd.cmdsize;
-			}
-		}
+		return NULL;
 	}
-
-	fclose(machoFile);
-
-	NSData* entitlementsNSData = nil;
-
-	if(entitlementsData)
+	
+	CFURLRef binaryURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (__bridge CFStringRef)binaryPath, kCFURLPOSIXPathStyle, false);
+	if(binaryURL == NULL)
 	{
-		entitlementsNSData = [NSData dataWithBytes:entitlementsData length:entitlementsLength];
-		free(entitlementsData);
+		NSLog(@"[getStaticCodeRef] failed to get URL to binary %@", binaryPath);
+		return NULL;
 	}
-
-	if(entitlementsNSData)
+	
+	SecStaticCodeRef codeRef = NULL;
+	OSStatus result;
+	
+	result = SecStaticCodeCreateWithPathAndAttributes(binaryURL, kSecCSDefaultFlags, NULL, &codeRef);
+	
+	CFRelease(binaryURL);
+	
+	if(result != errSecSuccess)
 	{
-		NSDictionary* plist = [NSPropertyListSerialization propertyListWithData:entitlementsNSData options:NSPropertyListImmutable format:nil error:nil];
-		NSLog(@"%@ dumped entitlements %@", binaryPath, plist);
-		return plist;
+		NSLog(@"[getStaticCodeRef] failed to create static code for binary %@", binaryPath);
+		return NULL;
+	}
+		
+	return codeRef;
+}
+
+NSDictionary* dumpEntitlements(SecStaticCodeRef codeRef)
+{
+	if(codeRef == NULL)
+	{
+		NSLog(@"[dumpEntitlements] attempting to dump entitlements without a StaticCodeRef");
+		return nil;
+	}
+	
+	CFDictionaryRef signingInfo = NULL;
+	OSStatus result;
+	
+	result = SecCodeCopySigningInformation(codeRef, kSecCSRequirementInformation, &signingInfo);
+	
+	if(result != errSecSuccess)
+	{
+		NSLog(@"[dumpEntitlements] failed to copy signing info from static code");
+		return nil;
+	}
+	
+	NSDictionary *entitlementsNSDict = nil;
+	
+	CFDictionaryRef entitlements = CFDictionaryGetValue(signingInfo, kSecCodeInfoEntitlementsDict);
+	if(entitlements == NULL)
+	{
+		NSLog(@"[dumpEntitlements] no entitlements specified");
+	}
+	else if(CFGetTypeID(entitlements) != CFDictionaryGetTypeID())
+	{
+		NSLog(@"[dumpEntitlements] invalid entitlements");
 	}
 	else
 	{
-		NSLog(@"Failed to dump entitlements of %@... This is bad", binaryPath);
+		entitlementsNSDict = (__bridge NSDictionary *)(entitlements);
+		NSLog(@"[dumpEntitlements] dumped %@", entitlementsNSDict);
 	}
 	
-	return nil;
+	CFRelease(signingInfo);
+	return entitlementsNSDict;
+}
+
+NSDictionary* dumpEntitlementsFromBinaryAtPath(NSString *binaryPath)
+{
+	// This function is intended for one-shot checks. Main-event functions should retain/release their own SecStaticCodeRefs
+	
+	if(binaryPath == nil)
+	{
+		return nil;
+	}
+	
+	SecStaticCodeRef codeRef = getStaticCodeRef(binaryPath);
+	if(codeRef == NULL)
+	{
+		return nil;
+	}
+	
+	NSDictionary *entitlements = dumpEntitlements(codeRef);
+	CFRelease(codeRef);
+	
+	return entitlements;
+}
+
+BOOL certificateHasDataForExtensionOID(SecCertificateRef certificate, CFStringRef oidString)
+{
+	if(certificate == NULL || oidString == NULL)
+	{
+		NSLog(@"[certificateHasDataForExtensionOID] attempted to check null certificate or OID");
+		return NO;
+	}
+	
+	CFDataRef extensionData = SecCertificateCopyExtensionValue(certificate, oidString, NULL);
+	if(extensionData != NULL)
+	{
+		CFRelease(extensionData);
+		return YES;
+	}
+	
+	return NO;
+}
+
+BOOL codeCertChainContainsFakeAppStoreExtensions(SecStaticCodeRef codeRef)
+{
+	if(codeRef == NULL)
+	{
+		NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] attempted to check cert chain of null static code object");
+		return NO;
+	}
+	
+	CFDictionaryRef signingInfo = NULL;
+	OSStatus result;
+  
+	result = SecCodeCopySigningInformation(codeRef, kSecCSSigningInformation, &signingInfo);
+
+	if(result != errSecSuccess)
+	{
+		NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] failed to copy signing info from static code");
+		return NO;
+	}
+	
+	CFArrayRef certificates = CFDictionaryGetValue(signingInfo, kSecCodeInfoCertificates);
+	if(certificates == NULL || CFArrayGetCount(certificates) == 0)
+	{
+		return NO;
+	}
+
+	// If we match the standard Apple policy, we are signed properly, but we haven't been deliberately signed with a custom root
+	
+	SecPolicyRef appleAppStorePolicy = SecPolicyCreateWithProperties(kSecPolicyAppleiPhoneApplicationSigning, NULL);
+
+	SecTrustRef trust = NULL;
+	SecTrustCreateWithCertificates(certificates, appleAppStorePolicy, &trust);
+
+	if(SecTrustEvaluateWithError(trust, nil))
+	{
+		CFRelease(trust);
+		CFRelease(appleAppStorePolicy);
+		CFRelease(signingInfo);
+		
+		NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] found certificate extension, but was issued by Apple (App Store)");
+		return NO;
+	}
+
+	// We haven't matched Apple, so keep going. Is the app profile signed?
+		
+	CFRelease(appleAppStorePolicy);
+	
+	SecPolicyRef appleProfileSignedPolicy = SecPolicyCreateWithProperties(kSecPolicyAppleiPhoneProfileApplicationSigning, NULL);
+	if(SecTrustSetPolicies(trust, appleProfileSignedPolicy) != errSecSuccess)
+	{
+		NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] error replacing trust policy to check for profile-signed app");
+		CFRelease(trust);
+		CFRelease(signingInfo);
+		return NO;
+	}
+		
+	if(SecTrustEvaluateWithError(trust, nil))
+	{
+		CFRelease(trust);
+		CFRelease(appleProfileSignedPolicy);
+		CFRelease(signingInfo);
+		
+		NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] found certificate extension, but was issued by Apple (profile-signed)");
+		return NO;
+	}
+	
+	// Still haven't matched Apple. Are we using a custom root that would take the App Store fastpath?
+	CFRelease(appleProfileSignedPolicy);
+	
+	// Cert chain should be of length 3
+	if(CFArrayGetCount(certificates) != 3)
+	{
+		CFRelease(signingInfo);
+		
+		NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] certificate chain length != 3");
+		return NO;
+	}
+		
+	// AppleCodeSigning only checks for the codeSigning EKU by default
+	SecPolicyRef customRootPolicy = SecPolicyCreateWithProperties(kSecPolicyAppleCodeSigning, NULL);
+	SecPolicySetOptionsValue(customRootPolicy, CFSTR("LeafMarkerOid"), CFSTR("1.2.840.113635.100.6.1.3"));
+	
+	if(SecTrustSetPolicies(trust, customRootPolicy) != errSecSuccess)
+	{
+		NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] error replacing trust policy to check for custom root");
+		CFRelease(trust);
+		CFRelease(signingInfo);
+		return NO;
+	}
+
+	// Need to add our certificate chain to the anchor as it is expected to be a self-signed root
+	SecTrustSetAnchorCertificates(trust, certificates);
+	
+	BOOL evaluatesToCustomAnchor = SecTrustEvaluateWithError(trust, nil);
+	NSLog(@"[codeCertChainContainsFakeAppStoreExtensions] app signed with non-Apple certificate %@ using valid custom certificates", evaluatesToCustomAnchor ? @"IS" : @"is NOT");
+	
+	CFRelease(trust);
+	CFRelease(customRootPolicy);
+	CFRelease(signingInfo);
+	
+	return evaluatesToCustomAnchor;
 }
 
 BOOL signApp(NSString* appPath, NSError** error)
 {
-	if(!isLdidInstalled()) return NO;
-
 	NSDictionary* appInfoDict = [NSDictionary dictionaryWithContentsOfFile:[appPath stringByAppendingPathComponent:@"Info.plist"]];
 	if(!appInfoDict) return NO;
 
@@ -339,13 +420,45 @@ BOOL signApp(NSString* appPath, NSError** error)
 	NSString* executablePath = [appPath stringByAppendingPathComponent:executable];
 
 	if(![[NSFileManager defaultManager] fileExistsAtPath:executablePath]) return NO;
+	
+	NSObject *tsBundleIsPreSigned = appInfoDict[@"TSBundlePreSigned"];
+	if([tsBundleIsPreSigned isKindOfClass:[NSNumber class]])
+	{
+		
+		// if TSBundlePreSigned = YES, this bundle has been externally signed so we can skip over signing it now
+		NSNumber *tsBundleIsPreSignedNum = (NSNumber *)tsBundleIsPreSigned;
+		if([tsBundleIsPreSignedNum boolValue] == YES)
+		{
+			NSLog(@"[signApp] taking fast path for app which declares it has already been signed (%@)", executablePath);
+			return YES;
+		}
+	}
+	
+	SecStaticCodeRef codeRef = getStaticCodeRef(executablePath);
+	if(codeRef != NULL)
+	{
+		if(codeCertChainContainsFakeAppStoreExtensions(codeRef))
+		{
+			NSLog(@"[signApp] taking fast path for app signed using a custom root certificate (%@)", executablePath);
+			CFRelease(codeRef);
+			return YES;
+		}
+	}
+	else
+	{
+		NSLog(@"[signApp] failed to get static code, can't derive entitlements from %@, continuing anways...", executablePath);
+	}
+
+	if(!isLdidInstalled()) return NO;
 
 	NSString* certPath = [trollStoreAppPath() stringByAppendingPathComponent:@"cert.p12"];
 	NSString* certArg = [@"-K" stringByAppendingPathComponent:certPath];
 	NSString* errorOutput;
 	int ldidRet;
 
-	NSDictionary* entitlements = dumpEntitlements(executablePath);
+	NSDictionary* entitlements = dumpEntitlements(codeRef);
+	CFRelease(codeRef);
+	
 	if(!entitlements)
 	{
 		NSLog(@"app main binary has no entitlements, signing app with fallback entitlements...");
@@ -371,9 +484,23 @@ BOOL signApp(NSString* appPath, NSError** error)
 	return ldidRet == 0;
 }
 
+void applyPatchesToInfoDictionary(NSString* appPath)
+{
+	NSURL* appURL = [NSURL fileURLWithPath:appPath];
+	NSURL* infoPlistURL = [appURL URLByAppendingPathComponent:@"Info.plist"];
+	NSMutableDictionary* infoDictM = [[NSDictionary dictionaryWithContentsOfURL:infoPlistURL error:nil] mutableCopy];
+	if(!infoDictM) return;
+
+	// enable notifications
+	infoDictM[@"SBAppUsesLocalNotifications"] = @1;
+
+	[infoDictM writeToURL:infoPlistURL error:nil];
+}
+
 // 170: failed to create container for app bundle
 // 171: a non trollstore app with the same identifier is already installled
 // 172: no info.plist found in app
+// 173: app is not signed and cannot be signed because ldid not installed or didn't work
 int installApp(NSString* appPath, BOOL sign, BOOL force, NSError** error)
 {
 	NSLog(@"[installApp force = %d]", force);
@@ -381,10 +508,11 @@ int installApp(NSString* appPath, BOOL sign, BOOL force, NSError** error)
 	NSString* appId = appIdForAppPath(appPath);
 	if(!appId) return 172;
 
+	applyPatchesToInfoDictionary(appPath);
+
 	if(sign)
 	{
-		// if it fails to sign, we don't care
-		signApp(appPath, error);
+		if(!signApp(appPath, error)) return 173;
 	}
 
 	BOOL existed;
@@ -420,13 +548,25 @@ int installApp(NSString* appPath, BOOL sign, BOOL force, NSError** error)
 	// Mark app as TrollStore app
 	[[NSFileManager defaultManager] createFileAtPath:trollStoreMarkURL.path contents:[NSData data] attributes:nil];
 
-	// Apply correct permissions
-	NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
+	// Apply correct permissions (First run, set everything to 644, owner 33)
 	NSURL* fileURL;
+	NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
 	while(fileURL = [enumerator nextObject])
 	{
 		NSString* filePath = fileURL.path;
 		chown(filePath.UTF8String, 33, 33);
+		chmod(filePath.UTF8String, 0644);
+	}
+
+	// Apply correct permissions (Second run, set executables and directories to 0755)
+	enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
+	while(fileURL = [enumerator nextObject])
+	{
+		NSString* filePath = fileURL.path;
+
+		BOOL isDir;
+		[[NSFileManager defaultManager] fileExistsAtPath:fileURL.path isDirectory:&isDir];
+
 		if([filePath.lastPathComponent isEqualToString:@"Info.plist"])
 		{
 			NSDictionary* infoDictionary = [NSDictionary dictionaryWithContentsOfFile:filePath];
@@ -437,8 +577,13 @@ int installApp(NSString* appPath, BOOL sign, BOOL force, NSError** error)
 				chmod(executablePath.UTF8String, 0755);
 			}
 		}
-		else if([filePath.pathExtension isEqualToString:@"dylib"])
+		else if(!isDir && [filePath.pathExtension isEqualToString:@"dylib"])
 		{
+			chmod(filePath.UTF8String, 0755);
+		}
+		else if(isDir)
+		{
+			// apparently all dirs are writable by default
 			chmod(filePath.UTF8String, 0755);
 		}
 	}
@@ -502,17 +647,10 @@ int installApp(NSString* appPath, BOOL sign, BOOL force, NSError** error)
 	}
 }
 
-int uninstallApp(NSString* appId, NSError** error)
+int uninstallApp(NSString* appPath, NSString* appId, NSError** error)
 {
-	NSString* appPath = appPathForAppId(appId, error);
-	if(!appPath) return 1;
-
 	LSApplicationProxy* appProxy = [LSApplicationProxy applicationProxyForIdentifier:appId];
-	NSLog(@"appProxy: %@", appProxy);
-
-
 	MCMContainer *appContainer = [objc_getClass("MCMAppDataContainer") containerWithIdentifier:appId createIfNecessary:NO existed:nil error:nil];
-	NSLog(@"1");
 	NSString *containerPath = [appContainer url].path;
 	if(containerPath)
 	{
@@ -524,8 +662,8 @@ int uninstallApp(NSString* appId, NSError** error)
 	// delete group container paths
 	[[appProxy groupContainerURLs] enumerateKeysAndObjectsUsingBlock:^(NSString* groupID, NSURL* groupURL, BOOL* stop)
 	{
-		[[NSFileManager defaultManager] removeItemAtURL:groupURL error:nil];
 		NSLog(@"deleting %@", groupURL);
+		[[NSFileManager defaultManager] removeItemAtURL:groupURL error:nil];
 	}];
 
 	// delete app plugin paths
@@ -534,15 +672,15 @@ int uninstallApp(NSString* appId, NSError** error)
 		NSURL* pluginURL = pluginProxy.dataContainerURL;
 		if(pluginURL)
 		{
-			[[NSFileManager defaultManager] removeItemAtPath:pluginURL.path error:error];
-			NSLog(@"deleting %@", pluginURL.path);
+			NSLog(@"deleting %@", pluginURL);
+			[[NSFileManager defaultManager] removeItemAtURL:pluginURL error:error];
 		}
 	}
 
 	// unregister app
 	registerPath((char*)appPath.UTF8String, 1);
-	NSLog(@"deleting %@", [appPath stringByDeletingLastPathComponent]);
 
+	NSLog(@"deleting %@", [appPath stringByDeletingLastPathComponent]);
 	// delete app
 	BOOL deleteSuc = [[NSFileManager defaultManager] removeItemAtPath:[appPath stringByDeletingLastPathComponent] error:error];
 	if(deleteSuc)
@@ -553,6 +691,22 @@ int uninstallApp(NSString* appId, NSError** error)
 	{
 		return 1;
 	}
+}
+
+int uninstallAppByPath(NSString* appPath, NSError** error)
+{
+	if(!appPath) return 1;
+	NSString* appId = appIdForAppPath(appPath);
+	if(!appId) return 1;
+	return uninstallApp(appPath, appId, error);
+}
+
+int uninstallAppById(NSString* appId, NSError** error)
+{
+	if(!appId) return 1;
+	NSString* appPath = appPathForAppId(appId, error);
+	if(!appPath) return 1;
+	return uninstallApp(appPath, appId, error);
 }
 
 // 166: IPA does not exist or is not accessible
@@ -597,7 +751,7 @@ void uninstallAllApps(void)
 {
 	for(NSString* appPath in trollStoreInstalledAppBundlePaths())
 	{
-		uninstallApp(appIdForAppPath(appPath), nil);
+		uninstallAppById(appIdForAppPath(appPath), nil);
 	}
 }
 
@@ -811,8 +965,13 @@ int main(int argc, char *argv[], char *envp[]) {
 		{
 			if(argc <= 2) return -3;
 			NSString* appId = [NSString stringWithUTF8String:argv[2]];
-			ret = uninstallApp(appId, &error);
-		} else if([cmd isEqualToString:@"install-trollstore"])
+			ret = uninstallAppById(appId, &error);
+		} else if([cmd isEqualToString:@"uninstall-path"])
+		{
+			if(argc <= 2) return -3;
+			NSString* appPath = [NSString stringWithUTF8String:argv[2]];
+			ret = uninstallAppByPath(appPath, &error);
+		}else if([cmd isEqualToString:@"install-trollstore"])
 		{
 			if(argc <= 2) return -3;
 			NSString* tsTar = [NSString stringWithUTF8String:argv[2]];

@@ -55,7 +55,15 @@
     {
         NSString* appPath = [[TSApplicationsManager sharedInstance] installedAppPaths][indexPath.row];
         NSString* appId = [[TSApplicationsManager sharedInstance] appIdForAppPath:appPath];
-        [[TSApplicationsManager sharedInstance] uninstallApp:appId];
+        
+        if(appId)
+        {
+            [[TSApplicationsManager sharedInstance] uninstallApp:appId];
+        }
+        else
+        {
+            [[TSApplicationsManager sharedInstance] uninstallAppByPath:appPath];
+        }
     }
 }
 
