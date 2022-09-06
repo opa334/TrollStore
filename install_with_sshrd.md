@@ -17,6 +17,7 @@
 8. Run `cd /mnt2/containers/Bundle/Application`
 
 9. For the app you would like to replace, run `grep -r "appname" .`
+    - you can put your own shsh for the second argument, although option
 
 10. Depending on the app you chose, doesn't have to be tips, a look for a filepath that looks like <udid>/appname.app
 
