@@ -2,12 +2,6 @@
 
 TrollStore in a permasigned jailed app that can permanently install any IPA you open in it.
 
-A proper readme will be added shortly, for now see the release post on [reddit](https://reddit.com/r/jailbreak/comments/x44cpj/).
-
-The CoreTrust bug only affects 14.0 - 15.5b4, TrollStore will most likely never support any versions outside that range.
-
-15.2 and up are unsupported currently as there is no way to install TrollStore to these versions until the install method of Fugu15 is public.
-
 ## Installation Methods
 
 | Version / Device | A8 | A9 | A10 | A11 | A12 | A13 | A14 | A15 |
