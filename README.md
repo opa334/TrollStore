@@ -2,7 +2,7 @@
 
 TrollStore in a permasigned jailed app that can permanently install any IPA you open in it.
 
-A proper readme will be added shortly, for now see the release post on reddit.
+A proper readme will be added shortly, for now see the release post on [reddit](https://reddit.com/r/jailbreak/comments/x44cpj/).
 
 The CoreTrust bug only affects 14.0 - 15.5b4, TrollStore will most likely never support any versions outside that range.
 
