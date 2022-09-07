@@ -1,6 +1,6 @@
 # Install TrollStore with a SSH Ramdisk (Linux and macOS only)
 
-1. download this tar and extract it https://github.com/opa334/TrollStore/downloads/latest/TrollStore.tar
+1. download this tar and extract it https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar
 
 2. run `git clone https://github.com/verygenericname/SSHRD_Script --recursive && cd SSHRD_Script`
 
