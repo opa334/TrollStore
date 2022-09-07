@@ -40,3 +40,5 @@ The CoreTrust bug only affects 14.0 - 15.5b4, TrollStore will most likely never 
 | iOS 15.4 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | None | None | None | None |
 | iOS 15.4.1 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | None | None | None | None |
 | iOS 15.5b5 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | None | None | None | None |
+
+NOTE: Only versions between iOS 14.0 - 15.5b4 are supported by TrollStore, TrollStore will never work on devices outside of that range.
