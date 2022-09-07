@@ -19,7 +19,7 @@
 9. For the app you would like to replace, run `grep -r "<appname>" .`
     - you can put something like Tips, must be a deletable system app
 
-10. look for a filepath that looks like ./<udid>/<appname>.app
+10. look for a filepath that looks like `./<udid>/<appname>.app`
 
 11. run `cd <udid>/<appname>.app`
 
