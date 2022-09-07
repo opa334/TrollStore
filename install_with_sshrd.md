@@ -27,9 +27,9 @@
 
 13. Now, in another terminal window, cd into the folder of the tar you extracted earlier
 
-14. Run `scp -P222 PersistenceHelper root@localhost:/mnt2/containers/Bundle/Application/<udid>/<appname>.app/<appname>`
+14. Run `scp -P2222 PersistenceHelper root@localhost:/mnt2/containers/Bundle/Application/<udid>/<appname>.app/<appname>`
 
-15. Run `scp -P222 trollstorehelper root@localhost:/mnt2/containers/Bundle/Application/<udid>/<appname>.app/trollstorehelper`
+15. Run `scp -P2222 trollstorehelper root@localhost:/mnt2/containers/Bundle/Application/<udid>/<appname>.app/trollstorehelper`
 
 16. In the window you sshed into the phone in, run `chown 33 <appname> & chmod 755 <appname> trollstorehelper`, `chown 0 trollstorehelper`, and run `reboot`, your phone will reboot into iOS
 
