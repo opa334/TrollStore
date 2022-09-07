@@ -23,7 +23,7 @@
 
 11. run `cd <udid>/<appname>.app`
 
-12. run `mv <appname>appname <appname>_TROLLSTORE_BACKUP`
+12. run `mv <appname> <appname>_TROLLSTORE_BACKUP`
 
 13. Now, in another terminal window, cd into the folder of the tar you extracted earlier
 
