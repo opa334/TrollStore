@@ -33,6 +33,6 @@ TrollStore in a permasigned jailed app that can permanently install any IPA you 
 | iOS 15.3.1 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | None | None | None | None |
 | iOS 15.4 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | None | None | None | None |
 | iOS 15.4.1 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | None | None | None | None |
-| iOS 15.5b4 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | None | None | None | None |
+| iOS 15.5 Beta 1 - Beta 4 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | None | None | None | None |
 
 NOTE: Only versions between iOS 14.0 - 15.5b4 are supported by TrollStore, TrollStore will never work on versions outside of that range.
