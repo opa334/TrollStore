@@ -14,7 +14,7 @@
 
 6. Now, in the same window, run `mount_filesystems`, if a error occurs please make a issue in the SSHRD_Script repo
 
-7. Run `trollstoreinstaller <uninstallablesystemapphere>` (tips is best), Then run `reboot`, your phone will reboot into iOS
+7. Run `trollstoreinstaller <uninstallablesystemapphere>` (Tips is the best choice), Then run `reboot`, your phone will reboot into iOS
 
 8. Open up the app you replaced, it should be TrollStore Helper now
 
