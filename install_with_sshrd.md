@@ -4,7 +4,7 @@
 
 1. Run `git clone https://github.com/verygenericname/SSHRD_Script --recursive && cd SSHRD_Script`
 
-2. Run `./sshrd.sh <latestipswlinkhere> TrollStore <uninstallablesystemapphere>` (Tips is the best choice)`
+2. Run `./sshrd.sh <latestipswlinkhere> TrollStore <uninstallablesystemapphere>` (Tips is the best choice)
 
 3. Run `./sshrd.sh boot` the device should start verbosing and show a TrollFace in ascii, then reboot eventually
 
