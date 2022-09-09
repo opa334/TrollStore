@@ -1,6 +1,6 @@
 # Installation through an SSH Ramdisk (Linux and macOS only)
 
-**Supported devices:** A8 - A11, iOS 14.0 - 15.5b4
+**Supported devices:** A8(X) - A11, iOS 14.0 - 15.5b4
 
 Video tutorial: https://youtu.be/SsvumuaZBT0
 
