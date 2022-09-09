@@ -13,7 +13,8 @@
 @property (nonatomic,readonly) NSArray* plugInKitPlugins;
 @property (getter=isInstalled,nonatomic,readonly) BOOL installed; 
 @property (getter=isPlaceholder,nonatomic,readonly) BOOL placeholder; 
-@property (getter=isRestricted,nonatomic,readonly) BOOL restricted; 
+@property (getter=isRestricted,nonatomic,readonly) BOOL restricted;
+@property (nonatomic,readonly) NSSet * claimedURLSchemes;
 @end
 
 @interface LSApplicationWorkspace : NSObject
@@ -23,6 +24,11 @@
 - (BOOL)_LSPrivateRebuildApplicationDatabasesForSystemApps:(BOOL)arg1 internal:(BOOL)arg2 user:(BOOL)arg3;
 - (BOOL)uninstallApplication:(NSString*)arg1 withOptions:(id)arg2;
 - (void)enumerateApplicationsOfType:(NSUInteger)type block:(void (^)(LSApplicationProxy*))block;
+@end
+
+@interface LSEnumerator : NSEnumerator
+@property (nonatomic,copy) NSPredicate * predicate;
++ (instancetype)enumeratorForApplicationProxiesWithOptions:(NSUInteger)options;
 @end
 
 @interface LSPlugInKitProxy : LSBundleProxy

@@ -225,7 +225,7 @@
 
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
 	{
-		spawnRoot(helperPath(), @[@"refresh-all"]);
+		spawnRoot(helperPath(), @[@"refresh-all"], nil, nil);
 
 		dispatch_async(dispatch_get_main_queue(), ^
 		{
@@ -259,7 +259,7 @@
 		}
 		else
 		{
-			spawnRoot(helperPath(), @[@"install-ldid", location.path]);
+			spawnRoot(helperPath(), @[@"install-ldid", location.path], nil, nil);
 			dispatch_async(dispatch_get_main_queue(), ^
 			{
 				[self stopActivityWithCompletion:nil];
@@ -294,7 +294,7 @@
 	{
 		UIAlertAction* installAction = [UIAlertAction actionWithTitle:[appProxy localizedName] style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
 		{
-			spawnRoot(helperPath(), @[@"install-persistence-helper", appProxy.bundleIdentifier]);
+			spawnRoot(helperPath(), @[@"install-persistence-helper", appProxy.bundleIdentifier], nil, nil);
 			[self reloadSpecifiers];
 		}];
 
@@ -314,7 +314,7 @@
 
 - (void)uninstallPersistenceHelperPressed
 {
-	spawnRoot(helperPath(), @[@"uninstall-persistence-helper"]);
+	spawnRoot(helperPath(), @[@"uninstall-persistence-helper"], nil, nil);
 	[self reloadSpecifiers];
 }
 
@@ -327,7 +327,7 @@
 
 	UIAlertAction* continueAction = [UIAlertAction actionWithTitle:@"Continue" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action)
 	{
-		spawnRoot(helperPath(), @[@"uninstall-trollstore"]);
+		spawnRoot(helperPath(), @[@"uninstall-trollstore"], nil, nil);
 		exit(0);
 	}];
 	[uninstallWarningAlert addAction:continueAction];

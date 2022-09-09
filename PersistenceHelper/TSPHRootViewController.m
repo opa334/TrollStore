@@ -149,7 +149,7 @@
 
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
 	{
-		spawnRoot(helperPath(), @[@"refresh"]);
+		spawnRoot(helperPath(), @[@"refresh"], nil, nil);
 		respring();
 
 		dispatch_async(dispatch_get_main_queue(), ^
@@ -187,7 +187,7 @@
 			NSString* tarTmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"TrollStore.tar"];
 			[[NSFileManager defaultManager] copyItemAtPath:location.path toPath:tarTmpPath error:nil];
 
-			int ret = spawnRoot(helperPath(), @[@"install-trollstore", tarTmpPath]);
+			int ret = spawnRoot(helperPath(), @[@"install-trollstore", tarTmpPath], nil, nil);
 			dispatch_async(dispatch_get_main_queue(), ^
 			{
 				[[NSFileManager defaultManager] removeItemAtPath:tarTmpPath error:nil];
@@ -223,7 +223,7 @@
 
 	UIAlertAction* continueAction = [UIAlertAction actionWithTitle:@"Continue" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action)
 	{
-		spawnRoot(helperPath(), @[@"uninstall-trollstore"]);
+		spawnRoot(helperPath(), @[@"uninstall-trollstore"], nil, nil);
 		[self reloadSpecifiers];
 	}];
 	[uninstallWarningAlert addAction:continueAction];
@@ -240,7 +240,7 @@
 
 	UIAlertAction* continueAction = [UIAlertAction actionWithTitle:@"Continue" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action)
 	{
-		spawnRoot(helperPath(), @[@"uninstall-persistence-helper"]);
+		spawnRoot(helperPath(), @[@"uninstall-persistence-helper"], nil, nil);
 		exit(0);
 	}];
 	[uninstallWarningAlert addAction:continueAction];

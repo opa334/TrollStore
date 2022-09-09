@@ -142,6 +142,8 @@ void registerPath(char* cPath, int unregister)
 		dictToRegister[@"SignerOrganization"] = @"Apple Inc.";
 		dictToRegister[@"SignatureVersion"] = @132352;
 		dictToRegister[@"SignerIdentity"] = @"Apple iPhone OS Application Signing";
+		dictToRegister[@"IsAdHocSigned"] = @YES;
+		dictToRegister[@"LSInstallType"] = @1;
 
 		NSString* teamIdentifier = constructTeamIdentifierForEntitlements(entitlements);
 		if(teamIdentifier) dictToRegister[@"TeamIdentifier"] = teamIdentifier;
