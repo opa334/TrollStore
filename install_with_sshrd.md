@@ -2,6 +2,8 @@
 
 **Supported devices:** A8 - A11, iOS 14.0 - 15.5b4
 
+Video tutorial: https://youtu.be/SsvumuaZBT0
+
 1. Run `git clone https://github.com/verygenericname/SSHRD_Script --recursive && cd SSHRD_Script`
 
 2. Run `./sshrd.sh <latestipswlinkhere> TrollStore <uninstallablesystemapphere>` (Tips is the best choice)
