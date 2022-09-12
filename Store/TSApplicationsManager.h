@@ -12,6 +12,7 @@
 - (NSDictionary*)infoDictionaryForAppPath:(NSString*)appPath;
 - (NSString*)appIdForAppPath:(NSString*)appPath;
 - (NSString*)displayNameForAppPath:(NSString*)appPath;
+- (NSString*)versionStringForAppPath:(NSString*)appPath;
 
 - (NSError*)errorForCode:(int)code;
 - (int)installIpa:(NSString*)pathToIpa force:(BOOL)force log:(NSString**)logOut;

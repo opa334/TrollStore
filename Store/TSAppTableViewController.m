@@ -2,6 +2,10 @@
 
 #import "TSApplicationsManager.h"
 
+@interface UIImage ()
++ (UIImage *)_applicationIconImageForBundleIdentifier:(NSString *)id format:(NSInteger)format scale:(double)scale;
+@end
+
 @implementation TSAppTableViewController
 
 - (void)reloadTable
@@ -15,7 +19,6 @@
 - (void)loadView
 {
     [super loadView];
-    [self.tableView registerClass:UITableViewCell.class forCellReuseIdentifier:@"ApplicationCell"];
     [[NSNotificationCenter defaultCenter] addObserver:self
             selector:@selector(reloadTable)
             name:@"ApplicationsChanged"
@@ -81,14 +84,25 @@
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ApplicationCell" forIndexPath:indexPath];
-    
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ApplicationCell"];
+    if (!cell) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"ApplicationCell"];
+    }
+
     NSString* appPath = [[TSApplicationsManager sharedInstance] installedAppPaths][indexPath.row];
-    
+    NSString* appId = [[TSApplicationsManager sharedInstance] appIdForAppPath:appPath];
+    NSString* appVersion = [[TSApplicationsManager sharedInstance] versionStringForAppPath:appPath];
+
     // Configure the cell...
     cell.textLabel.text = [[TSApplicationsManager sharedInstance] displayNameForAppPath:appPath];
-    
+    cell.detailTextLabel.text = appVersion;
+    cell.imageView.image = [UIImage _applicationIconImageForBundleIdentifier:appId format:10 scale:2.0];
+
     return cell;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return 80.0f;
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath

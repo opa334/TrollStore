@@ -57,6 +57,11 @@
     return displayName;
 }
 
+- (NSString*)versionStringForAppPath:(NSString*)appPath
+{
+    return [self infoDictionaryForAppPath:appPath][@"CFBundleShortVersionString"];
+}
+
 - (NSError*)errorForCode:(int)code
 {
     NSString* errorDescription = @"Unknown Error";
