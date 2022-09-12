@@ -19,6 +19,7 @@
 - (int)installIpa:(NSString*)pathToIpa;
 - (int)uninstallApp:(NSString*)appId;
 - (int)uninstallAppByPath:(NSString*)path;
+- (BOOL)openApplicationWithBundleID:(NSString *)appID;
 //- (int)detachFromApp:(NSString*)appId;
 
 @end

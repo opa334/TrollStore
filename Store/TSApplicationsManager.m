@@ -148,6 +148,11 @@
     return ret;
 }
 
+- (BOOL)openApplicationWithBundleID:(NSString *)appId
+{
+    return [[LSApplicationWorkspace defaultWorkspace] openApplicationWithBundleID:appId];
+}
+
 /*- (int)detachFromApp:(NSString*)appId
 {
     if(!appId) return -200;
