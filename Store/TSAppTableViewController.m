@@ -51,9 +51,7 @@
     if (!didOpen) {
         NSString *failMessage = [NSString stringWithFormat: @"Failed to open %@", appId];
         UIAlertController* didFailController = [UIAlertController alertControllerWithTitle:failMessage message: nil preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action)
-        {
-        }];
+        UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
 
         [didFailController addAction: cancelAction];
         [self presentViewController:didFailController animated:YES completion:nil];
