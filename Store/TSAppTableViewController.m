@@ -39,6 +39,25 @@
     [self presentViewController:errorAlert animated:YES completion:nil];
 }
 
+- (void)openAppPressedForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    TSApplicationsManager* appsManager = [TSApplicationsManager sharedInstance];
+
+    NSString* appPath = [appsManager installedAppPaths][indexPath.row];
+    NSString* appId = [appsManager appIdForAppPath:appPath];
+    BOOL didOpen = [appsManager openApplicationWithBundleID:appId];
+
+    // if we failed to open the app, show an alert
+    if (!didOpen) {
+        NSString *failMessage = [NSString stringWithFormat: @"Failed to open %@", appId];
+        UIAlertController* didFailController = [UIAlertController alertControllerWithTitle:failMessage message: nil preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+
+        [didFailController addAction: cancelAction];
+        [self presentViewController:didFailController animated:YES completion:nil];
+    }
+}
+
 - (void)uninstallPressedForRowAtIndexPath:(NSIndexPath*)indexPath
 {
     TSApplicationsManager* appsManager = [TSApplicationsManager sharedInstance];
@@ -140,6 +159,13 @@
         [self deselectRow];
     }];
     [appSelectAlert addAction:detachAction];*/
+
+
+    UIAlertAction* openAction = [UIAlertAction actionWithTitle: @"Open" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+    {
+        [self openAppPressedForRowAtIndexPath:indexPath];
+    }];
+    [appSelectAlert addAction: openAction];
 
     UIAlertAction* uninstallAction = [UIAlertAction actionWithTitle:@"Uninstall App" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action)
     {
