@@ -42,10 +42,8 @@
 
 		dispatch_async(dispatch_get_main_queue(), ^
 		{
-			NSLog(@"1");
 			[infoAlert dismissViewControllerAnimated:YES completion:^
 			{
-				NSLog(@"2");
 				if(ret != 0)
 				{
 					UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Install Error %d", ret] message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
