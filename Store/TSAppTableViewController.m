@@ -95,8 +95,15 @@
 
     // Configure the cell...
     cell.textLabel.text = [[TSApplicationsManager sharedInstance] displayNameForAppPath:appPath];
-    cell.detailTextLabel.text = appVersion;
-    cell.imageView.image = [UIImage _applicationIconImageForBundleIdentifier:appId format:10 scale:2.0];
+    cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ • %@", appVersion, appId];
+    cell.imageView.image = [UIImage _applicationIconImageForBundleIdentifier:appId format:10 scale:[UIScreen mainScreen].scale];
+    cell.imageView.layer.borderWidth = 0.2;
+    cell.imageView.layer.borderColor = [UIColor blackColor].CGColor;
+    cell.imageView.layer.cornerRadius = 13.8;
+
+    cell.preservesSuperviewLayoutMargins = NO;
+    cell.separatorInset = UIEdgeInsetsZero;
+    cell.layoutMargins = UIEdgeInsetsZero;
 
     return cell;
 }

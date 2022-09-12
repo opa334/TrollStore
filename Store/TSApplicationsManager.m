@@ -59,7 +59,15 @@
 
 - (NSString*)versionStringForAppPath:(NSString*)appPath
 {
-    return [self infoDictionaryForAppPath:appPath][@"CFBundleShortVersionString"];
+    NSDictionary* infoDict = [self infoDictionaryForAppPath:appPath];
+    NSString* versionString = infoDict[@"CFBundleShortVersionString"];
+
+    if(!versionString)
+    {
+        versionString = infoDict[@"CFBundleVersion"];
+    }
+
+    return versionString;
 }
 
 - (NSError*)errorForCode:(int)code

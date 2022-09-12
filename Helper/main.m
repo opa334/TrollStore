@@ -496,8 +496,46 @@ int signApp(NSString* appPath)
 	}
 	else
 	{
+		// Work around an ldid bug where it doesn't keep entitlements on stray binaries
+		NSMutableDictionary* storedEntitlements = [NSMutableDictionary new];
+		NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
+		NSURL* fileURL;
+		while(fileURL = [enumerator nextObject])
+		{
+			NSString* filePath = fileURL.path;
+
+			BOOL isDir;
+			[[NSFileManager defaultManager] fileExistsAtPath:fileURL.path isDirectory:&isDir];
+
+			if([filePath.lastPathComponent isEqualToString:@"Info.plist"])
+			{
+				NSDictionary* infoDictionary = [NSDictionary dictionaryWithContentsOfFile:filePath];
+				NSArray* tsRootBinaries = infoDictionary[@"TSRootBinaries"];
+				if(tsRootBinaries && [tsRootBinaries isKindOfClass:[NSArray class]])
+				{
+					for(NSString* rootBinary in tsRootBinaries)
+					{
+						if([rootBinary isKindOfClass:[NSString class]])
+						{
+							NSString* rootBinaryPath = [[filePath stringByDeletingLastPathComponent] stringByAppendingPathComponent:rootBinary];
+							storedEntitlements[rootBinaryPath] = dumpEntitlementsFromBinaryAtPath(rootBinaryPath);
+						}
+					}
+				}
+			}
+		}
+
 		// app has entitlements, keep them
 		ldidRet = runLdid(@[@"-s", certArg, appPath], nil, &errorOutput);
+
+		[storedEntitlements enumerateKeysAndObjectsUsingBlock:^(NSString* binaryPath, NSDictionary* entitlements, BOOL* stop)
+		{
+			NSString* tmpEntitlementPlistPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"ent.xml"];
+			[entitlements writeToURL:[NSURL fileURLWithPath:tmpEntitlementPlistPath] error:nil];
+			NSString* tmpEntitlementArg = [@"-S" stringByAppendingString:tmpEntitlementPlistPath];
+			runLdid(@[tmpEntitlementArg, certArg, binaryPath], nil, nil);
+			[[NSFileManager defaultManager] removeItemAtPath:tmpEntitlementPlistPath error:nil];
+		}];
 	}
 
 	NSLog(@"ldid exited with status %d", ldidRet);
