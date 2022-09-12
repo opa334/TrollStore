@@ -133,30 +133,37 @@
 	// Configure the cell...
 	cell.textLabel.text = [[TSApplicationsManager sharedInstance] displayNameForAppPath:appPath];
 	cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ • %@", appVersion, appId];
-	cell.imageView.layer.borderWidth = 0.2;
-	cell.imageView.layer.borderColor = [UIColor blackColor].CGColor;
+	cell.imageView.layer.borderWidth = 0.34;
+	cell.imageView.layer.borderColor = [UIColor separatorColor].CGColor;
 	cell.imageView.layer.cornerRadius = 13.8;
 
-	UIImage* cachedIcon = _cachedIcons[appId];
-	if(cachedIcon)
+	if(appId)
 	{
-		cell.imageView.image = cachedIcon;
+		UIImage* cachedIcon = _cachedIcons[appId];
+		if(cachedIcon)
+		{
+			cell.imageView.image = cachedIcon;
+		}
+		else
+		{
+			cell.imageView.image = _placeholderIcon;
+			dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
+			{
+				//usleep(1000 * 5000); // (test delay for debugging)
+				UIImage* iconImage = [UIImage _applicationIconImageForBundleIdentifier:appId format:10 scale:[UIScreen mainScreen].scale];
+				_cachedIcons[appId] = iconImage;
+				dispatch_async(dispatch_get_main_queue(), ^{
+					if([tableView.indexPathsForVisibleRows containsObject:indexPath])
+					{
+						cell.imageView.image = iconImage;
+					}
+				});
+			});
+		}
 	}
 	else
 	{
 		cell.imageView.image = _placeholderIcon;
-		dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
-		{
-			//usleep(1000 * 5000); // (test delay for debugging)
-			UIImage* iconImage = [UIImage _applicationIconImageForBundleIdentifier:appId format:10 scale:[UIScreen mainScreen].scale];
-			_cachedIcons[appId] = iconImage;
-			dispatch_async(dispatch_get_main_queue(), ^{
-				if([tableView.indexPathsForVisibleRows containsObject:indexPath])
-				{
-					cell.imageView.image = iconImage;
-				}
-			});
-		});
 	}
 
 	cell.preservesSuperviewLayoutMargins = NO;
@@ -186,7 +193,7 @@
 	NSString* appId = [appsManager appIdForAppPath:appPath];
 	NSString* appName = [appsManager displayNameForAppPath:appPath];
 
-	UIAlertController* appSelectAlert = [UIAlertController alertControllerWithTitle:appName message:appId preferredStyle:UIAlertControllerStyleActionSheet];
+	UIAlertController* appSelectAlert = [UIAlertController alertControllerWithTitle:appName message:appId?:@"" preferredStyle:UIAlertControllerStyleActionSheet];
 
 	/*UIAlertAction* detachAction = [UIAlertAction actionWithTitle:@"Detach from TrollStore" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
 	{
