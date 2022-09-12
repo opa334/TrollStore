@@ -4,6 +4,7 @@
 {
     UIImage* _placeholderIcon;
     NSArray* _cachedAppPaths;
+    NSMutableDictionary* _cachedIcons;
 }
 
 @end

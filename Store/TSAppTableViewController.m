@@ -20,6 +20,7 @@
 	{
 		[self loadCachedAppPaths];
 		_placeholderIcon = [UIImage _applicationIconImageForBundleIdentifier:@"com.apple.WebSheet" format:10 scale:[UIScreen mainScreen].scale];
+		_cachedIcons = [NSMutableDictionary new];
 	}
 	return self;
 }
@@ -132,22 +133,31 @@
 	// Configure the cell...
 	cell.textLabel.text = [[TSApplicationsManager sharedInstance] displayNameForAppPath:appPath];
 	cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ • %@", appVersion, appId];
-	cell.imageView.image = _placeholderIcon;
 	cell.imageView.layer.borderWidth = 0.2;
 	cell.imageView.layer.borderColor = [UIColor blackColor].CGColor;
 	cell.imageView.layer.cornerRadius = 13.8;
 
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
+	UIImage* cachedIcon = _cachedIcons[appId];
+	if(cachedIcon)
 	{
-		//usleep(1000 * 5000); // (test delay for debugging)
-		UIImage* iconImage = [UIImage _applicationIconImageForBundleIdentifier:appId format:10 scale:[UIScreen mainScreen].scale];
-		dispatch_async(dispatch_get_main_queue(), ^{
-			if([tableView.indexPathsForVisibleRows containsObject:indexPath])
-			{
-				cell.imageView.image = iconImage;
-			}
+		cell.imageView.image = cachedIcon;
+	}
+	else
+	{
+		cell.imageView.image = _placeholderIcon;
+		dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
+		{
+			//usleep(1000 * 5000); // (test delay for debugging)
+			UIImage* iconImage = [UIImage _applicationIconImageForBundleIdentifier:appId format:10 scale:[UIScreen mainScreen].scale];
+			_cachedIcons[appId] = iconImage;
+			dispatch_async(dispatch_get_main_queue(), ^{
+				if([tableView.indexPathsForVisibleRows containsObject:indexPath])
+				{
+					cell.imageView.image = iconImage;
+				}
+			});
 		});
-	});
+	}
 
 	cell.preservesSuperviewLayoutMargins = NO;
 	cell.separatorInset = UIEdgeInsetsZero;
