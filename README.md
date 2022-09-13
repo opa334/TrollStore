@@ -120,7 +120,7 @@ Afterwards you can use the [spawnRoot function in TSUtil.m](./Store/TSUtil.m#L39
 
 ## Things that are not possible using TrollStore:
 
-- Getting proper platformization
+- Getting proper platformization / `CS_PLATFORMIZED`
 - Spawning a launch daemon (Would need `CS_PLATFORMIZED`)
 - Injecting a tweak into a system process (Would need `CS_PLATFORMIZED`, a userland PAC bypass and a PMAP trust level bypass)
 
