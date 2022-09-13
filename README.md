@@ -43,6 +43,10 @@ It works because of a CoreTrust bug that affects iOS 14.0 - 15.4.1 (15.5b4).
 
 After having installed TrollStore, you can update it to newer versions by opening the .tar file in releases in TrollStore. It will install the update and respring afterwards.
 
+# Uninstalling an app
+
+TrollStore installed apps can only be uninstalled from TrollStore itself, tap an app or swipe it to the right in the 'Apps' tab to delete it.
+
 # Persistence Helper
 
 The CoreTrust bug used in TrollStore is only enough to install "System" apps, this is because FrontBoard has an additional security check (it calls libmis) every time before a user app is launched. Unfortunately it is not possible to install new "System" apps that stay through an icon cache reload. Therefore when iOS reloads the icon cache, all TrollStore installed apps including TrollStore itself will revert back to "User" state and will no longer launch.
