@@ -39,6 +39,8 @@ It works because of a CoreTrust bug that affects iOS 14.0 - 15.4.1 (15.5b4).
 | iOS 15.4.1 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | None | None | None | None |
 | iOS 15.5 Beta 1 - Beta 4 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | None | None | None | None |
 
+Full 14.0 - 15.5b4 installation support will come when the Fugu15 installation method is public.
+
 # Updating TrollStore
 
 After having installed TrollStore, you can update it to newer versions by opening the .tar file in releases in TrollStore. It will install the update and respring afterwards.
