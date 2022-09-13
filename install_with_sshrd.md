@@ -6,7 +6,10 @@ Video tutorial: https://youtu.be/SsvumuaZBT0
 
 1. Run `git clone https://github.com/verygenericname/SSHRD_Script --recursive && cd SSHRD_Script`
 
-2. Run `./sshrd.sh <latestipswlinkhere> TrollStore <uninstallablesystemapphere>` (Tips is the best choice)
+2. Run `./sshrd.sh <iOS version for ramdisk> TrollStore <uninstallable system app>`
+    - Make sure to **not** include the `<>`
+    - 14.3 is the recommended version for the ramdisk, it does not matter what version your device is already on
+    - The uninstallable system app should be an app you don't need to use (e.g. Tips)
 
 3. Run `./sshrd.sh boot` the device should start verbosing and show a TrollFace in ascii, then reboot eventually
 
