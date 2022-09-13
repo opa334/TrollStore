@@ -2,7 +2,7 @@
 
 TrollStore in a permasigned jailed app that can permanently install any IPA you open in it.
 
-## NOTE: TrollStore will NEVER work on anything higher than iOS 15.5 beta 4 (No not on 15.5 full, not on 15.6 and certainly not on iOS 16.x), please stop asking!
+## NOTE: TrollStore will NEVER work on anything higher than iOS 15.5 beta 4 (No not on iOS 15.5, not on iOS 15.6 and certainly not on iOS 16.x), please stop asking!
 
 ## Installation Methods
 
