@@ -128,4 +128,4 @@ Afterwards you can use the [spawnRoot function in TSUtil.m](./Store/TSUtil.m#L39
 
 [@LinusHenze](https://twitter.com/LinusHenze/) - Found the CoreTrust bug that allows TrollStore to work.
 
-[Early Write-Up on the bug with more information](https://worthdoingbadly.com/coretrust/).
+[Early Write-Up on the CoreTrust bug with more information](https://worthdoingbadly.com/coretrust/).
