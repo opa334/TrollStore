@@ -63,7 +63,7 @@ The binaries inside an IPA can have arbitary entitlements, fakesign them with ld
 
 ## Banned entitlements
 
-iOS 15 has banned the following three entitlements related to running unsigned code, these are impossible to get without a PPL or PAC bypass, apps signed with them will crash on launch.
+iOS 15 on A12+ has banned the following three entitlements related to running unsigned code, these are impossible to get without a PPL or PAC bypass, apps signed with them will crash on launch.
 
 `com.apple.private.cs.debugger`
 
