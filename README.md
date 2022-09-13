@@ -122,7 +122,7 @@ Afterwards you can use the [spawnRoot function in TSUtil.m](./Store/TSUtil.m#L39
 
 - Getting proper platformization
 - Spawning a launch daemon (Would need `CS_PLATFORMIZED`)
-- Injecting a tweak into a system process (Would need `CS_PLATFORMIZED`, a userland PAC bypass and a PMAP Trust Level bypass)
+- Injecting a tweak into a system process (Would need `CS_PLATFORMIZED`, a userland PAC bypass and a PMAP trust level bypass)
 
 # Credits and Further Reading
 
