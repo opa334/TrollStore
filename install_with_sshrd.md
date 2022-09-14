@@ -2,7 +2,7 @@
 
 **Supported devices:** A8(X) - A11, iOS 14.0 - 15.5b4
 
-Video tutorial: https://youtu.be/SsvumuaZBT0
+Video tutorial: updated tutorial soon
 
 1. Run `git clone https://github.com/verygenericname/SSHRD_Script --recursive && cd SSHRD_Script`
 
