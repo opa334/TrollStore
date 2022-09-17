@@ -8,6 +8,10 @@ It works because of a CoreTrust bug that affects iOS 14.0 - 15.4.1 (15.5b4).
 
 ## Installation Methods
 
+N/A means: NO DEVICE / VERSION COMBINATION EXISTS
+
+None means: No way to install TrollStore currently
+
 | Version / Device | A8 | A9 | A10 | A11 | A12 | A13 | A14 | A15 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | iOS 14.0 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | N/A |
