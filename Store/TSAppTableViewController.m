@@ -2,6 +2,32 @@
 
 #import "TSApplicationsManager.h"
 
+#define ICON_FORMAT_IPAD 8
+#define ICON_FORMAT_IPHONE 10
+
+NSInteger iconFormatToUse(void)
+{
+	if(UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+	{
+		return ICON_FORMAT_IPAD;
+	}
+	else
+	{
+		return ICON_FORMAT_IPHONE;
+	}
+}
+
+UIImage* imageWithSize(UIImage* image, CGSize size)
+{
+	if(CGSizeEqualToSize(image.size, size)) return image;
+	UIGraphicsBeginImageContextWithOptions(size, NO, UIScreen.mainScreen.scale);
+	CGRect imageRect = CGRectMake(0.0, 0.0, size.width, size.height);
+	[image drawInRect:imageRect];
+	UIImage* outImage = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
+	return outImage;
+}
+
 @interface UIImage ()
 + (UIImage *)_applicationIconImageForBundleIdentifier:(NSString *)id format:(NSInteger)format scale:(double)scale;
 @end
@@ -10,7 +36,14 @@
 
 - (void)loadCachedAppPaths
 {
-	_cachedAppPaths = [[TSApplicationsManager sharedInstance] installedAppPaths];
+	NSArray* appPaths = [[TSApplicationsManager sharedInstance] installedAppPaths];
+
+	_cachedAppPaths = [appPaths sortedArrayUsingComparator:^NSComparisonResult(NSString* appPathA, NSString* appPathB) {
+		NSString* displayNameA = [[TSApplicationsManager sharedInstance] displayNameForAppPath:appPathA];
+		NSString* displayNameB = [[TSApplicationsManager sharedInstance] displayNameForAppPath:appPathB];
+
+		return [displayNameA localizedStandardCompare:displayNameB];
+	}];
 }
 
 - (instancetype)init
@@ -19,7 +52,7 @@
 	if(self)
 	{
 		[self loadCachedAppPaths];
-		_placeholderIcon = [UIImage _applicationIconImageForBundleIdentifier:@"com.apple.WebSheet" format:10 scale:[UIScreen mainScreen].scale];
+		_placeholderIcon = [UIImage _applicationIconImageForBundleIdentifier:@"com.apple.WebSheet" format:iconFormatToUse() scale:[UIScreen mainScreen].scale];
 		_cachedIcons = [NSMutableDictionary new];
 	}
 	return self;
@@ -120,6 +153,11 @@
 	return _cachedAppPaths.count;
 }
 
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection
+{
+	[self reloadTable];
+}
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ApplicationCell"];
 	if (!cell) {
@@ -133,9 +171,11 @@
 	// Configure the cell...
 	cell.textLabel.text = [[TSApplicationsManager sharedInstance] displayNameForAppPath:appPath];
 	cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ • %@", appVersion, appId];
-	cell.imageView.layer.borderWidth = 0.34;
-	cell.imageView.layer.borderColor = [UIColor separatorColor].CGColor;
-	cell.imageView.layer.cornerRadius = 13.8;
+	cell.imageView.layer.borderWidth = 1;
+	cell.imageView.layer.borderColor = [UIColor.labelColor colorWithAlphaComponent:0.1].CGColor;
+	cell.imageView.layer.cornerRadius = 13.5;
+	cell.imageView.layer.masksToBounds = YES;
+	cell.imageView.layer.cornerCurve = kCACornerCurveContinuous;
 
 	if(appId)
 	{
@@ -150,12 +190,13 @@
 			dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
 			{
 				//usleep(1000 * 5000); // (test delay for debugging)
-				UIImage* iconImage = [UIImage _applicationIconImageForBundleIdentifier:appId format:10 scale:[UIScreen mainScreen].scale];
+				UIImage* iconImage = imageWithSize([UIImage _applicationIconImageForBundleIdentifier:appId format:iconFormatToUse() scale:[UIScreen mainScreen].scale], _placeholderIcon.size);
 				_cachedIcons[appId] = iconImage;
 				dispatch_async(dispatch_get_main_queue(), ^{
 					if([tableView.indexPathsForVisibleRows containsObject:indexPath])
 					{
 						cell.imageView.image = iconImage;
+						[cell setNeedsLayout];
 					}
 				});
 			});
@@ -207,7 +248,7 @@
 	[appSelectAlert addAction:detachAction];*/
 
 
-	UIAlertAction* openAction = [UIAlertAction actionWithTitle: @"Open" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+	UIAlertAction* openAction = [UIAlertAction actionWithTitle:@"Open" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
 	{
 		[self openAppPressedForRowAtIndexPath:indexPath];
 		[self deselectRow];

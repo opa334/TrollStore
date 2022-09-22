@@ -127,7 +127,6 @@ void registerPath(char* cPath, int unregister)
 		// Misc
 
 		dictToRegister[@"ApplicationType"] = @"System";
-		dictToRegister[@"BundleNameIsLocalized"] = @1;
 		dictToRegister[@"CFBundleIdentifier"] = appBundleID;
 		dictToRegister[@"CodeInfoIdentifier"] = appBundleID;
 		dictToRegister[@"CompatibilityState"] = @0;
@@ -144,6 +143,10 @@ void registerPath(char* cPath, int unregister)
 		dictToRegister[@"SignerIdentity"] = @"Apple iPhone OS Application Signing";
 		dictToRegister[@"IsAdHocSigned"] = @YES;
 		dictToRegister[@"LSInstallType"] = @1;
+		dictToRegister[@"HasMIDBasedSINF"] = @0;
+		dictToRegister[@"MissingSINF"] = @0;
+		dictToRegister[@"FamilyID"] = @0;
+		dictToRegister[@"IsOnDemandInstallCapable"] = @0;
 
 		NSString* teamIdentifier = constructTeamIdentifierForEntitlements(entitlements);
 		if(teamIdentifier) dictToRegister[@"TeamIdentifier"] = teamIdentifier;
@@ -199,7 +202,6 @@ void registerPath(char* cPath, int unregister)
 			// Misc
 
 			pluginDict[@"ApplicationType"] = @"PluginKitPlugin";
-			pluginDict[@"BundleNameIsLocalized"] = @1;
 			pluginDict[@"CFBundleIdentifier"] = pluginBundleID;
 			pluginDict[@"CodeInfoIdentifier"] = pluginBundleID;
 			pluginDict[@"CompatibilityState"] = @0;

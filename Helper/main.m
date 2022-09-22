@@ -730,6 +730,11 @@ int installApp(NSString* appPath, BOOL sign, BOOL force)
 	// Wipe old version if needed
 	if(existed)
 	{
+		if(![appId isEqualToString:@"com.opa334.TrollStore"])
+		{
+			BKSTerminateApplicationForReasonAndReportWithDescription(appId, 5, false, @"TrollStore - App updated");
+		}
+
 		NSLog(@"[installApp] found existing TrollStore app, cleaning directory");
 		NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:appContainer.url includingPropertiesForKeys:nil options:0 errorHandler:nil];
 		NSURL* fileURL;
@@ -738,7 +743,7 @@ int installApp(NSString* appPath, BOOL sign, BOOL force)
 			// do not under any circumstance delete this file as it makes iOS loose the app registration
 			if([fileURL.lastPathComponent isEqualToString:@".com.apple.mobile_container_manager.metadata.plist"] || [fileURL.lastPathComponent isEqualToString:@"_TrollStore"])
 			{
-				NSLog(@"[installApp] skip removal of %@", fileURL);
+				NSLog(@"[installApp] skipping removal of %@", fileURL);
 				continue;
 			}
 
@@ -767,6 +772,8 @@ int installApp(NSString* appPath, BOOL sign, BOOL force)
 
 int uninstallApp(NSString* appPath, NSString* appId)
 {
+	BKSTerminateApplicationForReasonAndReportWithDescription(appId, 5, false, @"TrollStore - App uninstalled");
+
 	LSApplicationProxy* appProxy = [LSApplicationProxy applicationProxyForIdentifier:appId];
 	MCMContainer *appContainer = [objc_getClass("MCMAppDataContainer") containerWithIdentifier:appId createIfNecessary:NO existed:nil error:nil];
 	NSString *containerPath = [appContainer url].path;
@@ -1156,6 +1163,14 @@ int main(int argc, char *argv[], char *envp[]) {
 		} else if([cmd isEqualToString:@"uninstall-persistence-helper"])
 		{
 			uninstallPersistenceHelper();
+		} else if([cmd isEqualToString:@"dash"])
+		{
+			LSApplicationProxy* appProxy = findPersistenceHelperApp();
+			if(appProxy)
+			{
+				NSString* executablePath = appProxy.canonicalExecutablePath;
+				registerPath((char*)executablePath.UTF8String, 1);
+			}
 		}
 
 		NSLog(@"returning %d", ret);

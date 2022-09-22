@@ -1,9 +1,7 @@
-#import <UIKit/UIKit.h>
-#import <Preferences/PSListController.h>
-#import <Preferences/PSSpecifier.h>
+#import "../Store/TSListControllerShared.h"
 
-@interface TSPHRootViewController : PSListController
+@interface TSPHRootViewController : TSListControllerShared
 {
-    UIAlertController* _activityController;
+    NSString* _newerVersion;
 }
 @end

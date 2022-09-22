@@ -6,38 +6,24 @@
 
 @implementation TSSettingsListController
 
-- (void)loadView
+- (void)viewDidLoad
 {
-	[super loadView];
+	[super viewDidLoad];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadSpecifiers) name:UIApplicationWillEnterForegroundNotification object:nil];
-}
 
-- (void)startActivity:(NSString*)activity
-{
-	if(_activityController) return;
-
-	_activityController = [UIAlertController alertControllerWithTitle:activity message:@"" preferredStyle:UIAlertControllerStyleAlert];
-	UIActivityIndicatorView* activityIndicator = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake(5,5,50,50)];
-	activityIndicator.hidesWhenStopped = YES;
-	activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyleMedium;
-	[activityIndicator startAnimating];
-	[_activityController.view addSubview:activityIndicator];
-
-	[self presentViewController:_activityController animated:YES completion:nil];
-}
-
-- (void)stopActivityWithCompletion:(void (^)(void))completion
-{
-	if(!_activityController) return;
-
-	[_activityController dismissViewControllerAnimated:YES completion:^
+	fetchLatestTrollStoreVersion(^(NSString* latestVersion)
 	{
-		_activityController = nil;
-		if(completion)
+		NSString* currentVersion = [self getTrollStoreVersion];
+		NSComparisonResult result = [currentVersion compare:latestVersion options:NSNumericSearch];
+		if(result == NSOrderedAscending)
 		{
-			completion();
+			_newerVersion = latestVersion;
+			dispatch_async(dispatch_get_main_queue(), ^
+			{
+				[self reloadSpecifiers];
+			});
 		}
-	}];
+	});
 }
 
 - (NSMutableArray*)specifiers
@@ -45,6 +31,25 @@
 	if(!_specifiers)
 	{
 		_specifiers = [NSMutableArray new];
+
+		if(_newerVersion)
+		{
+			PSSpecifier* updateTrollStoreGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
+			updateTrollStoreGroupSpecifier.name = @"Update Available";
+			[_specifiers addObject:updateTrollStoreGroupSpecifier];
+
+			PSSpecifier* updateTrollStoreSpecifier = [PSSpecifier preferenceSpecifierNamed:[NSString stringWithFormat:@"Update TrollStore to %@", _newerVersion]
+										target:self
+										set:nil
+										get:nil
+										detail:nil
+										cell:PSButtonCell
+										edit:nil];
+			updateTrollStoreSpecifier.identifier = @"updateTrollStore";
+			[updateTrollStoreSpecifier setProperty:@YES forKey:@"enabled"];
+			updateTrollStoreSpecifier.buttonAction = @selector(updateTrollStorePressed);
+			[_specifiers addObject:updateTrollStoreSpecifier];
+		}
 
 		PSSpecifier* utilitiesGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
 		utilitiesGroupSpecifier.name = @"Utilities";
@@ -192,7 +197,7 @@
 		}
 
 		PSSpecifier* otherGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
-		[otherGroupSpecifier setProperty:[NSString stringWithFormat:@"TrollStore %@\n\n© 2022 Lars Fröder (opa334)\n\nCredits:\n@LinusHenze: CoreTrust bug\n@zhuowei: CoreTrust bug writeup and cert\n@lunotech11, @SerenaKit, @tylinux: Various contributions\n@ProcursusTeam: uicache and ldid build\n@cstar_ow: uicache\n@saurik: ldid", getTrollStoreVersion()] forKey:@"footerText"];
+		[otherGroupSpecifier setProperty:[NSString stringWithFormat:@"TrollStore %@\n\n© 2022 Lars Fröder (opa334)\n\nCredits:\n@LinusHenze: CoreTrust bug\n@zhuowei: CoreTrust bug writeup and cert\n@lunotech11, @SerenaKit, @tylinux: Various contributions\n@ProcursusTeam: uicache and ldid build\n@cstar_ow: uicache\n@saurik: ldid", [self getTrollStoreVersion]] forKey:@"footerText"];
 		[_specifiers addObject:otherGroupSpecifier];
 
 		// Uninstall TrollStore
@@ -208,6 +213,18 @@
 		[uninstallTrollStoreSpecifier setProperty:NSClassFromString(@"PSDeleteButtonCell") forKey:@"cellClass"];
 		uninstallTrollStoreSpecifier.buttonAction = @selector(uninstallTrollStorePressed);
 		[_specifiers addObject:uninstallTrollStoreSpecifier];
+
+		/*PSSpecifier* doTheDashSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Do the Dash"
+										target:self
+										set:nil
+										get:nil
+										detail:nil
+										cell:PSButtonCell
+										edit:nil];
+		doTheDashSpecifier.identifier = @"doTheDash";
+		[doTheDashSpecifier setProperty:@YES forKey:@"enabled"];
+		uninstallTrollStoreSpecifier.buttonAction = @selector(doTheDashPressed);
+		[_specifiers addObject:doTheDashSpecifier];*/
 	}
 
 	[(UINavigationItem *)self.navigationItem setTitle:@"Settings"];
@@ -217,21 +234,6 @@
 - (void)respringButtonPressed
 {
 	respring();
-}
-
-- (void)rebuildIconCachePressed
-{
-	[self startActivity:@"Rebuilding Icon Cache"];
-
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
-	{
-		spawnRoot(helperPath(), @[@"refresh-all"], nil, nil);
-
-		dispatch_async(dispatch_get_main_queue(), ^
-		{
-			[self stopActivityWithCompletion:nil];
-		});
-	});
 }
 
 - (void)installLdidPressed
@@ -312,27 +314,9 @@
 	[self presentViewController:selectAppAlert animated:YES completion:nil];
 }
 
-- (void)uninstallPersistenceHelperPressed
+- (void)doTheDashPressed
 {
-	spawnRoot(helperPath(), @[@"uninstall-persistence-helper"], nil, nil);
-	[self reloadSpecifiers];
-}
-
-- (void)uninstallTrollStorePressed
-{
-	UIAlertController* uninstallWarningAlert = [UIAlertController alertControllerWithTitle:@"Warning" message:@"About to uninstall TrollStore and all of the apps installed by it. Continue?" preferredStyle:UIAlertControllerStyleAlert];
-	
-	UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-	[uninstallWarningAlert addAction:cancelAction];
-
-	UIAlertAction* continueAction = [UIAlertAction actionWithTitle:@"Continue" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action)
-	{
-		spawnRoot(helperPath(), @[@"uninstall-trollstore"], nil, nil);
-		exit(0);
-	}];
-	[uninstallWarningAlert addAction:continueAction];
-
-	[self presentViewController:uninstallWarningAlert animated:YES completion:nil];
+	spawnRoot(helperPath(), @[@"dash"], nil, nil);
 }
 
 @end

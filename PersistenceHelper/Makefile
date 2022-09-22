@@ -5,7 +5,7 @@ include $(THEOS)/makefiles/common.mk
 
 APPLICATION_NAME = TrollStorePersistenceHelper
 
-TrollStorePersistenceHelper_FILES = $(wildcard *.m) ../Helper/Shared.m ../Store/TSUtil.m
+TrollStorePersistenceHelper_FILES = $(wildcard *.m) ../Helper/Shared.m ../Store/TSUtil.m ../Store/TSListControllerShared.m
 TrollStorePersistenceHelper_FRAMEWORKS = UIKit CoreGraphics CoreServices
 TrollStorePersistenceHelper_PRIVATE_FRAMEWORKS = Preferences
 TrollStorePersistenceHelper_CFLAGS = -fobjc-arc

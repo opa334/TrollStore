@@ -4,38 +4,29 @@
 
 @implementation TSPHRootViewController
 
-- (void)loadView
+- (BOOL)isTrollStore
 {
-	[super loadView];
+	return NO;
+}
+
+- (void)viewDidLoad
+{
+	[super viewDidLoad];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadSpecifiers) name:UIApplicationWillEnterForegroundNotification object:nil];
-}
 
-- (void)startActivity:(NSString*)activity
-{
-	if(_activityController) return;
-
-	_activityController = [UIAlertController alertControllerWithTitle:activity message:@"" preferredStyle:UIAlertControllerStyleAlert];
-	UIActivityIndicatorView* activityIndicator = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake(5,5,50,50)];
-	activityIndicator.hidesWhenStopped = YES;
-	activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyleMedium;
-	[activityIndicator startAnimating];
-	[_activityController.view addSubview:activityIndicator];
-
-	[self presentViewController:_activityController animated:YES completion:nil];
-}
-
-- (void)stopActivityWithCompletion:(void (^)(void))completion
-{
-	if(!_activityController) return;
-
-	[_activityController dismissViewControllerAnimated:YES completion:^
+	fetchLatestTrollStoreVersion(^(NSString* latestVersion)
 	{
-		_activityController = nil;
-		if(completion)
+		NSString* currentVersion = [self getTrollStoreVersion];
+		NSComparisonResult result = [currentVersion compare:latestVersion options:NSNumericSearch];
+		if(result == NSOrderedAscending)
 		{
-			completion();
+			_newerVersion = latestVersion;
+			dispatch_async(dispatch_get_main_queue(), ^
+			{
+				[self reloadSpecifiers];
+			});
 		}
-	}];
+	});
 }
 
 - (NSMutableArray*)specifiers
@@ -60,10 +51,28 @@
 
 		[_specifiers addObject:infoSpecifier];
 
+		BOOL isInstalled = trollStoreAppPath();
+
+		if(_newerVersion && isInstalled)
+		{
+			// Update TrollStore
+			PSSpecifier* updateTrollStoreSpecifier = [PSSpecifier preferenceSpecifierNamed:[NSString stringWithFormat:@"Update TrollStore to %@", _newerVersion]
+										target:self
+										set:nil
+										get:nil
+										detail:nil
+										cell:PSButtonCell
+										edit:nil];
+			updateTrollStoreSpecifier.identifier = @"updateTrollStore";
+			[updateTrollStoreSpecifier setProperty:@YES forKey:@"enabled"];
+			updateTrollStoreSpecifier.buttonAction = @selector(updateTrollStorePressed);
+			[_specifiers addObject:updateTrollStoreSpecifier];
+		}
+
 		PSSpecifier* utilitiesGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
 		[_specifiers addObject:utilitiesGroupSpecifier];
 
-		if(trollStoreAppPath())
+		if(isInstalled)
 		{
 			PSSpecifier* refreshAppRegistrationsSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Refresh App Registrations"
 												target:self
@@ -74,7 +83,7 @@
 												edit:nil];
 			refreshAppRegistrationsSpecifier.identifier = @"refreshAppRegistrations";
 			[refreshAppRegistrationsSpecifier setProperty:@YES forKey:@"enabled"];
-			refreshAppRegistrationsSpecifier.buttonAction = @selector(refreshAppRegistrations);
+			refreshAppRegistrationsSpecifier.buttonAction = @selector(refreshAppRegistrationsPressed);
 			[_specifiers addObject:refreshAppRegistrationsSpecifier];
 
 			PSSpecifier* uninstallTrollStoreSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Uninstall TrollStore"
@@ -130,122 +139,21 @@
 
 - (NSString*)getTrollStoreInfoString
 {
-	NSString* trollStore = trollStoreAppPath();
-	if(!trollStore)
+	NSString* version = [self getTrollStoreVersion];
+	if(!version)
 	{
 		return @"Not Installed";
 	}
 	else
 	{
-		NSBundle* trollStoreBundle = [NSBundle bundleWithPath:trollStore];
-		NSString* version = [trollStoreBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
 		return [NSString stringWithFormat:@"Installed, %@", version];
 	}
 }
 
-- (void)refreshAppRegistrations
+- (void)handleUninstallation
 {
-	[self startActivity:@"Refreshing"];
-
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
-	{
-		spawnRoot(helperPath(), @[@"refresh"], nil, nil);
-		respring();
-
-		dispatch_async(dispatch_get_main_queue(), ^
-		{
-			[self stopActivityWithCompletion:nil];
-		});
-	});
-}
-
-- (void)installTrollStorePressed
-{
-	NSURL* trollStoreURL = [NSURL URLWithString:@"https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar"];
-	NSURLRequest* trollStoreRequest = [NSURLRequest requestWithURL:trollStoreURL];
-
-	[self startActivity:@"Installing TrollStore"];
-
-	NSURLSessionDownloadTask* downloadTask = [NSURLSession.sharedSession downloadTaskWithRequest:trollStoreRequest completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error)
-	{
-		if(error)
-		{
-			UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:@"Error" message:[NSString stringWithFormat:@"Error downloading TrollStore: %@", error] preferredStyle:UIAlertControllerStyleAlert];
-			UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
-			[errorAlert addAction:closeAction];
-
-			dispatch_async(dispatch_get_main_queue(), ^
-			{
-				[self stopActivityWithCompletion:^
-				{
-					[self presentViewController:errorAlert animated:YES completion:nil];
-				}];
-			});
-		}
-		else
-		{
-			NSString* tarTmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"TrollStore.tar"];
-			[[NSFileManager defaultManager] copyItemAtPath:location.path toPath:tarTmpPath error:nil];
-
-			int ret = spawnRoot(helperPath(), @[@"install-trollstore", tarTmpPath], nil, nil);
-			dispatch_async(dispatch_get_main_queue(), ^
-			{
-				[[NSFileManager defaultManager] removeItemAtPath:tarTmpPath error:nil];
-				[self stopActivityWithCompletion:^
-				{
-					[self reloadSpecifiers];
-
-					if(ret == 0)
-					{
-						respring();
-					}
-					else
-					{
-						UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:@"Error" message:[NSString stringWithFormat:@"Error installing TrollStore: trollstorehelper returned %d", ret] preferredStyle:UIAlertControllerStyleAlert];
-						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
-						[errorAlert addAction:closeAction];
-						[self presentViewController:errorAlert animated:YES completion:nil];
-					}
-				}];
-			});
-		}
-	}];
-
-	[downloadTask resume];
-}
-
-- (void)uninstallTrollStorePressed
-{
-	UIAlertController* uninstallWarningAlert = [UIAlertController alertControllerWithTitle:@"Warning" message:@"About to uninstall TrollStore and all of the apps installed by it. Continue?" preferredStyle:UIAlertControllerStyleAlert];
-	
-	UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-	[uninstallWarningAlert addAction:cancelAction];
-
-	UIAlertAction* continueAction = [UIAlertAction actionWithTitle:@"Continue" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action)
-	{
-		spawnRoot(helperPath(), @[@"uninstall-trollstore"], nil, nil);
-		[self reloadSpecifiers];
-	}];
-	[uninstallWarningAlert addAction:continueAction];
-
-	[self presentViewController:uninstallWarningAlert animated:YES completion:nil];
-}
-
-- (void)uninstallPersistenceHelperPressed
-{
-	UIAlertController* uninstallWarningAlert = [UIAlertController alertControllerWithTitle:@"Warning" message:@"Uninstalling the persistence helper will revert this app back to it's original state, you will however no longer be able to persistently refresh the TrollStore app registrations. Continue?" preferredStyle:UIAlertControllerStyleAlert];
-	
-	UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-	[uninstallWarningAlert addAction:cancelAction];
-
-	UIAlertAction* continueAction = [UIAlertAction actionWithTitle:@"Continue" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action)
-	{
-		spawnRoot(helperPath(), @[@"uninstall-persistence-helper"], nil, nil);
-		exit(0);
-	}];
-	[uninstallWarningAlert addAction:continueAction];
-
-	[self presentViewController:uninstallWarningAlert animated:YES completion:nil];
+	_newerVersion = nil;
+	[super handleUninstallation];
 }
 
 @end

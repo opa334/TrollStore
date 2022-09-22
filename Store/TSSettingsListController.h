@@ -1,9 +1,8 @@
-#import <Preferences/PSListController.h>
-#import <Preferences/PSSpecifier.h>
+#import "TSListControllerShared.h"
 
-@interface TSSettingsListController : PSListController
+@interface TSSettingsListController : TSListControllerShared
 {
-    UIAlertController* _activityController;
     PSSpecifier* _installPersistenceHelperSpecifier;
+    NSString* _newerVersion;
 }
 @end
