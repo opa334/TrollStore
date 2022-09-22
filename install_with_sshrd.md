@@ -2,11 +2,13 @@
 
 **Supported devices:** A8(X) - A11, iOS 14.0 - 15.5b4
 
-Video tutorial: https://youtu.be/SsvumuaZBT0
+Video tutorial: https://youtu.be/B0MueVvJSK4
 
 1. Run `git clone https://github.com/verygenericname/SSHRD_Script --recursive && cd SSHRD_Script`
 
-2. Run `./sshrd.sh <latestipswlinkhere> TrollStore <uninstallablesystemapphere>` (Tips is the best choice)
+2. Run `./sshrd.sh <iOS version for ramdisk> TrollStore <uninstallable system app>`
+    - Make sure to **not** include the `<>`
+    - The uninstallable system app should be an app you don't need to use (e.g. Tips)
 
 3. Run `./sshrd.sh boot` the device should start verbosing and show a TrollFace in ascii, then reboot eventually
 

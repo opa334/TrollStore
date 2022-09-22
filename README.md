@@ -8,6 +8,10 @@ It works because of a CoreTrust bug that affects iOS 14.0 - 15.4.1 (15.5b4).
 
 ## Installation Methods
 
+N/A means: NO DEVICE / VERSION COMBINATION EXISTS
+
+None means: No way to install TrollStore currently
+
 | Version / Device | A8 | A9 | A10 | A11 | A12 | A13 | A14 | A15 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | iOS 14.0 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | N/A |
@@ -63,7 +67,7 @@ The binaries inside an IPA can have arbitary entitlements, fakesign them with ld
 
 ## Banned entitlements
 
-iOS 15 has banned the following three entitlements related to running unsigned code, these are impossible to get without a PPL or PAC bypass, apps signed with them will crash on launch.
+iOS 15 on A12+ has banned the following three entitlements related to running unsigned code, these are impossible to get without a PPL or PAC bypass, apps signed with them will crash on launch.
 
 `com.apple.private.cs.debugger`
 
