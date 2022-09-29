@@ -32,5 +32,12 @@
 	<true/>
 	<key>com.apple.private.security.storage.MobileDocuments</key>
 	<true/>
+	<key>com.apple.CommCenter.fine-grained</key>
+	<array>
+		<string>cellular-plan</string>
+		<string>data-usage</string>
+		<string>data-allowed-write</string>
+		<string>preferences-write</string>
+	</array>
 </dict>
 </plist>

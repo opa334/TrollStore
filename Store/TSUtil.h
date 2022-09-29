@@ -1,5 +1,6 @@
 @import Foundation;
 
+extern void chineseWifiFixup(void);
 extern NSString* helperPath(void);
 extern void printMultilineNSString(NSString* stringToPrint);
 extern int spawnRoot(NSString* path, NSArray* args, NSString** stdOut, NSString** stdErr);

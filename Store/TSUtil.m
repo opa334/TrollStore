@@ -4,10 +4,22 @@
 #import <spawn.h>
 #import <sys/sysctl.h>
 
+@interface PSAppDataUsagePolicyCache : NSObject
++ (instancetype)sharedInstance;
+- (void)setUsagePoliciesForBundle:(NSString*)bundleId cellular:(BOOL)cellular wifi:(BOOL)wifi;
+@end
+
 #define POSIX_SPAWN_PERSONA_FLAGS_OVERRIDE 1
 extern int posix_spawnattr_set_persona_np(const posix_spawnattr_t* __restrict, uid_t, uint32_t);
 extern int posix_spawnattr_set_persona_uid_np(const posix_spawnattr_t* __restrict, uid_t);
 extern int posix_spawnattr_set_persona_gid_np(const posix_spawnattr_t* __restrict, uid_t);
+
+void chineseWifiFixup(void)
+{
+	Class K_PSAppDataUsagePolicyCache = NSClassFromString(@"PSAppDataUsagePolicyCache");
+	PSAppDataUsagePolicyCache* cache = [K_PSAppDataUsagePolicyCache sharedInstance];
+	[cache setUsagePoliciesForBundle:NSBundle.mainBundle.bundleIdentifier cellular:true wifi:true];
+}
 
 NSString* helperPath(void)
 {

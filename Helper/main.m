@@ -772,41 +772,44 @@ int installApp(NSString* appPath, BOOL sign, BOOL force)
 
 int uninstallApp(NSString* appPath, NSString* appId)
 {
-	BKSTerminateApplicationForReasonAndReportWithDescription(appId, 5, false, @"TrollStore - App uninstalled");
-
-	LSApplicationProxy* appProxy = [LSApplicationProxy applicationProxyForIdentifier:appId];
-	MCMContainer *appContainer = [objc_getClass("MCMAppDataContainer") containerWithIdentifier:appId createIfNecessary:NO existed:nil error:nil];
-	NSString *containerPath = [appContainer url].path;
-	if(containerPath)
+	if(appId)
 	{
-		NSLog(@"[uninstallApp] deleting %@", containerPath);
-		// delete app container path
-		[[NSFileManager defaultManager] removeItemAtPath:containerPath error:nil];
-	}
+		BKSTerminateApplicationForReasonAndReportWithDescription(appId, 5, false, @"TrollStore - App uninstalled");
 
-	// delete group container paths
-	[[appProxy groupContainerURLs] enumerateKeysAndObjectsUsingBlock:^(NSString* groupId, NSURL* groupURL, BOOL* stop)
-	{
-		// If another app still has this group, don't delete it
-		NSArray<LSApplicationProxy*>* appsWithGroup = applicationsWithGroupId(groupId);
-		if(appsWithGroup.count > 1)
+		LSApplicationProxy* appProxy = [LSApplicationProxy applicationProxyForIdentifier:appId];
+		MCMContainer *appContainer = [objc_getClass("MCMAppDataContainer") containerWithIdentifier:appId createIfNecessary:NO existed:nil error:nil];
+		NSString *containerPath = [appContainer url].path;
+		if(containerPath)
 		{
-			NSLog(@"[uninstallApp] not deleting %@, appsWithGroup.count:%lu", groupURL, appsWithGroup.count);
-			return;
+			NSLog(@"[uninstallApp] deleting %@", containerPath);
+			// delete app container path
+			[[NSFileManager defaultManager] removeItemAtPath:containerPath error:nil];
 		}
 
-		NSLog(@"[uninstallApp] deleting %@", groupURL);
-		[[NSFileManager defaultManager] removeItemAtURL:groupURL error:nil];
-	}];
-
-	// delete app plugin paths
-	for(LSPlugInKitProxy* pluginProxy in appProxy.plugInKitPlugins)
-	{
-		NSURL* pluginURL = pluginProxy.dataContainerURL;
-		if(pluginURL)
+		// delete group container paths
+		[[appProxy groupContainerURLs] enumerateKeysAndObjectsUsingBlock:^(NSString* groupId, NSURL* groupURL, BOOL* stop)
 		{
-			NSLog(@"[uninstallApp] deleting %@", pluginURL);
-			[[NSFileManager defaultManager] removeItemAtURL:pluginURL error:nil];
+			// If another app still has this group, don't delete it
+			NSArray<LSApplicationProxy*>* appsWithGroup = applicationsWithGroupId(groupId);
+			if(appsWithGroup.count > 1)
+			{
+				NSLog(@"[uninstallApp] not deleting %@, appsWithGroup.count:%lu", groupURL, appsWithGroup.count);
+				return;
+			}
+
+			NSLog(@"[uninstallApp] deleting %@", groupURL);
+			[[NSFileManager defaultManager] removeItemAtURL:groupURL error:nil];
+		}];
+
+		// delete app plugin paths
+		for(LSPlugInKitProxy* pluginProxy in appProxy.plugInKitPlugins)
+		{
+			NSURL* pluginURL = pluginProxy.dataContainerURL;
+			if(pluginURL)
+			{
+				NSLog(@"[uninstallApp] deleting %@", pluginURL);
+				[[NSFileManager defaultManager] removeItemAtURL:pluginURL error:nil];
+			}
 		}
 	}
 
@@ -855,7 +858,6 @@ int uninstallAppByPath(NSString* appPath)
 {
 	if(!appPath) return 1;
 	NSString* appId = appIdForAppPath(appPath);
-	if(!appId) return 1;
 	return uninstallApp(appPath, appId);
 }
 
