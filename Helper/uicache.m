@@ -52,7 +52,6 @@ BOOL constructContainerizationForEntitlements(NSDictionary* entitlements)
 	{
 		if(noContainer.boolValue)
 		{
-			NSLog(@"constructContainerizationForEntitlements NO com.apple.private.security.no-container");
 			return NO;
 		}
 	}
@@ -62,12 +61,10 @@ BOOL constructContainerizationForEntitlements(NSDictionary* entitlements)
 	{
 		if(!containerRequired.boolValue)
 		{
-			NSLog(@"constructContainerizationForEntitlements NO com.apple.private.security.container-required");
 			return NO;
 		}
 	}
 
-	NSLog(@"constructContainerizationForEntitlements YES");
 	return YES;
 }
 
