@@ -107,13 +107,13 @@
 				}
 			};
 			
-			if ([url.pathExtension isEqualToString:@"ipa"])
+			if ([url.pathExtension.lowercaseString isEqualToString:@"ipa"] || [url.pathExtension.lowercaseString isEqualToString:@"tipa"])
 			{
 				[self doIPAInstall:url.path scene:(UIWindowScene*)scene force:NO completion:^{
 					doneBlock(NO);
 				}];
 			}
-			else if([url.pathExtension isEqualToString:@"tar"])
+			else if([url.pathExtension.lowercaseString isEqualToString:@"tar"])
 			{
 				// Update TrollStore itself
 				NSLog(@"Updating TrollStore...");
