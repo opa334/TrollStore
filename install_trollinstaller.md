@@ -14,4 +14,4 @@
 
 6. If TrollStore is on home screen, start it, if not then reboot and it should appear afterwards, then start it
 
-7. **(Optional)** Tap "Install Persistence Helper" and choose a system app you don't need to use (e.g. Tips) in the list that appears, this app can later be used to refresh TrollStore registrations when iOS reloads the icon cache and the TrollStore apps no longer launch
+7. **(Recommended)** Tap "Install Persistence Helper" in TrollStore and choose a system app you don't need to use (e.g. Tips) in the list that appears, this app can later be used to refresh TrollStore registrations when iOS reloads the icon cache and the TrollStore apps no longer launch

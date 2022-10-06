@@ -1,11 +1,13 @@
 # Installation through TrollStore Helper
 
-**Supported devices:** All jailbroken devices between iOS 14.0 and 15.5b4
+**Supported devices:** All **jailbroken** devices on iOS versions **14.0 to 15.5b4**
 
-1. Download TrollStore Helper from Havoc repo (https://havoc.app), alternatively you can also download the deb from releases and install it yourself.
+1. Download TrollStore Helper from Havoc repo (https://havoc.app).
 
-2. Open TrollStore Helper on the home screen
+   Alternative: Directly download the .deb from GitHub releases and install it manually in your preferred package manager.
 
-3. Press "Install TrollStore", make sure you're connected to internet
+2. Open TrollStore Helper on the home screen.
 
-4. Done, your device will respring and TrollStore should appear on your home screen
+3. Make sure you're connected to the internet, and press "Install TrollStore."
+
+4. Done, your device will respring and TrollStore should appear on your home screen.

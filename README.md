@@ -1,14 +1,14 @@
 # TrollStore
 
-TrollStore in a permasigned jailed app that can permanently install any IPA you open in it.
+TrollStore is a permasigned jailed app that can permanently install any IPA you open in it.
 
-It works because of a CoreTrust bug that affects iOS 14.0 - 15.4.1 (15.5b4).
+It works because of the CoreTrust bug that **_ONLY_** affects iOS 14.0 - 15.4.1 (15.5b4).
 
 **NOTE: TrollStore will _NEVER_ work on anything higher than iOS 15.5 beta 4 (No not on iOS 15.5, not on iOS 15.6 and certainly not on iOS 16.x), please stop asking!**
 
 ## Installation Methods
 
-N/A means: NO DEVICE / VERSION COMBINATION EXISTS
+N/A means: No device / version combination exists
 
 | Version / Device | A8 | A9 | A10 | A11 | A12 | A13 | A14 | A15 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -43,23 +43,23 @@ N/A means: NO DEVICE / VERSION COMBINATION EXISTS
 
 # Updating TrollStore
 
-After having installed TrollStore, you can update it to newer versions by opening the .tar file in releases in TrollStore. It will install the update and respring afterwards.
+After installing TrollStore, you can update it to newer versions by opening the .tar file in releases in TrollStore. It will install the update and respring afterwards.
 
 # Uninstalling an app
 
-TrollStore installed apps can only be uninstalled from TrollStore itself, tap an app or swipe it to the right in the 'Apps' tab to delete it.
+Apps installed from TrollStore can only be uninstalled from TrollStore itself, tap an app or swipe it to the right in the 'Apps' tab to delete it.
 
 # Persistence Helper
 
-The CoreTrust bug used in TrollStore is only enough to install "System" apps, this is because FrontBoard has an additional security check (it calls libmis) every time before a user app is launched. Unfortunately it is not possible to install new "System" apps that stay through an icon cache reload. Therefore when iOS reloads the icon cache, all TrollStore installed apps including TrollStore itself will revert back to "User" state and will no longer launch.
+The CoreTrust bug used in TrollStore is only enough to install "System" apps, this is because FrontBoard has an additional security check (it calls libmis) every time before a user app is launched. Unfortunately it is not possible to install new "System" apps that stay through an icon cache reload. Therefore, when iOS reloads the icon cache, all TrollStore installed apps including TrollStore itself will revert back to "User" state and will no longer launch.
 
-The only way to work around this is to install a persistence helper into a system app, this helper can then be used to reregister TrollStore and it's installed apps as "System" so they become launchable again, an option for this is available in TrollStore settings.
+The only way to work around this is to install a persistence helper into a system app, this helper can then be used to reregister TrollStore and its installed apps as "System" so that they become launchable again, an option for this is available in TrollStore settings.
 
 On jailbroken iOS 14 when TrollHelper is used for installation, it is located in /Applications and will persist as a "System" app through icon cache reloads, therefore TrollHelper is used as the persistence helper on iOS 14.
 
 # Features
 
-The binaries inside an IPA can have arbitary entitlements, fakesign them with ldid and the entitlements you want (`ldid -S<path/to/entitlements.plist> <path/to/binary>`) and TrollStore will preverse the entitlements when resigning them with the fake root cert on installation. This gives you a lot of possibilities, some of which are explained below.
+The binaries inside an IPA can have arbitary entitlements, fakesign them with ldid and the entitlements you want (`ldid -S<path/to/entitlements.plist> <path/to/binary>`) and TrollStore will preverse the entitlements when resigning them with the fake root certificate on installation. This gives you a lot of possibilities, some of which are explained below.
 
 ## Banned entitlements
 
