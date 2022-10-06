@@ -16,7 +16,7 @@
 
 6. Wait a bit, when done, there will be a `DeveloperInstaller.ipa` in _compile/out
 
-# Using compiled IPA (does not neccessarily require a Mac if you obtained the IPA from non orthodox ways)
+## Using compiled IPA (does not neccessarily require a Mac if you obtained the IPA from non orthodox ways)
 
 7. You can install that to a device using e.g. ideviceinstaller (other methods may also work, but make sure you don't use a signing cert, you can also use an enterprise plist or something to install it via Safari as shown in Fugu15 demo, something like iFunBox may also work)
 
