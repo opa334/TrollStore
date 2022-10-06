@@ -4,3 +4,5 @@ out/
 packages/
 xcuserdata
 .vscode
+pwnify_compiled
+Developer.ipa

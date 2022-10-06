@@ -53,19 +53,10 @@
 	}];
 }
 
-- (void)_updateOrInstallTrollStore:(BOOL)update
+- (void)downloadTrollStoreAndDo:(void (^)(NSString* localTrollStoreTarPath))doHandler
 {
 	NSURL* trollStoreURL = [NSURL URLWithString:@"https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar"];
 	NSURLRequest* trollStoreRequest = [NSURLRequest requestWithURL:trollStoreURL];
-
-	if(update)
-	{
-		[self startActivity:@"Updating TrollStore"];
-	}
-	else
-	{
-		[self startActivity:@"Installing TrollStore"];
-	}
 
 	NSURLSessionDownloadTask* downloadTask = [NSURLSession.sharedSession downloadTaskWithRequest:trollStoreRequest completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error)
 	{
@@ -88,27 +79,36 @@
 			NSString* tarTmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"TrollStore.tar"];
 			[[NSFileManager defaultManager] copyItemAtPath:location.path toPath:tarTmpPath error:nil];
 
-			int ret = spawnRoot(helperPath(), @[@"install-trollstore", tarTmpPath], nil, nil);
-			[[NSFileManager defaultManager] removeItemAtPath:tarTmpPath error:nil];
+			doHandler(tarTmpPath);
+		}
+	}];
 
-			if(ret == 0)
+	[downloadTask resume];
+}
+
+- (void)_updateOrInstallTrollStore:(BOOL)update
+{
+	if(update)
+	{
+		[self startActivity:@"Updating TrollStore"];
+	}
+	else
+	{
+		[self startActivity:@"Installing TrollStore"];
+	}
+
+	[self downloadTrollStoreAndDo:^(NSString* tmpTarPath)
+	{
+		int ret = spawnRoot(helperPath(), @[@"install-trollstore", tmpTarPath], nil, nil);
+		[[NSFileManager defaultManager] removeItemAtPath:tmpTarPath error:nil];
+
+		if(ret == 0)
+		{
+			respring();
+
+			if([self isTrollStore])
 			{
-				respring();
-
-				if([self isTrollStore])
-				{
-					exit(0);
-				}
-				else
-				{
-					dispatch_async(dispatch_get_main_queue(), ^
-					{
-						[self stopActivityWithCompletion:^
-						{
-							[self reloadSpecifiers];
-						}];
-					});
-				}
+				exit(0);
 			}
 			else
 			{
@@ -116,17 +116,25 @@
 				{
 					[self stopActivityWithCompletion:^
 					{
-						UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:@"Error" message:[NSString stringWithFormat:@"Error installing TrollStore: trollstorehelper returned %d", ret] preferredStyle:UIAlertControllerStyleAlert];
-						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
-						[errorAlert addAction:closeAction];
-						[self presentViewController:errorAlert animated:YES completion:nil];
+						[self reloadSpecifiers];
 					}];
 				});
 			}
 		}
+		else
+		{
+			dispatch_async(dispatch_get_main_queue(), ^
+			{
+				[self stopActivityWithCompletion:^
+				{
+					UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:@"Error" message:[NSString stringWithFormat:@"Error installing TrollStore: trollstorehelper returned %d", ret] preferredStyle:UIAlertControllerStyleAlert];
+					UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
+					[errorAlert addAction:closeAction];
+					[self presentViewController:errorAlert animated:YES completion:nil];
+				}];
+			});
+		}
 	}];
-
-	[downloadTask resume];
 }
 
 - (void)installTrollStorePressed

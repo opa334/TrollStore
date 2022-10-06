@@ -50,7 +50,7 @@ rm -rf ./TrollStore.app
 cd -
 
 if [[ $1 == "installer" ]]; then
-    # Step five: compile installer
+    # Step five: compile TrollInstaller
     xcodebuild -project ../Installer/TrollInstaller/TrollInstaller.xcodeproj -scheme TrollInstaller -destination generic/platform=iOS -archivePath ./out/Installer.xcarchive archive
 
     if [[ -f "./out/Installer.xcarchive/Products/Applications/TrollInstaller.app/embedded.mobileprovision" ]]; then
@@ -65,4 +65,7 @@ if [[ $1 == "installer" ]]; then
     cd -
     rm -rf ./out/Payload
     rm -rf ./out/Installer.xcarchive
+
+    # Step six: compile TrollInstaller 2
+    ./build_trollinstaller2.sh
 fi

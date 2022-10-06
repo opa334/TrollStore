@@ -13,6 +13,11 @@
 #import <SpringBoardServices/SpringBoardServices.h>
 #import <Security/Security.h>
 
+#ifdef INSTALLER_EMBEDDED
+#define MAIN_NAME rootHelperMain
+#else
+#define MAIN_NAME main
+#endif
 
 extern mach_msg_return_t SBReloadIconForIdentifier(mach_port_t machport, const char* identifier);
 @interface SBSHomeScreenService : NSObject
@@ -1093,7 +1098,8 @@ void uninstallPersistenceHelper(void)
 	}
 }
 
-int main(int argc, char *argv[], char *envp[]) {
+int MAIN_NAME(int argc, char *argv[], char *envp[])
+{
 	@autoreleasepool {
 		if(argc <= 1) return -1;
 
