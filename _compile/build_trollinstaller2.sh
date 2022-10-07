@@ -1,9 +1,9 @@
-cd ../TrollInstaller2
+cd ../Installer/TrollInstaller2
 make clean
 make package
 cd -
 
-lipo -thin arm64e ../TrollInstaller2/.theos/obj/debug/TrollInstaller2.app/TrollInstaller2 -output ./out/pwn_arm64e
+lipo -thin arm64e ../Installer/TrollInstaller2/.theos/obj/debug/TrollInstaller2.app/TrollInstaller2 -output ./out/pwn_arm64e
 ldid -S -M -Kcert.p12 ./out/pwn_arm64e
 
 mkdir ./out/devpwn
