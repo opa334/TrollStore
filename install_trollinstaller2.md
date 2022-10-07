@@ -2,30 +2,28 @@
 
 **Supported devices:** A12 - A15, 14.0 - 15.4.1 (15.5b4)
 
-## Compiling pwned IPA (currently requires a Mac) (Needs [THEOS](https://theos.dev/docs/installation-macos) and [14.5 sdk](https://github.com/theos/sdks) installed)
+## Compiling pwned IPA (currently requires a Mac) (Needs _the newest_ [THEOS](https://theos.dev/docs/installation-macos) and [14.5 sdk](https://github.com/theos/sdks) installed)
 
 0. Make sure Xcode and Command Line Tools are installed.
 
-1. Do `git clone https://github.com/opa334/TrollStore`
+1. Run `git clone https://github.com/opa334/TrollStore ~/TrollStore`
 
-2. Get a stock "Apple Developer" IPA using [ipatool](https://github.com/majd/ipatool/releases/tag/v1.1.4) (iOS 15 only)
-- Unzip, then do `chmod +x ~/Downloads/ipatool`
-- `sudo mv ~/Downloads/ipatool /usr/local/bin`
+2. Get a stock "[Apple Developer](https://apps.apple.com/app/apple-developer/id640199958)" IPA using [ipatool](https://github.com/majd/ipatool) **(iOS15 only, iOS14 should use an old version's app)**
+- `brew tap majd/repo && brew install ipatool`
 - `ipatool auth login` 
+- (Optional if you haven't 'purchase' this free app) `ipatool purchase --country US -b developer.apple.wwdc-Release` (Change US to your app store region)
 - `ipatool download -b developer.apple.wwdc-Release`
 
-> For iOS 14 please follow [this](https://github.com/flowerible/How-to-Downgrade-apps-on-AppStore-with-iTunes-and-Charles-Proxy) you will need Windows, once you get ipa switch back to Mac preceed.
+> For iOS 14 please follow [this](https://github.com/flowerible/How-to-Downgrade-apps-on-AppStore-with-iTunes-and-Charles-Proxy) you will need Windows, once you get ipa switch back to Mac preceed. Or follow [this](https://github.com/NyaMisty/action-ipadown). Or using [Apple Configurator](https://apps.apple.com/app/apple-configurator/id1037126344) to connect an iOS14 device [may help](https://github.com/opa334/TrollStore/blob/19647f2e662c96db5723bb985bfbe1150ab78846/install_trollinstaller2.md).
 
-3. Rename the output ipa to `Developer.ipa`, and put it into ~/TrollStore/_compile/target/Developer.ipa
+3. Rename the output ipa to `Developer.ipa`, and put it into `~/TrollStore/_compile/target/Developer.ipa`
 
-4. Grab pwnify_compiled from Fugu14 repo (https://github.com/LinusHenze/Fugu14/blob/master/tools/pwnify_compiled), sign it using codesign (`codesign -f -s - <path/to/pwnify_compiled>`) and put it at ~/TrollStore/_compile/pwnify_compiled
+4. Grab pwnify_compiled from Fugu14 repo (https://github.com/LinusHenze/Fugu14/blob/master/tools/pwnify_compiled), sign it using codesign (`codesign -f -s - <path/to/pwnify_compiled>`) and put it at `~/TrollStore/_compile/pwnify_compiled`
 
-5. Make sure you have Procursus ldid installed and added to your path! (https://github.com/ProcursusTeam/ldid)
+5. Make sure you have Procursus `ldid` installed and added to your path! (https://github.com/ProcursusTeam/ldid)
 - `brew uninstall ldid` (brew ldid is bad ldid if you have it)
 - Rename the Procursus ldid for your arch to `ldid`, then do `chmod +x ~/Downloads/ldid`
 - `sudo mv ~/Downloads/ldid /usr/local/bin`
-
-> As of right now you need to add an "`out`" folder in _compile
 
 6. cd into _compile and run `./build_trollinstaller2.sh` (`chmod +x ./build_trollinstaller2.sh` if you get a permission error)
 
