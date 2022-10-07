@@ -16,6 +16,19 @@ then
     rm ./out/TrollInstaller2_arm64e.ipa
 fi
 
+IS_PROCURSUS_LDID=0
+LDID_OUTPUT=$(ldid)
+case "procursus" in 
+  *$LDID_OUTPUT*)
+    IS_PROCURSUS_LDID=1
+    ;;
+esac
+
+if [[ "$IS_PROCURSUS_LDID" -eq 0 ]]; then
+	echo "ERROR: You are not using Procursus ldid, follow the guide to switch to it."
+	exit 1
+fi
+
 mkdir ./out/tmppwn || true 2> /dev/null
 
 cd ../Installer/TrollInstaller2
