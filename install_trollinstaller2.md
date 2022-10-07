@@ -14,7 +14,7 @@
 - (Optional if you haven't 'purchase' this free app) `ipatool purchase --country US -b developer.apple.wwdc-Release` (Change US to your app store region)
 - `ipatool download -b developer.apple.wwdc-Release`
 
-3. Rename the output ipa to `InstallerVictim.ipa`, and put it into ~/TrollStore/_compile/InstallerVictim.ipa
+3. Rename the output ipa to `InstallerVictim.ipa`, and put it into `~/TrollStore/_compile/InstallerVictim.ipa`
 
 4. Grab pwnify_compiled from Fugu14 repo (https://github.com/LinusHenze/Fugu14/blob/master/tools/pwnify_compiled), sign it using codesign (`codesign -f -s - <path/to/pwnify_compiled>`) and put it at `~/TrollStore/_compile/pwnify_compiled`
 
