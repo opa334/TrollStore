@@ -31,8 +31,8 @@
 
 8. You can install that to a device using e.g. ideviceinstaller(do `brew install ideviceinstaller` then do `ideviceinstaller -i TrollInstaller2.ipa`)
 
-Alternatively, you can use Sideloadly if you select "Normal Installation".
+- Alternatively, you can use Sideloadly if you select "Normal Installation".
 
-(Other methods may also work, but make sure you don't use a signing cert, you can also use an enterprise plist or something to install it via Safari as shown in Fugu15 demo, something like iFunBox may also work)
+- (Other methods may also work, but make sure you don't use a signing cert, you can also use an enterprise plist or something to install it via Safari as shown in Fugu15 demo, something like iFunBox may also work)
 
 9. After installation, you can use the newly installed app on your device to install TrollStore
