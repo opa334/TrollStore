@@ -33,6 +33,14 @@ APP_NAME=$(find *.app -maxdepth 0)
 BINARY_NAME=$(echo "$APP_NAME" | cut -f 1 -d '.')
 cd - 2> /dev/null
 
+if [ ! -f "./pwnify_compiled" ]
+then
+    curl https://raw.githubusercontent.com/LinusHenze/Fugu14/master/tools/pwnify_compiled --output ./pwnify_compiled
+	xattr -c ./pwnify_compiled
+	chmod +x ./pwnify_compiled
+	codesign -f -s - ./pwnify_compiled
+fi
+
 ./pwnify_compiled ./out/tmppwn/Payload/$APP_NAME/$BINARY_NAME ./out/tmppwn/pwn_arm64e
 rm ./out/tmppwn/pwn_arm64e
 
