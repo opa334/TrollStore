@@ -8,27 +8,16 @@
 
 1. Run `git clone https://github.com/opa334/TrollStore ~/TrollStore`
 
-<<<<<<< HEAD
 2. Get ANY encrypted AppStore IPA using [ipatool](https://github.com/majd/ipatool/releases/tag/v1.1.4)
 - Unzip, then do `chmod +x ~/Downloads/ipatool`
 - `sudo mv ~/Downloads/ipatool /usr/local/bin`
-=======
-2. Get a stock "[Apple Developer](https://apps.apple.com/app/apple-developer/id640199958)" IPA using [ipatool](https://github.com/majd/ipatool) **(iOS15 only, iOS14 should use an old version's app)**
-- `brew tap majd/repo && brew install ipatool`
->>>>>>> 22a4389b00e184dcb8828a0532993da179ef8f0a
 - `ipatool auth login` 
 - (Optional if you haven't 'purchase' this free app) `ipatool purchase --country US -b developer.apple.wwdc-Release` (Change US to your app store region)
 - `ipatool download -b developer.apple.wwdc-Release`
 
-<<<<<<< HEAD
 > For iOS 14 please make sure to use an app that still supports iOS 14
 
 3. Rename the output ipa to `InstallerVictim.ipa`, and put it into ~/TrollStore/_compile/InstallerVictim.ipa
-=======
-> For iOS 14 please follow [this](https://github.com/flowerible/How-to-Downgrade-apps-on-AppStore-with-iTunes-and-Charles-Proxy) you will need Windows, once you get ipa switch back to Mac preceed. Or follow [this](https://github.com/NyaMisty/action-ipadown). Or using [Apple Configurator](https://apps.apple.com/app/apple-configurator/id1037126344) to connect an iOS14 device [may help](https://github.com/opa334/TrollStore/blob/19647f2e662c96db5723bb985bfbe1150ab78846/install_trollinstaller2.md).
-
-3. Rename the output ipa to `Developer.ipa`, and put it into `~/TrollStore/_compile/target/Developer.ipa`
->>>>>>> 22a4389b00e184dcb8828a0532993da179ef8f0a
 
 4. Grab pwnify_compiled from Fugu14 repo (https://github.com/LinusHenze/Fugu14/blob/master/tools/pwnify_compiled), sign it using codesign (`codesign -f -s - <path/to/pwnify_compiled>`) and put it at `~/TrollStore/_compile/pwnify_compiled`
 
