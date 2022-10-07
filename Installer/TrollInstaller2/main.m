@@ -2,6 +2,7 @@
 #import "TSI2AppDelegateNoScene.h"
 #import "TSI2AppDelegateWithScene.h"
 #import "TSI2SceneDelegate.h"
+#import "../../Store/TSUtil.h"
 #import <objc/runtime.h>
 
 extern int rootHelperMain(int argc, char *argv[], char *envp[]);
@@ -76,6 +77,7 @@ int main(int argc, char *argv[], char *envp[]) {
 		}
 		else
 		{
+			chineseWifiFixup();
 			BOOL usesSceneDelegate = sceneDelegateFix();
 			if(usesSceneDelegate)
 			{
