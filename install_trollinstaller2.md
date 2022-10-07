@@ -8,14 +8,11 @@
 
 1. Run `git clone https://github.com/opa334/TrollStore ~/TrollStore`
 
-2. Get ANY encrypted AppStore IPA using [ipatool](https://github.com/majd/ipatool/releases/tag/v1.1.4)
-- Unzip, then do `chmod +x ~/Downloads/ipatool`
-- `sudo mv ~/Downloads/ipatool /usr/local/bin`
-- `ipatool auth login` 
+2. Get ANY encrypted AppStore IPA using [ipatool](https://github.com/majd/ipatool)
+- In this example, the "Developer" app by Apple will be used, this app only supports iOS 15 and up, for iOS 14 support replace `developer.apple.wwdc-Release` in the following commands with the identifier of an app that still supports iOS 14
+- `brew tap majd/repo && brew install ipatool`
 - (Optional if you haven't 'purchase' this free app) `ipatool purchase --country US -b developer.apple.wwdc-Release` (Change US to your app store region)
 - `ipatool download -b developer.apple.wwdc-Release`
-
-> For iOS 14 please make sure to use an app that still supports iOS 14
 
 3. Rename the output ipa to `InstallerVictim.ipa`, and put it into ~/TrollStore/_compile/InstallerVictim.ipa
 
