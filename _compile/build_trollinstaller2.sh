@@ -1,3 +1,11 @@
+#!/bin/sh
+set -e
+
+if [ ! -d "./out" ]
+then
+    mkdir -p ./out
+fi
+
 cd ../TrollInstaller2
 make clean
 make package
@@ -13,7 +21,7 @@ unzip target/Developer.ipa -d ./out/devpwn
 rm ./out/pwn_arm64e
 
 cd ./out/devpwn
-zip -mvr devpwn.ipa *
+zip -vr devpwn.ipa *
 cd -
 
 cp ./out/devpwn/devpwn.ipa ./out/DeveloperInstaller.ipa
