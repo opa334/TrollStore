@@ -4,7 +4,7 @@
 
 ## Compiling pwned IPA (currently requires a Mac) (Needs THEOS and 14.5 sdk installed)
 
-1. Get a stock "Apple Developer" IPA (this app: https://apps.apple.com/de/app/apple-developer/id640199958 (sorry german link but you get the idea)), you can do this using Apple Configurator (install it twice to your device and when it gives you the already exists error, copy the IPA from `~/Library/Group\ Containers/<some_uuid>.group.com.apple.configurator/Library/Caches/Assets/TemporaryItems/MobileApps` to somewhere else and then cancel the installation).
+1. Get a stock "Apple Developer" IPA (this app: https://apps.apple.com/us/app/apple-developer/id640199958), you can do this using Apple Configurator (install it twice to your device and when it gives you the already exists error, copy the IPA from `~/Library/Group\ Containers/<some_uuid>.group.com.apple.configurator/Library/Caches/Assets/TemporaryItems/MobileApps` to somewhere else and then cancel the installation).
 
 2. Put it into _compile/target/Developer.ipa
 
