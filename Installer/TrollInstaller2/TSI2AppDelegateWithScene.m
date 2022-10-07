@@ -1,6 +1,6 @@
-#import "TSI2AppDelegate.h"
+#import "TSI2AppDelegateWithScene.h"
 
-@implementation TSI2AppDelegate
+@implementation TSI2AppDelegateWithScene
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 	return YES;
