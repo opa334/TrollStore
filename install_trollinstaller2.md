@@ -18,7 +18,7 @@
 
 3. Rename the output ipa to `Developer.ipa`, and put it into ~/TrollStore/_compile/target/Developer.ipa
 
-4. Grab pwnify_compiled from Fugu14 repo (https://github.com/LinusHenze/Fugu14/blob/master/tools/pwnify_compiled), sign it using codesign (`codesign -s - <path/to/pwnify_compiled>`) and put it at ~/TrollStore/_compile/pwnify_compiled
+4. Grab pwnify_compiled from Fugu14 repo (https://github.com/LinusHenze/Fugu14/blob/master/tools/pwnify_compiled), sign it using codesign (`codesign -f -s - <path/to/pwnify_compiled>`) and put it at ~/TrollStore/_compile/pwnify_compiled
 
 5. Make sure you have Procursus ldid installed and added to your path! (https://github.com/ProcursusTeam/ldid)
 - `brew uninstall ldid` (brew ldid is bad ldid if you have it)

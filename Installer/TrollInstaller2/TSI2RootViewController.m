@@ -1,6 +1,6 @@
 #import "TSI2RootViewController.h"
-#import "../Helper/Shared.h"
-#import "../Store/TSUtil.h"
+#import "../../Helper/Shared.h"
+#import "../../Store/TSUtil.h"
 
 @implementation TSI2RootViewController
 
