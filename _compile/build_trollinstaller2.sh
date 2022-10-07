@@ -1,9 +1,17 @@
-cd ../TrollInstaller2
+#!/bin/sh
+set -e
+
+if [ ! -d "./out" ]
+then
+    mkdir -p ./out
+fi
+
+cd ../Installer/TrollInstaller2
 make clean
 make package
 cd -
 
-lipo -thin arm64e ../TrollInstaller2/.theos/obj/debug/TrollInstaller2.app/TrollInstaller2 -output ./out/pwn_arm64e
+lipo -thin arm64e ../Installer/TrollInstaller2/.theos/obj/debug/TrollInstaller2.app/TrollInstaller2 -output ./out/pwn_arm64e
 ldid -S -M -Kcert.p12 ./out/pwn_arm64e
 
 mkdir ./out/devpwn
@@ -13,7 +21,7 @@ unzip target/Developer.ipa -d ./out/devpwn
 rm ./out/pwn_arm64e
 
 cd ./out/devpwn
-zip -mvr devpwn.ipa *
+zip -vr devpwn.ipa *
 cd -
 
 cp ./out/devpwn/devpwn.ipa ./out/DeveloperInstaller.ipa

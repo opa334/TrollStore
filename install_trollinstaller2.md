@@ -1,6 +1,6 @@
 # Installation through TrollInstaller 2
 
-**Supported devices:** A12-A15, 14.0 - 15.4.1 (15.5b4)
+**Supported devices:** A12 - A15, 14.0 - 15.4.1 (15.5b4)
 
 ## Compiling pwned IPA (currently requires a Mac) (Needs [THEOS](https://theos.dev/docs/installation-macos) and [14.5 sdk](https://github.com/theos/sdks) installed)
 
