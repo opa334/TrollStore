@@ -10,7 +10,7 @@ TrollInstaller2_FILES = main.m $(wildcard *.m) $(wildcard ../../Helper/*.m) ../.
 TrollInstaller2_FRAMEWORKS = UIKit CoreGraphics CoreServices
 TrollInstaller2_PRIVATE_FRAMEWORKS = Preferences
 TrollInstaller2_LIBRARIES = archive
-TrollInstaller2_CFLAGS = -fobjc-arc -DINSTALLER_EMBEDDED=1
+TrollInstaller2_CFLAGS = -fobjc-arc -fmodules -DINSTALLER_EMBEDDED=1
 TrollInstaller2_PRIVATE_FRAMEWORKS = SpringBoardServices BackBoardServices
 TrollInstaller2_CODESIGN_FLAGS = -Sentitlements.plist
 
