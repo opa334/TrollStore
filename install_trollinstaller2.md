@@ -2,7 +2,23 @@
 
 **Supported devices:** A12 - A15, 14.0 - 15.4.1 (15.5b4)
 
-## Compiling pwned IPA (currently requires a Mac) (Needs _the newest_ [THEOS](https://theos.dev/docs/installation-macos) and [14.5 sdk](https://github.com/theos/sdks) installed)
+## Installing pre-compiled application (Recommended)
+
+All of these steps should be done on your iPhone/iPad; a computer is not needed.
+
+1. Open [this link](https://api.jailbreaks.app/troll) on your device
+
+2. Tap "Install" on the prompt
+    + The app that appears on your home screen will be called "GTA Car Tracker"; this is normal.
+
+3. Open the app and tap "Install TrollStore"
+    + This will also trigger a respring
+4. Open the newly-installed TrollStore and navigate to Settings.
+
+5. Install ldid. Then, read the information under "Persistence", and install Persistence Helper if you would like it.
+
+
+## Compiling pwned IPA (Advanced) (currently requires a Mac) (Needs _the newest_ [THEOS](https://theos.dev/docs/installation-macos) and [14.5 sdk](https://github.com/theos/sdks) installed)
 
 0. Make sure Xcode and Command Line Tools are installed.
 
@@ -25,7 +41,7 @@
 
 6. Wait a bit, when done, there will be a `TrollInstaller2.ipa` in ~/TrollStore/_compile/out
 
-## Using compiled IPA (does not neccessarily require a Mac if you obtained the IPA from non orthodox ways)
+### Using compiled IPA (does not neccessarily require a Mac if you obtained the IPA from non orthodox ways)
 
 7. You can install that to a device using e.g. ideviceinstaller(do `brew install ideviceinstaller` then do `ideviceinstaller -i TrollInstaller2.ipa`)
 
