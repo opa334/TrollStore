@@ -63,7 +63,7 @@ The binaries inside an IPA can have arbitary entitlements, fakesign them with ld
 
 ## Banned entitlements
 
-iOS 15 on A12+ has banned the following three entitlements related to running unsigned code, these are impossible to get without a PPL or PAC bypass, apps signed with them will crash on launch.
+iOS 15 on A12+ has banned the following three entitlements related to running unsigned code, these are impossible to get without a PPL bypass, apps signed with them will crash on launch.
 
 `com.apple.private.cs.debugger`
 
@@ -134,4 +134,6 @@ Afterwards you can use the [spawnRoot function in TSUtil.m](./Store/TSUtil.m#L39
 
 [@LinusHenze](https://twitter.com/LinusHenze/) - Found the CoreTrust bug that allows TrollStore to work.
 
-[Early Write-Up on the CoreTrust bug with more information](https://worthdoingbadly.com/coretrust/).
+[Fugu15 Presentation](https://youtu.be/NIyKNjNNB5Q?t=3046)
+
+[Write-Up on the CoreTrust bug with more information](https://worthdoingbadly.com/coretrust/).

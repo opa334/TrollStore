@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 if [ ! -d "./out" ]
@@ -17,9 +17,9 @@ then
 fi
 
 IS_PROCURSUS_LDID=0
-LDID_OUTPUT=$(ldid)
-case "procursus" in 
-  *$LDID_OUTPUT*)
+{ LDID_OUTPUT="$( { ldid; } 2>&1 1>&3 3>&- )"; } 3>&1;
+case "$LDID_OUTPUT" in
+  *"procursus"*)
     IS_PROCURSUS_LDID=1
     ;;
 esac
