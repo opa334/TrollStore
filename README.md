@@ -6,25 +6,25 @@ It works because of the CoreTrust bug that **_ONLY_** affects iOS 14.0 - 15.4.1 
 
 **NOTE: TrollStore will _NEVER_ work on anything higher than iOS 15.5 beta 4 (No not on iOS 15.5, not on iOS 15.6 and certainly not on iOS 16.x), please stop asking!**
 
-## Installing TrollStore
+# Installing TrollStore
 
 1. On your iOS device (14.0 - 15.5b4), click [this link](https://api.jailbreaks.app/troll).
 
-2. An alert should appear, click "Install"
+2. An alert should appear, click "Install".
 
-3. When the installation is finished, you will find a "GTA Car Tracker" application on your device
+3. When the installation is finished, you will find a "GTA Car Tracker" application on your device.
 
-4. If this app has not appeared, that's a stock iOS bug, reboot your device and it will appear
+4. If this app has not appeared, that's a stock iOS bug, reboot your device and it will appear.
 
-5. Launch the app, tap "Install TrollStore"
+5. Launch the app, tap "Install TrollStore".
 
-6. Wait a few seconds, your device should respring and TrollStore will be installed
+6. Wait a few seconds, your device should respring and TrollStore will be installed.
 
-7. You can now delete the "GTA Car Tracker" app, it is no longer needed
+7. You can now delete the "GTA Car Tracker" app, it is no longer needed.
 
 8. Open TrollStore and press "Install ldid" in the Settings tab, then read the information under "Persistence", and install Persistence Helper if want persistence.
 
-9. Done, you can now share IPA files with TrollStore and they will be permanently installed on your device
+9. Done, you can now share IPA files with TrollStore and they will be permanently installed on your device.
 
 # Updating TrollStore
 
