@@ -6,44 +6,31 @@ It works because of the CoreTrust bug that **_ONLY_** affects iOS 14.0 - 15.4.1 
 
 **NOTE: TrollStore will _NEVER_ work on anything higher than iOS 15.5 beta 4 (No not on iOS 15.5, not on iOS 15.6 and certainly not on iOS 16.x), please stop asking!**
 
-## Installation Methods
+## Installing TrollStore
 
-N/A means: No device / version combination exists
+1. On your iOS device (14.0 - 15.5b4), click [this link](https://api.jailbreaks.app/troll).
 
-| Version / Device | A8 | A9 | A10 | A11 | A12 | A13 | A14 | A15 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| iOS 14.0 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | N/A |
-| iOS 14.0.1 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | N/A |
-| iOS 14.1 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | N/A |
-| iOS 14.2 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | N/A |
-| iOS 14.2.1 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | N/A |
-| iOS 14.3 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | N/A |
-| iOS 14.4 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | N/A |
-| iOS 14.4.1 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | N/A |
-| iOS 14.4.2 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | N/A |
-| iOS 14.5 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | N/A |
-| iOS 14.5.1 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | N/A |
-| iOS 14.6 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | N/A |
-| iOS 14.7 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | N/A |
-| iOS 14.7.1 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | N/A |
-| iOS 14.8 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | N/A |
-| iOS 14.8.1 | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollHelper](./install_trollhelper.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | N/A |
-| iOS 15.0 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [TrollInstaller](./install_trollinstaller.md) | [TrollInstaller](./install_trollinstaller.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) |
-| iOS 15.0.1 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [TrollInstaller](./install_trollinstaller.md) | [TrollInstaller](./install_trollinstaller.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) |
-| iOS 15.0.2 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [TrollInstaller](./install_trollinstaller.md) | [TrollInstaller](./install_trollinstaller.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) |
-| iOS 15.1 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [TrollInstaller](./install_trollinstaller.md) | [TrollInstaller](./install_trollinstaller.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) |
-| iOS 15.1.1 | N/A | N/A | N/A | N/A | N/A | N/A | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) |
-| iOS 15.2 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) |
-| iOS 15.2.1 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) |
-| iOS 15.3 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) |
-| iOS 15.3.1 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) |
-| iOS 15.4 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) |
-| iOS 15.4.1 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) |
-| iOS 15.5 Beta 1 - Beta 4 | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [SSH Ramdisk](./install_with_sshrd.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) | [TrollInstaller2](./install_trollinstaller2.md) |
+2. An alert should appear, click "Install"
+
+3. When the installation is finished, you will find a "GTA Car Tracker" application on your device
+
+4. If this app has not appeared, that's a stock iOS bug, reboot your device and it will appear
+
+5. Launch the app, tap "Install TrollStore"
+
+6. Wait a few seconds, your device should respring and TrollStore will be installed
+
+7. You can now delete the "GTA Car Tracker" app, it is no longer needed
+
+8. Open TrollStore and press "Install ldid" in the Settings tab, then read the information under "Persistence", and install Persistence Helper if want persistence.
+
+9. Done, you can now share IPA files with TrollStore and they will be permanently installed on your device
 
 # Updating TrollStore
 
-After installing TrollStore, you can update it to newer versions by opening the .tar file in releases in TrollStore. It will install the update and respring afterwards.
+When a new TrollStore update is available, a button to install it will appear at the top in the TrollStore settings. When tapping the button, TrollStore will automatically download the update, install it and respring.
+
+Alternatively (if anything goes wrong), you can download the TrollStore.tar file under Releases and open it in TrollStore, TrollStore will install the update and respring.
 
 # Uninstalling an app
 
