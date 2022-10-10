@@ -16,9 +16,10 @@ extern int posix_spawnattr_set_persona_gid_np(const posix_spawnattr_t* __restric
 
 void chineseWifiFixup(void)
 {
-	Class K_PSAppDataUsagePolicyCache = NSClassFromString(@"PSAppDataUsagePolicyCache");
-	PSAppDataUsagePolicyCache* cache = [K_PSAppDataUsagePolicyCache sharedInstance];
-	[cache setUsagePoliciesForBundle:NSBundle.mainBundle.bundleIdentifier cellular:true wifi:true];
+	NSBundle *bundle = [NSBundle bundleWithPath:@"/System/Library/PrivateFrameworks/SettingsCellular.framework"];
+	[bundle load];
+	[[NSClassFromString(@"PSAppDataUsagePolicyCache") sharedInstance] setUsagePoliciesForBundle:NSBundle.mainBundle.bundleIdentifier cellular:true wifi:true];
+	[bundle unload];
 }
 
 NSString* helperPath(void)
