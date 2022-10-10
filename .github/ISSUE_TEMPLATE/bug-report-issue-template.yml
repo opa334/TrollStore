@@ -68,7 +68,7 @@ body:
     id: trollstore-version
     attributes:
       label: TrollStore Version
-      description: like: TrollInstaller2
+      description: like TrollInstaller2
     validations:
       required: true
 
@@ -76,7 +76,7 @@ body:
     id: ios-version
     attributes:
       label: iOS/iPadOS version
-      description: like: iOS 15.1
+      description: like iOS 15.1
     validations:
       required: true
       
@@ -84,7 +84,7 @@ body:
     id: idevice-model
     attributes:
       label: iDevice Model
-      description: like: iPhone 11
+      description: like iPhone 11
     validations:
       required: true
 
@@ -92,5 +92,5 @@ body:
     id: other-env
     attributes:
       label: Other info of your environment
-      description: like: macOS 12.6, the newest THEOS...
+      description: like macOS 12.6, the newest THEOS...
 
