@@ -1,0 +1,96 @@
+name: Bug Report
+description: Bug Report (No Duplicates Issue Here!)
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Before post issue please read me
+        Your issue may already be reported!
+        Please search on the [issue tracker](https://github.com/opa334/TrollStore/issues) before creating one.
+
+  - type: checkboxes
+    id: no-duplicates-issue
+    attributes:
+      label: No Duplicates Issue
+      options:
+        - label:  I'm sure I've searched on the issue tracker before creating one.
+          required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior?
+      description: |
+         Describing a bug, tell us what should happen
+      placeholder: Tell us what you **Expected**!
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: Current Behavior?
+      description: |
+         Describing a bug, tell us what happens instead of the expected behavior
+      placeholder: Tell us what you **Happened**!
+    validations:
+      required: true
+
+  - type: textarea
+    id: possible-solution
+    attributes:
+      label: Possible Solution?
+      description: |
+         Not obligatory, but suggest a fix/reason for the bug,
+         or ideas how to implement the addition or change
+      placeholder: If not sure leave blank.
+      value: "-"
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: |
+         Provide a link to a live example, or an unambiguous set of steps to
+         reproduce this bug. Include code to reproduce, if relevant
+      placeholder: |
+        1.
+        2.
+        3.
+      value: "-"
+
+  - type: markdown
+    attributes:
+      value: |
+        # Your Environment
+
+  - type: input
+    id: trollstore-version
+    attributes:
+      label: TrollStore Version
+      description: like TrollInstaller2
+    validations:
+      required: true
+
+  - type: input
+    id: ios-version
+    attributes:
+      label: iOS/iPadOS version
+      description: like iOS 15.1
+    validations:
+      required: true
+      
+  - type: input
+    id: idevice-model
+    attributes:
+      label: iDevice Model
+      description: like iPhone 11
+    validations:
+      required: true
+
+  - type: input
+    id: other-env
+    attributes:
+      label: Other info of your environment
+      description: like macOS 12.6, the newest THEOS...
+
