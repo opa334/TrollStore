@@ -22,7 +22,7 @@ It works because of the CoreTrust bug that **_ONLY_** affects iOS 14.0 - 15.4.1 
 
 7. You can now delete the "GTA Car Tracker" app, it is no longer needed.
 
-8. Open TrollStore and press "Install ldid" in the Settings tab, then read the information under "Persistence", and install the Persistence Helper into a system app if want persistence.
+8. Open TrollStore and press "Install ldid" in the Settings tab, then read the information under "Persistence", and install the Persistence Helper into a system app if you want persistence.
 
 9. Done, you can now share IPA files with TrollStore and they will be permanently installed on your device.
 

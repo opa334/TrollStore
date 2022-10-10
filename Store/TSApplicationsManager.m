@@ -96,13 +96,13 @@
         errorDescription = @"The app is not signed with a fake CoreTrust certificate and ldid is not installed. Install ldid in the settings tab and try again.";
         break;
         case 174:
-        errorDescription = @"The apps main executable does not exists.";
+        errorDescription = @"The app's main executable does not exist.";
         break;
         case 175:
         errorDescription = @"Failed to sign the app. ldid returned a non zero status code.";
         break;
         case 176:
-        errorDescription = @"The apps Info.plist is missing required values.";
+        errorDescription = @"The app's Info.plist is missing required values.";
         break;
         case 177:
         errorDescription = @"Failed to mark app as TrollStore app.";
