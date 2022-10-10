@@ -6,7 +6,7 @@ body:
       value: |
         # Before post issue please read me
         Your issue may already be reported!
-        Please search on the [issue tracker](../) before creating one.
+        Please search on the [issue tracker](https://github.com/opa334/TrollStore/issues) before creating one.
 
   - type: checkboxes
     id: no-duplicates-issue
