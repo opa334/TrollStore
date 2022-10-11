@@ -119,7 +119,7 @@ Your app can run unsandboxed using one of the following entitlements:
 
 The third one is recommended if you still want a sandbox container for your application.
 
-You might also need the platform-application entitlement in order for these to work propery:
+You might also need the platform-application entitlement in order for these to work properly:
 
 ```
 <key>platform-application</key>
