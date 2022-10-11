@@ -2,13 +2,35 @@
 
 TrollStore is a permasigned jailed app that can permanently install any IPA you open in it.
 
-It works because of the CoreTrust bug that **_ONLY_** affects iOS 14.0 - 15.4.1 (15.5b4).
+It works because of an AMFI/CoreTrust bug where it doesn't verify whether a root certificate used to sign a binary is legit.
 
-**NOTE: TrollStore will _NEVER_ work on anything higher than iOS 15.5 beta 4 (No not on iOS 15.5, not on iOS 15.6 and certainly not on iOS 16.x), please stop asking!**
+# Compatibility
 
-# Installing TrollStore
+TrollStore works on **iOS 14.0 - 15.4.1**, on **iOS 15.5 beta 1 - iOS 15.5 beta 4** and on **iOS 15.6 beta 1 - iOS 15.6 beta 5**.
 
-1. On your iOS device (14.0 - 15.5b4), click [this link](https://api.jailbreaks.app/troll).
+iOS 15.5 RC / full build is **NOT** supported.
+
+Anything higher than iOS 15.6 beta 5 (including iOS 15.6 RC / full build) is **NOT** supported.
+
+Anything lower than iOS 14.0 is **NOT** supported.
+
+Anything not supported right now will **_NEVER_** be supported, TrollStore is a one time thing, it will not receive compatiblity updates in the future, please **stop asking** about it, GitHub issues regarding version support will be **closed without answer**.
+
+# Installing TrollStore (No Jailbreak)
+
+## Installation Links:
+
+[Installation Link 1 - Supports all devices on iOS 15 and up](https://api.jailbreaks.app/troll)
+
+[Installation Link 2 - Supports all arm64e (A12 - A15) devices on iOS 14 and up](https://api.jailbreaks.app/troll64e)
+
+Please refer to "Compatbility" above to check whether your version is compatible, if it's not then these links will not work.
+
+This installation method unfortunately does **NOT** work on arm64 (A8 - A11) iOS 14 devices, for these devices, jailbreak with checkra1n and then use the jailbroken installation guide below.
+
+## Guide
+
+1. Based on what device you are using, pick the one of the two links above and tap it.
 
 2. An alert should appear, click "Install".
 
@@ -20,11 +42,29 @@ It works because of the CoreTrust bug that **_ONLY_** affects iOS 14.0 - 15.4.1 
 
 6. Wait a few seconds, your device should respring and TrollStore will be installed.
 
-7. You can now delete the "GTA Car Tracker" app, it is no longer needed.
+7. You can now either delete the "GTA Car Tracker" app, or register it as the persistence helper by opening it and tapping the option at the bottom and keep it.
 
-8. Open TrollStore and press "Install ldid" in the Settings tab, then read the information under "Persistence", and install the Persistence Helper into a system app if want persistence.
+8. Open the TrollStore app and press "Install ldid" in the Settings tab, then read the information under "Persistence", and install the Persistence Helper into a system app if want persistence.
 
 9. Done, you can now share IPA files with TrollStore and they will be permanently installed on your device.
+
+# Installing TrollStore (Jailbreak)
+
+Supports jailbroken devices running 14.0 or above.
+
+## Guide
+
+1. Open your package manager, make sure Havoc repo (https://havoc.app) is added under Sources, then search for "TrollStore Helper" and install it
+
+2. After the installation, respring and a "TrollHelper" app should be on your home screen, launch that.
+
+3. Launch the app, tap "Install TrollStore".
+
+4. Wait a few seconds, your device should respring and TrollStore will be installed.
+
+5. Open the TrollStore app and press "Install ldid" in the Settings tab, then read the information under "Persistence", the TrollHelper app on the home screen will be your persistence helper.
+
+6. Done, you can now share IPA files with TrollStore and they will be permanently installed on your device.
 
 # Updating TrollStore
 

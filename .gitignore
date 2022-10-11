@@ -4,5 +4,6 @@ out/
 packages/
 xcuserdata
 .vscode
-pwnify_compiled
+Pwnify/pwnify
 InstallerVictim.ipa
+_build
