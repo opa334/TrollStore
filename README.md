@@ -50,7 +50,7 @@ This installation method unfortunately does **NOT** work on arm64 (A8 - A11) iOS
 
 ## Installing TrollStore (Jailbreak)
 
-Supports jailbroken devices running 14.0 or above.
+Supports jailbroken devices running 14.0 and above.
 
 ### Guide
 
