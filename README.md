@@ -20,9 +20,9 @@ Anything not supported right now will **_NEVER_** be supported, TrollStore is a 
 
 ## Installation Links:
 
-[Installation Link 1 - Supports all devices on iOS 15 and up](https://api.jailbreaks.app/troll)
+[TrollHelperOTA Link 1 - Supports all devices on iOS 15 and up](https://api.jailbreaks.app/troll)
 
-[Installation Link 2 - Supports all arm64e (A12 - A15) devices on iOS 14 and up](https://api.jailbreaks.app/troll64e)
+[TrollHelperOTA Link 2 - Supports all arm64e (A12 - A15) devices on iOS 14 and up](https://api.jailbreaks.app/troll64e)
 
 Please refer to "Compatbility" above to check whether your version is compatible, if it's not then these links will not work.
 
