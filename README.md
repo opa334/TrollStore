@@ -18,7 +18,7 @@ Anything not supported right now will **_NEVER_** be supported, TrollStore is a 
 
 ## Installing TrollStore (No Jailbreak)
 
-### Installation Links:
+### Installation Links
 
 [TrollHelperOTA Link 1 - Supports all devices on iOS 15 and up](https://api.jailbreaks.app/troll)
 
