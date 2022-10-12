@@ -151,7 +151,7 @@ Note: The paths in the TSRootBinaries array are relative to the location of the 
 
 Afterwards you can use the [spawnRoot function in TSUtil.m](./Store/TSUtil.m#L39) to spawn the binary as root.
 
-### Things that are not possible using TrollStore:
+### Things that are not possible using TrollStore
 
 - Getting proper platformization / `CS_PLATFORMIZED`
 - Spawning a launch daemon (Would need `CS_PLATFORMIZED`)
