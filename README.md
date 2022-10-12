@@ -4,7 +4,7 @@ TrollStore is a permasigned jailed app that can permanently install any IPA you 
 
 It works because of an AMFI/CoreTrust bug where it doesn't verify whether a root certificate used to sign a binary is legit.
 
-# Compatibility
+## Compatibility
 
 TrollStore works on **iOS 14.0 - 15.4.1**, on **iOS 15.5 beta 1 - iOS 15.5 beta 4** and on **iOS 15.6 beta 1 - iOS 15.6 beta 5**.
 
@@ -16,9 +16,9 @@ Anything lower than iOS 14.0 is **NOT** supported.
 
 Anything not supported right now will **_NEVER_** be supported, TrollStore is a one time thing, it will not receive compatiblity updates in the future, please **stop asking** about it, GitHub issues regarding version support will be **closed without answer**.
 
-# Installing TrollStore (No Jailbreak)
+## Installing TrollStore (No Jailbreak)
 
-## Installation Links:
+### Installation Links:
 
 [TrollHelperOTA Link 1 - Supports all devices on iOS 15 and up](https://api.jailbreaks.app/troll)
 
@@ -28,7 +28,7 @@ Please refer to "Compatbility" above to check whether your version is compatible
 
 This installation method unfortunately does **NOT** work on arm64 (A8 - A11) iOS 14 devices, for these devices, jailbreak with checkra1n and then use the jailbroken installation guide below.
 
-## Guide
+### Guide
 
 1. Based on what device you are using, pick one of the two links above and tap it.
 
@@ -48,11 +48,11 @@ This installation method unfortunately does **NOT** work on arm64 (A8 - A11) iOS
 
 9. Done, you can now share IPA files with TrollStore and they will be permanently installed on your device.
 
-# Installing TrollStore (Jailbreak)
+## Installing TrollStore (Jailbreak)
 
 Supports jailbroken devices running 14.0 or above.
 
-## Guide
+### Guide
 
 1. Open your package manager, make sure Havoc repo (https://havoc.app) is added under Sources, then search for "TrollStore Helper" and install it
 
@@ -66,17 +66,17 @@ Supports jailbroken devices running 14.0 or above.
 
 6. Done, you can now share IPA files with TrollStore and they will be permanently installed on your device.
 
-# Updating TrollStore
+## Updating TrollStore
 
 When a new TrollStore update is available, a button to install it will appear at the top in the TrollStore settings. When tapping the button, TrollStore will automatically download the update, install it and respring.
 
 Alternatively (if anything goes wrong), you can download the TrollStore.tar file under Releases and open it in TrollStore, TrollStore will install the update and respring.
 
-# Uninstalling an app
+## Uninstalling an app
 
 Apps installed from TrollStore can only be uninstalled from TrollStore itself, tap an app or swipe it to the right in the 'Apps' tab to delete it.
 
-# Persistence Helper
+## Persistence Helper
 
 The CoreTrust bug used in TrollStore is only enough to install "System" apps, this is because FrontBoard has an additional security check (it calls libmis) every time before a user app is launched. Unfortunately it is not possible to install new "System" apps that stay through an icon cache reload. Therefore, when iOS reloads the icon cache, all TrollStore installed apps including TrollStore itself will revert back to "User" state and will no longer launch.
 
@@ -84,11 +84,11 @@ The only way to work around this is to install a persistence helper into a syste
 
 On jailbroken iOS 14 when TrollHelper is used for installation, it is located in /Applications and will persist as a "System" app through icon cache reloads, therefore TrollHelper is used as the persistence helper on iOS 14.
 
-# Features
+## Features
 
 The binaries inside an IPA can have arbitary entitlements, fakesign them with ldid and the entitlements you want (`ldid -S<path/to/entitlements.plist> <path/to/binary>`) and TrollStore will preverse the entitlements when resigning them with the fake root certificate on installation. This gives you a lot of possibilities, some of which are explained below.
 
-## Banned entitlements
+### Banned entitlements
 
 iOS 15 on A12+ has banned the following three entitlements related to running unsigned code, these are impossible to get without a PPL bypass, apps signed with them will crash on launch.
 
@@ -98,7 +98,7 @@ iOS 15 on A12+ has banned the following three entitlements related to running un
 
 `com.apple.private.skip-library-validation`
 
-## Unsandboxing
+### Unsandboxing
 
 Your app can run unsandboxed using one of the following entitlements:
 
@@ -128,7 +128,7 @@ You might also need the platform-application entitlement in order for these to w
 
 Please note that the platform-application entitlement causes side effects such as some parts of the sandbox becoming tighter, so you may need additional private entitlements to circumvent that. (For example afterwards you need an exception entitlement for every single IOKit user client class you want to access).
 
-## Root Helpers
+### Root Helpers
 
 When your app is not sandboxed, you can spawn other binaries using posix_spawn, you can also spawn binaries as root with the following entitlement:
 
@@ -151,13 +151,13 @@ Note: The paths in the TSRootBinaries array are relative to the location of the 
 
 Afterwards you can use the [spawnRoot function in TSUtil.m](./Store/TSUtil.m#L39) to spawn the binary as root.
 
-## Things that are not possible using TrollStore:
+### Things that are not possible using TrollStore:
 
 - Getting proper platformization / `CS_PLATFORMIZED`
 - Spawning a launch daemon (Would need `CS_PLATFORMIZED`)
 - Injecting a tweak into a system process (Would need `CS_PLATFORMIZED`, a userland PAC bypass and a PMAP trust level bypass)
 
-# Credits and Further Reading
+## Credits and Further Reading
 
 [@LinusHenze](https://twitter.com/LinusHenze/) - Found the CoreTrust bug that allows TrollStore to work.
 
