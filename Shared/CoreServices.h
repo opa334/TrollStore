@@ -6,6 +6,7 @@
 
 @interface LSApplicationProxy : LSBundleProxy
 + (instancetype)applicationProxyForIdentifier:(NSString*)identifier;
++ (instancetype)applicationProxyForBundleURL:(NSURL*)bundleURL;
 @property NSURL* bundleURL;
 @property NSString* bundleType;
 @property NSString* canonicalExecutablePath;

@@ -24,3 +24,9 @@ typedef enum
 } PERSISTENCE_HELPER_TYPE;
 
 extern LSApplicationProxy* findPersistenceHelperApp(PERSISTENCE_HELPER_TYPE allowedTypes);
+extern BOOL pwnifyArm64Works(void);
+extern BOOL pwnifyArm64eWorks(void);
+extern BOOL isBinaryPwnifySigned(NSString* executablePath);
+BOOL isAppPwnifySigned(LSApplicationProxy* appProxy);
+extern BOOL isAppPathPwnifySigned(NSString* appPath);
+extern BOOL isAppIdPwnifySigned(NSString* appId);

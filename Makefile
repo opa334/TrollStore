@@ -29,6 +29,8 @@ make_trollhelper_embedded:
 
 assemble_trollstore:
 		@cp cert.p12 ./TrollStore/.theos/obj/TrollStore.app/cert.p12
+		@cp ./Victim/Victim.p12 ./TrollStore/.theos/obj/TrollStore.app/user_cert.p12
+		@cp ./Victim/victim ./TrollStore/.theos/obj/TrollStore.app/user_victim
 		@cp ./RootHelper/.theos/obj/trollstorehelper ./TrollStore/.theos/obj/TrollStore.app/trollstorehelper
 		@cp ./TrollHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper ./TrollStore/.theos/obj/TrollStore.app/PersistenceHelper
 		@export COPYFILE_DISABLE=1

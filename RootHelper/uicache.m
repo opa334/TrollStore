@@ -3,6 +3,7 @@
 #import "CoreServices.h"
 #import <objc/runtime.h>
 #import "dlfcn.h"
+#import <TSUtil.h>
 
 // uicache on steroids
 
@@ -126,7 +127,17 @@ void registerPath(char* cPath, int unregister)
 
 		// Misc
 
-		dictToRegister[@"ApplicationType"] = @"System";
+		if(isBinaryPwnifySigned(appExecutablePath))
+		{
+			NSLog(@"[uicache] doing User registration because app %@ appears to be pwnified", appBundleID);
+			dictToRegister[@"ApplicationType"] = @"User";
+			dictToRegister[@"IsDeletable"] = @1;
+		}
+		else
+		{
+			dictToRegister[@"ApplicationType"] = @"System";
+			dictToRegister[@"IsDeletable"] = @0;
+		}
 		dictToRegister[@"CFBundleIdentifier"] = appBundleID;
 		dictToRegister[@"CodeInfoIdentifier"] = appBundleID;
 		dictToRegister[@"CompatibilityState"] = @0;
@@ -135,7 +146,6 @@ void registerPath(char* cPath, int unregister)
 			dictToRegister[@"Container"] = containerPath;
 			dictToRegister[@"EnvironmentVariables"] = constructEnvironmentVariablesForContainerPath(containerPath);
 		}
-		dictToRegister[@"IsDeletable"] = @0;
 		dictToRegister[@"Path"] = path;
 		dictToRegister[@"IsContainerized"] = @(constructContainerizationForEntitlements(entitlements));
 		dictToRegister[@"SignerOrganization"] = @"Apple Inc.";

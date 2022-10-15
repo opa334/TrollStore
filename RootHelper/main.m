@@ -8,6 +8,7 @@
 #import <objc/runtime.h>
 #import <TSUtil.h>
 #import <sys/utsname.h>
+#import <libPwnify.h>
 
 #import <SpringBoardServices/SpringBoardServices.h>
 #import <Security/Security.h>
@@ -414,10 +415,12 @@ BOOL codeCertChainContainsFakeAppStoreExtensions(SecStaticCodeRef codeRef)
 	return evaluatesToCustomAnchor;
 }
 
-int signApp(NSString* appPath)
+int signApp(NSString* appPath, BOOL useUserVictimCert)
 {
 	NSDictionary* appInfoDict = infoDictionaryForAppPath(appPath);
 	if(!appInfoDict) return 172;
+
+	NSString* appId = appIdForAppPath(appPath);
 
 	NSString* executablePath = appMainExecutablePathForAppPath(appPath);
 	if(!executablePath) return 176;
@@ -454,7 +457,9 @@ int signApp(NSString* appPath)
 
 	if(!isLdidInstalled()) return 173;
 
-	NSString* certPath = [trollStoreAppPath() stringByAppendingPathComponent:@"cert.p12"];
+	NSString* tsPath = [appId isEqualToString:@"com.opa334.TrollStore"] ? appPath : trollStoreAppPath();
+	NSString* certName = useUserVictimCert ? @"user_cert.p12" : @"cert.p12";
+	NSString* certPath = [tsPath stringByAppendingPathComponent:certName];
 	NSString* certArg = [@"-K" stringByAppendingPathComponent:certPath];
 	NSString* errorOutput;
 	int ldidRet;
@@ -462,9 +467,9 @@ int signApp(NSString* appPath)
 	NSDictionary* entitlements = dumpEntitlements(codeRef);
 	CFRelease(codeRef);
 	
-	if(!entitlements)
+	if(!entitlements || entitlements.count == 0)
 	{
-		NSLog(@"app main binary has no entitlements, signing app with fallback entitlements...");
+		NSLog(@"[signApp] app main binary has no entitlements, signing app with fallback entitlements...");
 		// app has no entitlements, sign with fallback entitlements
 		NSString* entitlementPath = [trollStoreAppPath() stringByAppendingPathComponent:@"fallback.entitlements"];
 		NSString* entitlementArg = [@"-S" stringByAppendingString:entitlementPath];
@@ -501,6 +506,7 @@ int signApp(NSString* appPath)
 			}
 		}
 
+		NSLog(@"[signApp] running ldid with cert arg: %@", certArg);
 		// app has entitlements, keep them
 		ldidRet = runLdid(@[@"-s", certArg, appPath], nil, &errorOutput);
 
@@ -514,7 +520,7 @@ int signApp(NSString* appPath)
 		}];
 	}
 
-	NSLog(@"ldid exited with status %d", ldidRet);
+	NSLog(@"[signApp] ldid exited with status %d", ldidRet);
 
 	NSLog(@"- ldid error output start -");
 
@@ -586,10 +592,44 @@ int installApp(NSString* appPath, BOOL sign, BOOL force)
 
 	applyPatchesToInfoDictionary(appPath);
 
-	if(sign)
+	NSString* tsPath = [appId isEqualToString:@"com.opa334.TrollStore"] ? appPath : trollStoreAppPath();
+	NSString* userVictim = [tsPath stringByAppendingPathComponent:@"user_victim"];
+	BOOL pwn = pwnifyArm64Works() && [[NSFileManager defaultManager] fileExistsAtPath:userVictim];
+
+	if(pwn)
 	{
-		int signRet = signApp(appPath);
+		NSDictionary* infoDictionary = infoDictionaryForAppPath(appPath);
+		NSNumber* forceLegacySystemInstall = infoDictionary[@"TSForceLegacySystemInstall"];
+		BOOL forceLegacySystemInstallB = NO;
+		if(forceLegacySystemInstall && [forceLegacySystemInstall isKindOfClass:NSNumber.class])
+		{
+			forceLegacySystemInstallB = forceLegacySystemInstall.boolValue;
+		}
+
+		//TODO: If target app is old TrollStore version (<2.0), don't pwn to support downgrades
+
+		if(forceLegacySystemInstallB)
+		{
+			pwn = NO;
+		}
+		else
+		{
+			NSString* mainExecutablePath = appMainExecutablePathForAppPath(appPath);
+			pwnify_setCPUSubtype(mainExecutablePath, 1);
+		}
+	}
+
+	if(sign || pwn)
+	{
+		int signRet = signApp(appPath, pwn);
 		if(signRet != 0) return signRet;
+	}
+
+	if(pwn)
+	{
+		NSString* mainExecutablePath = appMainExecutablePathForAppPath(appPath);
+		pwnify(userVictim, mainExecutablePath, NO, YES);
+		NSLog(@"[installApp] pwnifying %@", appId);
 	}
 
 	BOOL existed;
@@ -961,8 +1001,10 @@ void refreshAppRegistrations()
 
 	for(NSString* appPath in trollStoreInstalledAppBundlePaths())
 	{
-		//registerPath((char*)appPath.UTF8String, 1);
-		registerPath((char*)appPath.UTF8String, 0);
+		if(!isAppPathPwnifySigned(appPath))
+		{
+			registerPath((char*)appPath.UTF8String, 0);
+		}
 	}
 }
 
@@ -1128,17 +1170,12 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 			if(argc <= 2) return -3;
 			NSString* appId = [NSString stringWithUTF8String:argv[2]];
 			ret = uninstallAppById(appId);
-		} /*else if([cmd isEqualToString:@"detach"])
-		{
-			if(argc <= 2) return -3;
-			NSString* appId = [NSString stringWithUTF8String:argv[2]];
-			ret = detachApp(appId);
-		} */else if([cmd isEqualToString:@"uninstall-path"])
+		} else if([cmd isEqualToString:@"uninstall-path"])
 		{
 			if(argc <= 2) return -3;
 			NSString* appPath = [NSString stringWithUTF8String:argv[2]];
 			ret = uninstallAppByPath(appPath);
-		}else if([cmd isEqualToString:@"install-trollstore"])
+		} else if([cmd isEqualToString:@"install-trollstore"])
 		{
 			if(argc <= 2) return -3;
 			NSString* tsTar = [NSString stringWithUTF8String:argv[2]];

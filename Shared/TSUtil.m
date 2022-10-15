@@ -3,6 +3,8 @@
 #import <Foundation/Foundation.h>
 #import <spawn.h>
 #import <sys/sysctl.h>
+#import "libPwnify.h"
+#import "CoreServices.h"
 
 @interface PSAppDataUsagePolicyCache : NSObject
 + (instancetype)sharedInstance;
@@ -343,4 +345,58 @@ LSApplicationProxy* findPersistenceHelperApp(PERSISTENCE_HELPER_TYPE allowedType
 	}
 
 	return outProxy;
+}
+
+// TODO: actually do checks (try to run both binaries)
+
+BOOL pwnifyArm64Works(void)
+{
+	static BOOL _pwnifyArm64Works = NO;
+	static dispatch_once_t onceToken;
+    dispatch_once (&onceToken, ^{
+		_pwnifyArm64Works = YES;
+    });
+	return _pwnifyArm64Works;
+}
+
+BOOL pwnifyArm64eWorks(void)
+{
+	static BOOL _pwnifyArm64eWorks = NO;
+	static dispatch_once_t onceToken;
+    dispatch_once (&onceToken, ^{
+		_pwnifyArm64eWorks = YES;
+    });
+	return _pwnifyArm64eWorks;
+}
+
+BOOL isBinaryPwnifySigned(NSString* executablePath)
+{
+	pwnify_state executablePwnifyState = pwnifyGetBinaryState(executablePath);
+	return ((executablePwnifyState == PWNIFY_STATE_PWNIFIED_ARM64 && pwnifyArm64Works()) || (executablePwnifyState == PWNIFY_STATE_PWNIFIED_ARM64E && pwnifyArm64eWorks()));
+}
+
+BOOL isAppPwnifySigned(LSApplicationProxy* appProxy)
+{
+	NSString* executablePath = appProxy.canonicalExecutablePath;
+	NSString* bundlePath = appProxy.bundleURL.path;
+	if(!executablePath)
+	{
+		NSBundle* appBundle = [NSBundle bundleWithPath:bundlePath];
+		executablePath = [bundlePath stringByAppendingPathComponent:[appBundle objectForInfoDictionaryKey:@"CFBundleExecutable"]];
+	}
+	return isBinaryPwnifySigned(executablePath);
+}
+
+BOOL isAppPathPwnifySigned(NSString* appPath)
+{
+	if(!appPath) return NO;
+	LSApplicationProxy* appProxy = [LSApplicationProxy applicationProxyForBundleURL:[NSURL fileURLWithPath:appPath]];
+	return isAppPwnifySigned(appProxy);
+}
+
+BOOL isAppIdPwnifySigned(NSString* appId)
+{
+	if(!appId) return NO;
+	LSApplicationProxy* appProxy = [LSApplicationProxy applicationProxyForIdentifier:appId];
+	return isAppPwnifySigned(appProxy);
 }
