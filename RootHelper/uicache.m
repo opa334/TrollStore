@@ -6,6 +6,7 @@
 
 // uicache on steroids
 
+extern NSSet<NSString*>* appleAppBundleIdentifiers(void);
 extern NSDictionary* dumpEntitlementsFromBinaryAtPath(NSString* binaryPath);
 
 NSDictionary* constructGroupsContainersForEntitlements(NSDictionary* entitlements, BOOL systemGroups)
@@ -107,6 +108,8 @@ void registerPath(char* cPath, int unregister)
 
 	NSDictionary* appInfoPlist = [NSDictionary dictionaryWithContentsOfFile:[path stringByAppendingPathComponent:@"Info.plist"]];
 	NSString* appBundleID = [appInfoPlist objectForKey:@"CFBundleIdentifier"];
+
+	if([appleAppBundleIdentifiers() containsObject:appBundleID.lowercaseString]) return;
 
 	if(appBundleID && !unregister)
 	{

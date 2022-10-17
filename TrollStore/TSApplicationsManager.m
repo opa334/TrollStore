@@ -109,6 +109,9 @@
         case 178:
         errorDescription = @"Failed to copy app bundle.";
         break;
+        case 179:
+        errorDescription = @"The app you tried to install has the same identifier as a system app already installed on the device. The installation has been prevented to protect you from possible bootloops or other issues.";
+        break;
         // App detach errors
         /*case 184:
         errorDescription = @"Refusing to detach, the app is still signed with a fake root certificate. The detach option is only for when you have installed an App Store app on top of a TrollStore app.";

@@ -80,6 +80,20 @@ NSSet<NSString*>* appleURLSchemes(void)
 	return systemURLSchemes.copy;
 }
 
+NSSet<NSString*>* appleAppBundleIdentifiers(void)
+{
+	LSEnumerator* enumerator = [LSEnumerator enumeratorForApplicationProxiesWithOptions:0];
+	enumerator.predicate = [NSPredicate predicateWithFormat:@"bundleIdentifier BEGINSWITH 'com.apple'"];
+
+	NSMutableSet* systemAppIdentifiers = [NSMutableSet new];
+	LSApplicationProxy* proxy;
+	while(proxy = [enumerator nextObject])
+	{
+		[systemAppIdentifiers addObject:proxy.bundleIdentifier.lowercaseString];
+	}
+
+	return systemAppIdentifiers.copy;
+}
 
 NSDictionary* infoDictionaryForAppPath(NSString* appPath)
 {
@@ -583,8 +597,15 @@ int installApp(NSString* appPath, BOOL sign, BOOL force)
 
 	NSString* appId = appIdForAppPath(appPath);
 	if(!appId) return 176;
+	if([appleAppBundleIdentifiers() containsObject:appId.lowercaseString])
+	{
+		return 179;
+	}
 
-	applyPatchesToInfoDictionary(appPath);
+	if(![appId isEqualToString:@"com.opa334.TrollStore"])
+	{
+		applyPatchesToInfoDictionary(appPath);
+	}
 
 	if(sign)
 	{
@@ -875,6 +896,12 @@ int installIpa(NSString* ipaPath, BOOL force)
 		}
 	}
 	if(!tmpAppPath) return 167;
+
+	NSString* appId = appIdForAppPath(tmpAppPath);
+	if([appId.lowercaseString isEqualToString:@"com.opa334.trollstore"])
+	{
+		return 179;
+	}
 	
 	int ret = installApp(tmpAppPath, YES, force);
 	
