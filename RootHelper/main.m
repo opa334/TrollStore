@@ -80,16 +80,21 @@ NSSet<NSString*>* appleURLSchemes(void)
 	return systemURLSchemes.copy;
 }
 
-NSSet<NSString*>* appleAppBundleIdentifiers(void)
+NSSet<NSString*>* immutableAppBundleIdentifiers(void)
 {
-	LSEnumerator* enumerator = [LSEnumerator enumeratorForApplicationProxiesWithOptions:0];
-	enumerator.predicate = [NSPredicate predicateWithFormat:@"bundleIdentifier BEGINSWITH 'com.apple'"];
-
 	NSMutableSet* systemAppIdentifiers = [NSMutableSet new];
-	LSApplicationProxy* proxy;
-	while(proxy = [enumerator nextObject])
+
+	LSEnumerator* enumerator = [LSEnumerator enumeratorForApplicationProxiesWithOptions:0];
+	LSApplicationProxy* appProxy;
+	while(appProxy = [enumerator nextObject])
 	{
-		[systemAppIdentifiers addObject:proxy.bundleIdentifier.lowercaseString];
+		if(appProxy.installed)
+		{
+			if(![appProxy.bundleURL.path hasPrefix:@"/private/var/containers"])
+			{
+				[systemAppIdentifiers addObject:appProxy.bundleIdentifier.lowercaseString];
+			}
+		}
 	}
 
 	return systemAppIdentifiers.copy;
@@ -597,7 +602,7 @@ int installApp(NSString* appPath, BOOL sign, BOOL force)
 
 	NSString* appId = appIdForAppPath(appPath);
 	if(!appId) return 176;
-	if([appleAppBundleIdentifiers() containsObject:appId.lowercaseString])
+	if([immutableAppBundleIdentifiers() containsObject:appId.lowercaseString])
 	{
 		return 179;
 	}
