@@ -2,7 +2,7 @@
 
 TrollStore is a permasigned jailed app that can permanently install any IPA you open in it.
 
-It works because of an AMFI/CoreTrust bug where it doesn't verify whether a root certificate used to sign a binary is legit.
+It works because of an AMFI/CoreTrust bug where iOS doesn't verify whether or not a root certificate used to sign a binary is legit.
 
 ## Compatibility
 
@@ -14,7 +14,7 @@ Anything higher than iOS 15.6 beta 5 (including iOS 15.6 RC / full build) is **N
 
 Anything lower than iOS 14.0 is **NOT** supported.
 
-Anything not supported right now will **_NEVER_** be supported, TrollStore is a one time thing, it will not receive compatiblity updates in the future, please **stop asking** about it, GitHub issues regarding version support will be **closed without answer**.
+Anything not supported right now will **_NEVER_** be supported, TrollStore is a one time thing, it will not receive compatiblity updates in the future, please **stop asking** about it, GitHub issues regarding version support will be **closed without an answer**.
 
 ## Installing TrollStore (No Jailbreak)
 
@@ -24,25 +24,25 @@ Anything not supported right now will **_NEVER_** be supported, TrollStore is a 
 
 [TrollHelperOTA Link 2 - Supports all arm64e (A12 - A15) devices on iOS 14 and up](https://api.jailbreaks.app/troll64e)
 
-Please refer to "Compatbility" above to check whether your version is compatible, if it's not then these links will not work.
+Please refer to "Compatbility" above to check whether your version is compatible, if it's not, these links will not work.
 
-This installation method unfortunately does **NOT** work on arm64 (A8 - A11) iOS 14 devices, for these devices, jailbreak with checkra1n and then use the jailbroken installation guide below.
+This installation method unfortunately does **NOT** work on arm64 (A8 - A11) iOS 14 devices. **HOWEVER**, for these devices, you can jailbreak with checkra1n and then use the jailbroken installation guide below.
 
-### Guide
+### Guide (No Jailbreak)
 
-1. Based on what device you are using, pick one of the two links above and tap it.
+1. Based on what device you are using, pick one of the two links above and open it.
 
-2. An alert should appear, tap "Install".
+2. An alert should appear, tap "Install"
 
 3. When the installation is finished, you will find a "GTA Car Tracker" application on your device.
 
-4. If this app has not appeared, that's a stock iOS bug, reboot your device and it will appear.
+4. If this app has not appeared, that's a stock iOS bug, reboot your device and the app will appear.
 
-5. Launch the app, tap "Install TrollStore".
+5. Launch the app, and tap "Install TrollStore"
 
 6. Wait a few seconds, your device should respring and TrollStore will be installed.
 
-7. You can now either delete the "GTA Car Tracker" app, or register it as the persistence helper by opening it and tapping the option at the bottom and keep it.
+7. You can now either delete the "GTA Car Tracker" app, or register it as the persistence helper by opening it and tapping the option at the bottom. If you do this, don't delete the app. 
 
 8. Open the TrollStore app and press "Install ldid" in the Settings tab, then read the information under "Persistence", and install the Persistence Helper into a system app if you want persistence (not needed if you registered the GTA Car Tracker app as the persistence helper in step 7).
 
@@ -54,11 +54,11 @@ Supports jailbroken devices running 14.0 and above.
 
 ### Guide
 
-1. Open your package manager, make sure Havoc repo (https://havoc.app) is added under Sources, then search for "TrollStore Helper" and install it
+1. Open your package manager, and make sure Havoc repo (https://havoc.app) is added under Sources, then search for "TrollStore Helper" and install it.
 
-2. After the installation, respring and a "TrollHelper" app should be on your home screen, launch that.
+2. After the installation, respring and a "TrollHelper" app should be on your home screen, launch it.
 
-3. Launch the app, tap "Install TrollStore".
+3. Launch the app, tap "Install TrollStore"
 
 4. Wait a few seconds, your device should respring and TrollStore will be installed.
 
@@ -68,7 +68,7 @@ Supports jailbroken devices running 14.0 and above.
 
 ## Updating TrollStore
 
-When a new TrollStore update is available, a button to install it will appear at the top in the TrollStore settings. When tapping the button, TrollStore will automatically download the update, install it and respring.
+When a new TrollStore update is available, a button to install it will appear at the top in the TrollStore settings. After tapping the button, TrollStore will automatically download the update, install it, and respring.
 
 Alternatively (if anything goes wrong), you can download the TrollStore.tar file under Releases and open it in TrollStore, TrollStore will install the update and respring.
 
