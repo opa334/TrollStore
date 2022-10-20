@@ -149,7 +149,7 @@ Because a root binary needs special permissions, you need to specifiy all your r
 
 Note: The paths in the TSRootBinaries array are relative to the location of the Info.plist, you can also include this key in other bundles such as app plugins.
 
-Afterwards you can use the [spawnRoot function in TSUtil.m](./Store/TSUtil.m#L39) to spawn the binary as root.
+Afterwards you can use the [spawnRoot function in TSUtil.m](./Shared/TSUtil.m#L74) to spawn the binary as root.
 
 ### Things that are not possible using TrollStore
 
