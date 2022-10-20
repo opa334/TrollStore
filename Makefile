@@ -39,7 +39,7 @@ build_installer15:
 		@unzip ./Victim/InstallerVictim.ipa -d ./_build/tmp15
 		@cp ./TrollHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper ./_build/TrollStorePersistenceHelperToInject
 		@pwnify set-cpusubtype ./_build/TrollStorePersistenceHelperToInject 1
-		@ldid -s -K./Victim/victim_gta.p12 ./_build/TrollStorePersistenceHelperToInject
+		@ldid -s -K./Victim/victim.p12 ./_build/TrollStorePersistenceHelperToInject
 		APP_PATH=$$(find ./_build/tmp15/Payload -name "*" -depth 1) ; \
 		APP_NAME=$$(basename $$APP_PATH) ; \
 		BINARY_NAME=$$(echo "$$APP_NAME" | cut -f 1 -d '.') ; \

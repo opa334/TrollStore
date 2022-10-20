@@ -80,6 +80,25 @@ NSSet<NSString*>* appleURLSchemes(void)
 	return systemURLSchemes.copy;
 }
 
+NSSet<NSString*>* immutableAppBundleIdentifiers(void)
+{
+	NSMutableSet* systemAppIdentifiers = [NSMutableSet new];
+
+	LSEnumerator* enumerator = [LSEnumerator enumeratorForApplicationProxiesWithOptions:0];
+	LSApplicationProxy* appProxy;
+	while(appProxy = [enumerator nextObject])
+	{
+		if(appProxy.installed)
+		{
+			if(![appProxy.bundleURL.path hasPrefix:@"/private/var/containers"])
+			{
+				[systemAppIdentifiers addObject:appProxy.bundleIdentifier.lowercaseString];
+			}
+		}
+	}
+
+	return systemAppIdentifiers.copy;
+}
 
 NSDictionary* infoDictionaryForAppPath(NSString* appPath)
 {
@@ -583,8 +602,15 @@ int installApp(NSString* appPath, BOOL sign, BOOL force)
 
 	NSString* appId = appIdForAppPath(appPath);
 	if(!appId) return 176;
+	if([immutableAppBundleIdentifiers() containsObject:appId.lowercaseString])
+	{
+		return 179;
+	}
 
-	applyPatchesToInfoDictionary(appPath);
+	if(![appId isEqualToString:@"com.opa334.TrollStore"])
+	{
+		applyPatchesToInfoDictionary(appPath);
+	}
 
 	if(sign)
 	{
@@ -875,6 +901,12 @@ int installIpa(NSString* ipaPath, BOOL force)
 		}
 	}
 	if(!tmpAppPath) return 167;
+
+	NSString* appId = appIdForAppPath(tmpAppPath);
+	if([appId.lowercaseString isEqualToString:@"com.opa334.trollstore"])
+	{
+		return 179;
+	}
 	
 	int ret = installApp(tmpAppPath, YES, force);
 	
