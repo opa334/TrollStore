@@ -14,7 +14,7 @@ Anything higher than iOS 15.6 beta 5 (including iOS 15.6 RC / full build) is **N
 
 Anything lower than iOS 14.0 is **NOT** supported.
 
-Anything not supported right now will **_NEVER_** be supported, TrollStore is a one time thing, it will not receive compatiblity updates in the future, please **stop asking** about it, GitHub issues regarding version support will be **closed without an answer**.
+Anything not supported right now will **_NEVER_** be supported, TrollStore is a one time thing, it will not receive compatibility updates in the future, please **stop asking** about it, GitHub issues regarding version support will be **closed without an answer**.
 
 ## Installing TrollStore (No Jailbreak)
 
@@ -24,7 +24,7 @@ Anything not supported right now will **_NEVER_** be supported, TrollStore is a 
 
 [TrollHelperOTA Link 2 - Supports all arm64e (A12 - A15) devices on iOS 14 and up](https://api.jailbreaks.app/troll64e)
 
-Please refer to "Compatbility" above to check whether your version is compatible, if it's not, these links will not work.
+Please refer to "Compatibility" above to check whether your version is compatible, if it's not, these links will not work.
 
 This installation method unfortunately does **NOT** work on arm64 (A8 - A11) iOS 14 devices. **HOWEVER**, for these devices, you can jailbreak with checkra1n and then use the jailbroken installation guide below.
 
@@ -86,7 +86,7 @@ On jailbroken iOS 14 when TrollHelper is used for installation, it is located in
 
 ## Features
 
-The binaries inside an IPA can have arbitary entitlements, fakesign them with ldid and the entitlements you want (`ldid -S<path/to/entitlements.plist> <path/to/binary>`) and TrollStore will preverse the entitlements when resigning them with the fake root certificate on installation. This gives you a lot of possibilities, some of which are explained below.
+The binaries inside an IPA can have arbitrary entitlements, fakesign them with ldid and the entitlements you want (`ldid -S<path/to/entitlements.plist> <path/to/binary>`) and TrollStore will preserve the entitlements when resigning them with the fake root certificate on installation. This gives you a lot of possibilities, some of which are explained below.
 
 ### Banned entitlements
 
@@ -137,7 +137,7 @@ When your app is not sandboxed, you can spawn other binaries using posix_spawn, 
 <true/>
 ```
 
-Because a root binary needs special permissions, you need to specifiy all your root binaries in the Info.plist of your application like so:
+Because a root binary needs special permissions, you need to specify all your root binaries in the Info.plist of your application like so:
 
 ```
 <key>TSRootBinaries</key>
