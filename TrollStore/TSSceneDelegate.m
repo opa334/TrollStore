@@ -10,13 +10,10 @@
 {
 	for(UIOpenURLContext* context in URLContexts)
 	{
-		NSLog(@"openURLContexts %@", context.URL);
 		NSURL* url = context.URL;
 
 		if(url)
 		{
-			NSLog(@"ts_test url: %@", url);
-			NSLog(@"ts_test url.scheme: %@", url.scheme);
 			if([url isFileURL])
 			{
 				[url startAccessingSecurityScopedResource];
@@ -57,7 +54,6 @@
 
 					for(NSURLQueryItem* queryItem in components.queryItems)
 					{
-						NSLog(@"ts_test queryItem %@ = %@", queryItem.name, queryItem.value);
 						if([queryItem.name isEqualToString:@"url"])
 						{
 							URLStringToInstall = queryItem.value;
@@ -82,7 +78,6 @@
 	// If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
 	// This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
 	
-	NSLog(@"scene:%@ willConnectToSession:%@ options:%@", scene, session, connectionOptions);
 	UIWindowScene* windowScene = (UIWindowScene*)scene;
 	_window = [[UIWindow alloc] initWithWindowScene:windowScene];
 	_rootViewController = [[TSRootViewController alloc] init];
@@ -130,7 +125,6 @@
 
 - (void)scene:(UIScene *)scene openURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts
 {
-	NSLog(@"scene:%@ openURLContexts:%@", scene, URLContexts);
 	[self handleURLContexts:URLContexts scene:(UIWindowScene*)scene];
 }
 
