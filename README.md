@@ -54,7 +54,7 @@ Supports jailbroken devices running 14.0 and above.
 
 ### Guide
 
-1. Open your package manager, and make sure Havoc repo (https://havoc.app) is added under Sources, then search for "TrollStore Helper" and install it.
+1. Open your package manager, and make sure [Havoc repo](https://havoc.app) is added under Sources, then search for "TrollStore Helper" and install it.
 
 2. After the installation, respring and the "TrollHelper" app should have appeared on your home screen.
 
