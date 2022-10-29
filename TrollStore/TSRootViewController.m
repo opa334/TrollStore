@@ -1,6 +1,7 @@
 #import "TSRootViewController.h"
 #import "TSAppTableViewController.h"
 #import "TSSettingsListController.h"
+#import <TSPresentationDelegate.h>
 
 @implementation TSRootViewController
 
@@ -21,6 +22,13 @@
 
 	self.title = @"Root View Controller";
 	self.viewControllers = @[appNavigationController, settingsNavigationController];
+}
+
+- (void)viewDidLoad
+{
+	[super viewDidLoad];
+
+	TSPresentationDelegate.presentationViewController = self;
 }
 
 @end

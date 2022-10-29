@@ -38,7 +38,7 @@ This installation method unfortunately does **NOT** work on arm64 (A8 - A11) iOS
 
 4. If this app has not appeared, that's a stock iOS bug, reboot your device and the app will appear.
 
-5. Launch the app, and tap "Install TrollStore"
+5. Launch the app, tap "Install TrollStore"
 
 6. Wait a few seconds, your device should respring and TrollStore will be installed.
 
@@ -56,7 +56,7 @@ Supports jailbroken devices running 14.0 and above.
 
 1. Open your package manager, and make sure Havoc repo (https://havoc.app) is added under Sources, then search for "TrollStore Helper" and install it.
 
-2. After the installation, respring and a "TrollHelper" app should be on your home screen, launch it.
+2. After the installation, respring and the "TrollHelper" app should have appeared on your home screen.
 
 3. Launch the app, tap "Install TrollStore"
 
@@ -65,6 +65,18 @@ Supports jailbroken devices running 14.0 and above.
 5. Open the TrollStore app and press "Install ldid" in the Settings tab, then read the information under "Persistence", the TrollHelper app on the home screen will be your persistence helper.
 
 6. Done, you can now share IPA files with TrollStore and they will be permanently installed on your device.
+
+### Unjailbreaking while retaining TrollStore
+
+Some people might prefer to use TrollStore in an unjailbroken environment, if that applies to you, follow this guide.
+
+1. Uninstall TrollHelper from your package manager
+
+2. Now when you launch TrollStore, it will have an option to install the persistence helper into a System app like on iOS 15, do so.
+
+3. Now restore rootFS through your jailbreak app, afterwards use the System app to refresh app registrations.
+
+4. Done, your device will be jailed, but TrollStore will still work.
 
 ## Updating TrollStore
 
@@ -83,6 +95,14 @@ The CoreTrust bug used in TrollStore is only enough to install "System" apps, th
 The only way to work around this is to install a persistence helper into a system app, this helper can then be used to reregister TrollStore and its installed apps as "System" so that they become launchable again, an option for this is available in TrollStore settings.
 
 On jailbroken iOS 14 when TrollHelper is used for installation, it is located in /Applications and will persist as a "System" app through icon cache reloads, therefore TrollHelper is used as the persistence helper on iOS 14.
+
+## URL Scheme
+
+As of version 1.3, TrollStore replaces the system URL scheme "apple-magnifier" (this is done so "jailbreak" detections can't detect TrollStore like they could if TrollStore had a unique URL scheme). This URL scheme can be used to install applications right from the browser, the format goes as follows:
+
+`apple-magnifier://install?url=<URL_to_IPA>`
+
+On devices that don't have TrollStore (1.3+) installed, this will just open the magnifier app.
 
 ## Features
 

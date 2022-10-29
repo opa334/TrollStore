@@ -1,8 +1,6 @@
 #import "TSApplicationsManager.h"
 #import <TSUtil.h>
 
-#define TrollStoreErrorDomain @"TrollStoreErrorDomain"
-
 @implementation TSApplicationsManager
 
 + (instancetype)sharedInstance
@@ -18,55 +16,6 @@
 - (NSArray*)installedAppPaths
 {
     return trollStoreInstalledAppBundlePaths();
-}
-
-- (NSDictionary*)infoDictionaryForAppPath:(NSString*)appPath
-{
-    NSString* infoPlistPath = [appPath stringByAppendingPathComponent:@"Info.plist"];
-    NSError* error;
-    NSDictionary* infoDict = [NSDictionary dictionaryWithContentsOfURL:[NSURL fileURLWithPath:infoPlistPath] error:&error];
-    if(error)
-    {
-        NSLog(@"error getting info dict: %@", error);
-    }
-    return infoDict;
-}
-
-- (NSString*)appIdForAppPath:(NSString*)appPath
-{
-    return [self infoDictionaryForAppPath:appPath][@"CFBundleIdentifier"];
-}
-
-- (NSString*)displayNameForAppPath:(NSString*)appPath
-{
-    NSDictionary* infoDict = [self infoDictionaryForAppPath:appPath];
-    NSString* displayName = infoDict[@"CFBundleDisplayName"];
-    if(![displayName isKindOfClass:[NSString class]]) displayName = nil;
-    if(!displayName || [displayName isEqualToString:@""])
-    {
-        displayName = infoDict[@"CFBundleName"];
-        if(![displayName isKindOfClass:[NSString class]]) displayName = nil;
-        if(!displayName || [displayName isEqualToString:@""])
-        {
-            displayName = infoDict[@"CFBundleExecutable"];
-            if(![displayName isKindOfClass:[NSString class]]) displayName = [appPath lastPathComponent];
-        }
-    }
-
-    return displayName;
-}
-
-- (NSString*)versionStringForAppPath:(NSString*)appPath
-{
-    NSDictionary* infoDict = [self infoDictionaryForAppPath:appPath];
-    NSString* versionString = infoDict[@"CFBundleShortVersionString"];
-
-    if(!versionString)
-    {
-        versionString = infoDict[@"CFBundleVersion"];
-    }
-
-    return versionString;
 }
 
 - (NSError*)errorForCode:(int)code
@@ -163,12 +112,10 @@
     return [[LSApplicationWorkspace defaultWorkspace] openApplicationWithBundleID:appId];
 }
 
-/*- (int)detachFromApp:(NSString*)appId
+- (int)changeAppRegistration:(NSString*)appPath toState:(NSString*)newState
 {
-    if(!appId) return -200;
-    int ret = spawnRoot(rootHelperPath(), @[@"detach", appId], nil, nil);
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"ApplicationsChanged" object:nil];
-    return ret;
-}*/
+    if(!appPath || !newState) return -200;
+    return spawnRoot(rootHelperPath(), @[@"modify-registration", appPath, newState], nil, nil);
+}
 
 @end

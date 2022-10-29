@@ -344,3 +344,107 @@ LSApplicationProxy* findPersistenceHelperApp(PERSISTENCE_HELPER_TYPE allowedType
 
 	return outProxy;
 }
+
+SecStaticCodeRef getStaticCodeRef(NSString *binaryPath)
+{
+	if(binaryPath == nil)
+	{
+		return NULL;
+	}
+	
+	CFURLRef binaryURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (__bridge CFStringRef)binaryPath, kCFURLPOSIXPathStyle, false);
+	if(binaryURL == NULL)
+	{
+		NSLog(@"[getStaticCodeRef] failed to get URL to binary %@", binaryPath);
+		return NULL;
+	}
+	
+	SecStaticCodeRef codeRef = NULL;
+	OSStatus result;
+	
+	result = SecStaticCodeCreateWithPathAndAttributes(binaryURL, kSecCSDefaultFlags, NULL, &codeRef);
+	
+	CFRelease(binaryURL);
+	
+	if(result != errSecSuccess)
+	{
+		NSLog(@"[getStaticCodeRef] failed to create static code for binary %@", binaryPath);
+		return NULL;
+	}
+		
+	return codeRef;
+}
+
+NSDictionary* dumpEntitlements(SecStaticCodeRef codeRef)
+{
+	if(codeRef == NULL)
+	{
+		NSLog(@"[dumpEntitlements] attempting to dump entitlements without a StaticCodeRef");
+		return nil;
+	}
+	
+	CFDictionaryRef signingInfo = NULL;
+	OSStatus result;
+	
+	result = SecCodeCopySigningInformation(codeRef, kSecCSRequirementInformation, &signingInfo);
+	
+	if(result != errSecSuccess)
+	{
+		NSLog(@"[dumpEntitlements] failed to copy signing info from static code");
+		return nil;
+	}
+	
+	NSDictionary *entitlementsNSDict = nil;
+	
+	CFDictionaryRef entitlements = CFDictionaryGetValue(signingInfo, kSecCodeInfoEntitlementsDict);
+	if(entitlements == NULL)
+	{
+		NSLog(@"[dumpEntitlements] no entitlements specified");
+	}
+	else if(CFGetTypeID(entitlements) != CFDictionaryGetTypeID())
+	{
+		NSLog(@"[dumpEntitlements] invalid entitlements");
+	}
+	else
+	{
+		entitlementsNSDict = (__bridge NSDictionary *)(entitlements);
+		NSLog(@"[dumpEntitlements] dumped %@", entitlementsNSDict);
+	}
+	
+	CFRelease(signingInfo);
+	return entitlementsNSDict;
+}
+
+NSDictionary* dumpEntitlementsFromBinaryAtPath(NSString *binaryPath)
+{
+	// This function is intended for one-shot checks. Main-event functions should retain/release their own SecStaticCodeRefs
+	
+	if(binaryPath == nil)
+	{
+		return nil;
+	}
+	
+	SecStaticCodeRef codeRef = getStaticCodeRef(binaryPath);
+	if(codeRef == NULL)
+	{
+		return nil;
+	}
+	
+	NSDictionary *entitlements = dumpEntitlements(codeRef);
+	CFRelease(codeRef);
+
+	return entitlements;
+}
+
+NSDictionary* dumpEntitlementsFromBinaryData(NSData* binaryData)
+{
+	NSDictionary* entitlements;
+	NSString* tmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSUUID UUID].UUIDString];
+	NSURL* tmpURL = [NSURL fileURLWithPath:tmpPath];
+	if([binaryData writeToURL:tmpURL options:NSDataWritingAtomic error:nil])
+	{
+		entitlements = dumpEntitlementsFromBinaryAtPath(tmpPath);
+		[[NSFileManager defaultManager] removeItemAtURL:tmpURL error:nil];
+	}
+	return entitlements;
+}

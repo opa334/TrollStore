@@ -9,10 +9,6 @@
 
 - (BOOL)isTrollStore;
 - (NSString*)getTrollStoreVersion;
-
-- (void)startActivity:(NSString*)activity;
-- (void)stopActivityWithCompletion:(void (^)(void))completion;
-
 - (void)downloadTrollStoreAndDo:(void (^)(NSString* localTrollStoreTarPath))doHandler;
 - (void)installTrollStorePressed;
 - (void)updateTrollStorePressed;

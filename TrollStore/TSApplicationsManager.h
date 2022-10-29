@@ -9,10 +9,6 @@
 + (instancetype)sharedInstance;
 
 - (NSArray*)installedAppPaths;
-- (NSDictionary*)infoDictionaryForAppPath:(NSString*)appPath;
-- (NSString*)appIdForAppPath:(NSString*)appPath;
-- (NSString*)displayNameForAppPath:(NSString*)appPath;
-- (NSString*)versionStringForAppPath:(NSString*)appPath;
 
 - (NSError*)errorForCode:(int)code;
 - (int)installIpa:(NSString*)pathToIpa force:(BOOL)force log:(NSString**)logOut;
@@ -20,6 +16,6 @@
 - (int)uninstallApp:(NSString*)appId;
 - (int)uninstallAppByPath:(NSString*)path;
 - (BOOL)openApplicationWithBundleID:(NSString *)appID;
-//- (int)detachFromApp:(NSString*)appId;
+- (int)changeAppRegistration:(NSString*)appPath toState:(NSString*)newState;
 
 @end

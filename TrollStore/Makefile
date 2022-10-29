@@ -7,7 +7,8 @@ APPLICATION_NAME = TrollStore
 
 TrollStore_FILES = $(wildcard *.m) $(wildcard ../Shared/*.m)
 TrollStore_FRAMEWORKS = UIKit CoreGraphics CoreServices
-TrollStore_PRIVATE_FRAMEWORKS = Preferences
+TrollStore_PRIVATE_FRAMEWORKS = Preferences MobileIcons
+TrollStore_LIBRARIES = archive
 TrollStore_CFLAGS = -fobjc-arc -I../Shared
 TrollStore_CODESIGN_FLAGS = -Sentitlements.plist -K../cert.p12
 

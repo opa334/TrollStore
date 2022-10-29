@@ -27,27 +27,6 @@ extern NSString* BKSOpenApplicationOptionKeyActivateForEvent;
 
 extern void BKSTerminateApplicationForReasonAndReportWithDescription(NSString *bundleID, int reasonID, bool report, NSString *description);
 
-typedef CF_OPTIONS(uint32_t, SecCSFlags) {
-	kSecCSDefaultFlags = 0
-};
-
-
-#define kSecCSRequirementInformation 1 << 2
-#define kSecCSSigningInformation 1 << 1
-
-typedef struct __SecCode const *SecStaticCodeRef;
-
-extern CFStringRef kSecCodeInfoEntitlementsDict;
-extern CFStringRef kSecCodeInfoCertificates;
-extern CFStringRef kSecPolicyAppleiPhoneApplicationSigning;
-extern CFStringRef kSecPolicyAppleiPhoneProfileApplicationSigning;
-extern CFStringRef kSecPolicyLeafMarkerOid;
-
-OSStatus SecStaticCodeCreateWithPathAndAttributes(CFURLRef path, SecCSFlags flags, CFDictionaryRef attributes, SecStaticCodeRef *staticCode);
-OSStatus SecCodeCopySigningInformation(SecStaticCodeRef code, SecCSFlags flags, CFDictionaryRef *information);
-CFDataRef SecCertificateCopyExtensionValue(SecCertificateRef certificate, CFTypeRef extensionOID, bool *isCritical);
-void SecPolicySetOptionsValue(SecPolicyRef policy, CFStringRef key, CFTypeRef value);
-
 #define kCFPreferencesNoContainer CFSTR("kCFPreferencesNoContainer")
 
 typedef CFPropertyListRef (*_CFPreferencesCopyValueWithContainerType)(CFStringRef key, CFStringRef applicationID, CFStringRef userName, CFStringRef hostName, CFStringRef containerPath);
@@ -220,97 +199,6 @@ int runLdid(NSArray* args, NSString** output, NSString** errorOutput)
 	}
 
 	return WEXITSTATUS(status);
-}
-
-SecStaticCodeRef getStaticCodeRef(NSString *binaryPath)
-{
-	if(binaryPath == nil)
-	{
-		return NULL;
-	}
-	
-	CFURLRef binaryURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (__bridge CFStringRef)binaryPath, kCFURLPOSIXPathStyle, false);
-	if(binaryURL == NULL)
-	{
-		NSLog(@"[getStaticCodeRef] failed to get URL to binary %@", binaryPath);
-		return NULL;
-	}
-	
-	SecStaticCodeRef codeRef = NULL;
-	OSStatus result;
-	
-	result = SecStaticCodeCreateWithPathAndAttributes(binaryURL, kSecCSDefaultFlags, NULL, &codeRef);
-	
-	CFRelease(binaryURL);
-	
-	if(result != errSecSuccess)
-	{
-		NSLog(@"[getStaticCodeRef] failed to create static code for binary %@", binaryPath);
-		return NULL;
-	}
-		
-	return codeRef;
-}
-
-NSDictionary* dumpEntitlements(SecStaticCodeRef codeRef)
-{
-	if(codeRef == NULL)
-	{
-		NSLog(@"[dumpEntitlements] attempting to dump entitlements without a StaticCodeRef");
-		return nil;
-	}
-	
-	CFDictionaryRef signingInfo = NULL;
-	OSStatus result;
-	
-	result = SecCodeCopySigningInformation(codeRef, kSecCSRequirementInformation, &signingInfo);
-	
-	if(result != errSecSuccess)
-	{
-		NSLog(@"[dumpEntitlements] failed to copy signing info from static code");
-		return nil;
-	}
-	
-	NSDictionary *entitlementsNSDict = nil;
-	
-	CFDictionaryRef entitlements = CFDictionaryGetValue(signingInfo, kSecCodeInfoEntitlementsDict);
-	if(entitlements == NULL)
-	{
-		NSLog(@"[dumpEntitlements] no entitlements specified");
-	}
-	else if(CFGetTypeID(entitlements) != CFDictionaryGetTypeID())
-	{
-		NSLog(@"[dumpEntitlements] invalid entitlements");
-	}
-	else
-	{
-		entitlementsNSDict = (__bridge NSDictionary *)(entitlements);
-		NSLog(@"[dumpEntitlements] dumped %@", entitlementsNSDict);
-	}
-	
-	CFRelease(signingInfo);
-	return entitlementsNSDict;
-}
-
-NSDictionary* dumpEntitlementsFromBinaryAtPath(NSString *binaryPath)
-{
-	// This function is intended for one-shot checks. Main-event functions should retain/release their own SecStaticCodeRefs
-	
-	if(binaryPath == nil)
-	{
-		return nil;
-	}
-	
-	SecStaticCodeRef codeRef = getStaticCodeRef(binaryPath);
-	if(codeRef == NULL)
-	{
-		return nil;
-	}
-	
-	NSDictionary *entitlements = dumpEntitlements(codeRef);
-	CFRelease(codeRef);
-	
-	return entitlements;
 }
 
 BOOL certificateHasDataForExtensionOID(SecCertificateRef certificate, CFStringRef oidString)
@@ -762,7 +650,7 @@ int installApp(NSString* appPath, BOOL sign, BOOL force)
 	if(suc)
 	{
 		NSLog(@"[installApp] App %@ installed, adding to icon cache now...", appId);
-		registerPath((char*)newAppPath.UTF8String, 0);
+		registerPath((char*)newAppPath.UTF8String, 0, YES);
 		return 0;
 	}
 	else
@@ -816,7 +704,7 @@ int uninstallApp(NSString* appPath, NSString* appId)
 	}
 
 	// unregister app
-	registerPath((char*)appPath.UTF8String, 1);
+	registerPath((char*)appPath.UTF8String, 1, YES);
 
 	NSLog(@"[uninstallApp] deleting %@", [appPath stringByDeletingLastPathComponent]);
 	// delete app
@@ -930,7 +818,7 @@ BOOL uninstallTrollStore(BOOL unregister)
 
 	if(unregister)
 	{
-		registerPath((char*)trollStoreAppPath().UTF8String, 1);
+		registerPath((char*)trollStoreAppPath().UTF8String, 1, YES);
 	}
 
 	return [[NSFileManager defaultManager] removeItemAtPath:trollStore error:nil];
@@ -988,13 +876,13 @@ BOOL installTrollStore(NSString* pathToTar)
 
 void refreshAppRegistrations()
 {
-	//registerPath((char*)trollStoreAppPath().UTF8String, 1);
-	registerPath((char*)trollStoreAppPath().UTF8String, 0);
+	//registerPath((char*)trollStoreAppPath().UTF8String, 1, YES);
+	registerPath((char*)trollStoreAppPath().UTF8String, 0, YES);
 
 	for(NSString* appPath in trollStoreInstalledAppBundlePaths())
 	{
-		//registerPath((char*)appPath.UTF8String, 1);
-		registerPath((char*)appPath.UTF8String, 0);
+		//registerPath((char*)appPath.UTF8String, 1, YES);
+		registerPath((char*)appPath.UTF8String, 0, YES);
 	}
 }
 
@@ -1128,6 +1016,59 @@ void registerUserPersistenceHelper(NSString* userAppId)
 	[[NSFileManager defaultManager] createFileAtPath:markPath contents:[NSData data] attributes:nil];
 }
 
+// Apparently there is some odd behaviour where TrollStore installed apps sometimes get restricted
+// This works around that issue at least and is triggered when rebuilding icon cache
+void cleanRestrictions(void)
+{
+	NSString* clientTruthPath = @"/private/var/containers/Shared/SystemGroup/systemgroup.com.apple.configurationprofiles/Library/ConfigurationProfiles/ClientTruth.plist";
+	NSURL* clientTruthURL = [NSURL fileURLWithPath:clientTruthPath];
+	NSDictionary* clientTruthDictionary = [NSDictionary dictionaryWithContentsOfURL:clientTruthURL];
+
+	if(!clientTruthDictionary) return;
+
+	NSArray* valuesArr;
+
+	NSDictionary* lsdAppRemoval = clientTruthDictionary[@"com.apple.lsd.appremoval"];
+	if(lsdAppRemoval && [lsdAppRemoval isKindOfClass:NSDictionary.class])
+	{
+		NSDictionary* clientRestrictions = lsdAppRemoval[@"clientRestrictions"];
+		if(clientRestrictions && [clientRestrictions isKindOfClass:NSDictionary.class])
+		{
+			NSDictionary* unionDict = clientRestrictions[@"union"];
+			if(unionDict && [unionDict isKindOfClass:NSDictionary.class])
+			{
+				NSDictionary* removedSystemAppBundleIDs = unionDict[@"removedSystemAppBundleIDs"];
+				if(removedSystemAppBundleIDs && [removedSystemAppBundleIDs isKindOfClass:NSDictionary.class])
+				{
+					valuesArr = removedSystemAppBundleIDs[@"values"];
+				}
+			}
+		}
+	}
+
+	if(!valuesArr || !valuesArr.count) return;
+
+	NSMutableArray* valuesArrM = valuesArr.mutableCopy;
+	__block BOOL changed = NO;
+
+	[valuesArrM enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(NSString* value, NSUInteger idx, BOOL *stop)
+	{
+		if(![value hasPrefix:@"com.apple."])
+		{
+			[valuesArrM removeObjectAtIndex:idx];
+			changed = YES;
+		}
+	}];
+
+	if(!changed) return;
+
+	NSMutableDictionary* clientTruthDictionaryM = (__bridge_transfer NSMutableDictionary*)CFPropertyListCreateDeepCopy(kCFAllocatorDefault, (__bridge CFDictionaryRef)clientTruthDictionary, kCFPropertyListMutableContainersAndLeaves);
+	
+	clientTruthDictionaryM[@"com.apple.lsd.appremoval"][@"clientRestrictions"][@"union"][@"removedSystemAppBundleIDs"][@"values"] = valuesArrM;
+
+	[clientTruthDictionaryM writeToURL:clientTruthURL error:nil];
+}
+
 int MAIN_NAME(int argc, char *argv[], char *envp[])
 {
 	@autoreleasepool {
@@ -1142,12 +1083,10 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 		NSString* cmd = [NSString stringWithUTF8String:argv[1]];
 		if([cmd isEqualToString:@"install"])
 		{
-			NSLog(@"argc = %d", argc);
 			BOOL force = NO;
 			if(argc <= 2) return -3;
 			if(argc > 3)
 			{
-				NSLog(@"argv3 = %s", argv[3]);
 				if(!strcmp(argv[3], "force"))
 				{
 					force = YES;
@@ -1190,8 +1129,10 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 			refreshAppRegistrations();
 		} else if([cmd isEqualToString:@"refresh-all"])
 		{
+			cleanRestrictions();
 			[[LSApplicationWorkspace defaultWorkspace] _LSPrivateRebuildApplicationDatabasesForSystemApps:YES internal:YES user:YES];
 			refreshAppRegistrations();
+			killall(@"backboardd");
 		} else if([cmd isEqualToString:@"install-persistence-helper"])
 		{
 			if(argc <= 2) return -3;
@@ -1205,6 +1146,17 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 			if(argc <= 2) return -3;
 			NSString* userAppId = [NSString stringWithUTF8String:argv[2]];
 			registerUserPersistenceHelper(userAppId);
+		} else if([cmd isEqualToString:@"modify-registration"])
+		{
+			if(argc <= 3) return -3;
+			NSString* appPath = [NSString stringWithUTF8String:argv[2]];
+			NSString* newRegistration = [NSString stringWithUTF8String:argv[3]];
+
+			NSString* trollStoreMark = [[appPath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"_TrollStore"];
+			if([[NSFileManager defaultManager] fileExistsAtPath:trollStoreMark])
+			{
+				registerPath((char*)appPath.UTF8String, 0, [newRegistration isEqualToString:@"System"]);
+			}
 		}
 
 		NSLog(@"returning %d", ret);

@@ -1,6 +1,7 @@
 #import "TSSettingsListController.h"
 #import <TSUtil.h>
 #import <Preferences/PSSpecifier.h>
+#import <TSPresentationDelegate.h>
 
 @implementation TSSettingsListController
 
@@ -239,7 +240,7 @@
 	NSURL* ldidURL = [NSURL URLWithString:@"https://github.com/opa334/ldid/releases/download/v2.1.5-procursus5/ldid"];
 	NSURLRequest* ldidRequest = [NSURLRequest requestWithURL:ldidURL];
 
-	[self startActivity:@"Installing ldid"];
+	[TSPresentationDelegate startActivity:@"Installing ldid"];
 
 	NSURLSessionDownloadTask* downloadTask = [NSURLSession.sharedSession downloadTaskWithRequest:ldidRequest completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error)
 	{
@@ -251,9 +252,9 @@
 
 			dispatch_async(dispatch_get_main_queue(), ^
 			{
-				[self stopActivityWithCompletion:^
+				[TSPresentationDelegate stopActivityWithCompletion:^
 				{
-					[self presentViewController:errorAlert animated:YES completion:nil];
+					[TSPresentationDelegate presentViewController:errorAlert animated:YES completion:nil];
 				}];
 			});
 		}
@@ -262,7 +263,7 @@
 			spawnRoot(rootHelperPath(), @[@"install-ldid", location.path], nil, nil);
 			dispatch_async(dispatch_get_main_queue(), ^
 			{
-				[self stopActivityWithCompletion:nil];
+				[TSPresentationDelegate stopActivityWithCompletion:nil];
 				[self reloadSpecifiers];
 			});
 		}
@@ -309,7 +310,7 @@
 	UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
 	[selectAppAlert addAction:cancelAction];
 
-	[self presentViewController:selectAppAlert animated:YES completion:nil];
+	[TSPresentationDelegate presentViewController:selectAppAlert animated:YES completion:nil];
 }
 
 - (void)doTheDashPressed

@@ -6,6 +6,7 @@
 
 @interface LSApplicationProxy : LSBundleProxy
 + (instancetype)applicationProxyForIdentifier:(NSString*)identifier;
++ (instancetype)applicationProxyForBundleURL:(NSURL*)bundleURL;
 @property NSURL* bundleURL;
 @property NSString* bundleType;
 @property NSString* canonicalExecutablePath;
@@ -14,7 +15,8 @@
 @property (getter=isInstalled,nonatomic,readonly) BOOL installed; 
 @property (getter=isPlaceholder,nonatomic,readonly) BOOL placeholder; 
 @property (getter=isRestricted,nonatomic,readonly) BOOL restricted;
-@property (nonatomic,readonly) NSSet * claimedURLSchemes;
+@property (nonatomic,readonly) NSSet* claimedURLSchemes;
+@property (nonatomic,readonly) NSString* applicationType;
 @end
 
 @interface LSApplicationWorkspace : NSObject

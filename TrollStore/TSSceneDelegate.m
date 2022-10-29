@@ -1,125 +1,76 @@
 #import "TSSceneDelegate.h"
 #import "TSRootViewController.h"
 #import "TSUtil.h"
-#import "TSApplicationsManager.h"
+#import "TSInstallationController.h"
+#import <TSPresentationDelegate.h>
 
 @implementation TSSceneDelegate
 
-- (void)doIPAInstall:(NSString*)ipaPath scene:(UIWindowScene*)scene force:(BOOL)force completion:(void (^)(void))completion
-{
-	UIWindow* keyWindow = nil;
-	for(UIWindow* window in scene.windows)
-	{
-		if(window.isKeyWindow)
-		{
-			keyWindow = window;
-			break;
-		}
-	}
-
-	UIAlertController* infoAlert = [UIAlertController alertControllerWithTitle:@"Installing" message:@"" preferredStyle:UIAlertControllerStyleAlert];
-	UIActivityIndicatorView* activityIndicator = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake(5,5,50,50)];
-	activityIndicator.hidesWhenStopped = YES;
-	activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyleMedium;
-	[activityIndicator startAnimating];
-	[infoAlert.view addSubview:activityIndicator];
-
-	[keyWindow.rootViewController presentViewController:infoAlert animated:YES completion:nil];
-
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
-	{
-		// Install IPA
-		//NSString* log;
-		int ret = [[TSApplicationsManager sharedInstance] installIpa:ipaPath force:force log:nil];
-
-		NSError* error;
-		if(ret != 0)
-		{
-			error = [[TSApplicationsManager sharedInstance] errorForCode:ret];
-		}
-
-		NSLog(@"installed app! ret:%d, error: %@", ret, error);
-
-		dispatch_async(dispatch_get_main_queue(), ^
-		{
-			[infoAlert dismissViewControllerAnimated:YES completion:^
-			{
-				if(ret != 0)
-				{
-					UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Install Error %d", ret] message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
-					UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
-					{
-						if(ret == 171)
-						{
-							completion();
-						}
-					}];
-					[errorAlert addAction:closeAction];
-
-					if(ret == 171)
-					{
-						UIAlertAction* forceInstallAction = [UIAlertAction actionWithTitle:@"Force Installation" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
-						{
-							[self doIPAInstall:ipaPath scene:scene force:YES completion:completion];
-						}];
-						[errorAlert addAction:forceInstallAction];
-					}
-					else
-					{
-						/*UIAlertAction* copyLogAction = [UIAlertAction actionWithTitle:@"Copy Log" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
-						{
-							UIPasteboard* pasteboard = [UIPasteboard generalPasteboard];
-							pasteboard.string = log;
-						}];
-						[errorAlert addAction:copyLogAction];*/
-					}
-
-					[keyWindow.rootViewController presentViewController:errorAlert animated:YES completion:nil];
-				}
-
-				if(ret != 171)
-				{
-					completion();
-				}
-			}];
-		});
-	});
-}
-
-- (void)handleURLContexts:(NSSet<UIOpenURLContext *> *)URLContexts scene:(UIWindowScene*)scene
+- (void)handleURLContexts:(NSSet<UIOpenURLContext*>*)URLContexts scene:(UIWindowScene*)scene
 {
 	for(UIOpenURLContext* context in URLContexts)
 	{
 		NSLog(@"openURLContexts %@", context.URL);
 		NSURL* url = context.URL;
-		if (url != nil && [url isFileURL]) {
-			[url startAccessingSecurityScopedResource];
-			void (^doneBlock)(BOOL) = ^(BOOL shouldExit)
-			{
-				[url stopAccessingSecurityScopedResource];
-				[[NSFileManager defaultManager] removeItemAtURL:url error:nil];
 
-				if(shouldExit)
+		if(url)
+		{
+			NSLog(@"ts_test url: %@", url);
+			NSLog(@"ts_test url.scheme: %@", url.scheme);
+			if([url isFileURL])
+			{
+				[url startAccessingSecurityScopedResource];
+				void (^doneBlock)(BOOL) = ^(BOOL shouldExit)
 				{
-					NSLog(@"Respring + Exit");
-					respring();
-					exit(0);
+					[url stopAccessingSecurityScopedResource];
+					[[NSFileManager defaultManager] removeItemAtURL:url error:nil];
+
+					if(shouldExit)
+					{
+						NSLog(@"Respring + Exit");
+						respring();
+						exit(0);
+					}
+				};
+				
+				if ([url.pathExtension.lowercaseString isEqualToString:@"ipa"] || [url.pathExtension.lowercaseString isEqualToString:@"tipa"])
+				{
+					[TSInstallationController presentInstallationAlertForFile:url.path completion:^(BOOL success, NSError* error){
+						doneBlock(NO);
+					}];
 				}
-			};
-			
-			if ([url.pathExtension.lowercaseString isEqualToString:@"ipa"] || [url.pathExtension.lowercaseString isEqualToString:@"tipa"])
-			{
-				[self doIPAInstall:url.path scene:(UIWindowScene*)scene force:NO completion:^{
-					doneBlock(NO);
-				}];
+				else if([url.pathExtension.lowercaseString isEqualToString:@"tar"])
+				{
+					// Update TrollStore itself
+					NSLog(@"Updating TrollStore...");
+					int ret = spawnRoot(rootHelperPath(), @[@"install-trollstore", url.path], nil, nil);
+					doneBlock(ret == 0);
+					NSLog(@"Updated TrollStore!");
+				}
 			}
-			else if([url.pathExtension.lowercaseString isEqualToString:@"tar"])
+			else if([url.scheme isEqualToString:@"apple-magnifier"])
 			{
-				// Update TrollStore itself
-				NSLog(@"Updating TrollStore...");
-				int ret = spawnRoot(rootHelperPath(), @[@"install-trollstore", url.path], nil, nil);
-				doneBlock(ret == 0);
-				NSLog(@"Updated TrollStore!");
+				NSURLComponents* components = [NSURLComponents componentsWithURL:url resolvingAgainstBaseURL:NO];
+				if([components.host isEqualToString:@"install"])
+				{
+					NSString* URLStringToInstall;
+
+					for(NSURLQueryItem* queryItem in components.queryItems)
+					{
+						NSLog(@"ts_test queryItem %@ = %@", queryItem.name, queryItem.value);
+						if([queryItem.name isEqualToString:@"url"])
+						{
+							URLStringToInstall = queryItem.value;
+							break;
+						}
+					}
+
+					if(URLStringToInstall && [URLStringToInstall isKindOfClass:NSString.class])
+					{
+						NSURL* URLToInstall = [NSURL URLWithString:URLStringToInstall];
+						[TSInstallationController handleAppInstallFromRemoteURL:URLToInstall completion:nil];
+					}
+				}
 			}
 		}
 	}

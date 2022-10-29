@@ -89,7 +89,7 @@ NSDictionary* constructEnvironmentVariablesForContainerPath(NSString* containerP
 	};
 }
 
-void registerPath(char* cPath, int unregister)
+void registerPath(char* cPath, int unregister, BOOL system)
 {
 	if(!cPath) return;
 	NSString* path = [NSString stringWithUTF8String:cPath];
@@ -129,7 +129,7 @@ void registerPath(char* cPath, int unregister)
 
 		// Misc
 
-		dictToRegister[@"ApplicationType"] = @"System";
+		dictToRegister[@"ApplicationType"] = system ? @"System" : @"User";
 		dictToRegister[@"CFBundleIdentifier"] = appBundleID;
 		dictToRegister[@"CodeInfoIdentifier"] = appBundleID;
 		dictToRegister[@"CompatibilityState"] = @0;

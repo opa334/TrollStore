@@ -1,5 +1,6 @@
 #import "TSListControllerShared.h"
 #import "TSUtil.h"
+#import "TSPresentationDelegate.h"
 
 @implementation TSListControllerShared
 
@@ -24,34 +25,6 @@
 	}
 }
 
-- (void)startActivity:(NSString*)activity
-{
-	if(_activityController) return;
-
-	_activityController = [UIAlertController alertControllerWithTitle:activity message:@"" preferredStyle:UIAlertControllerStyleAlert];
-	UIActivityIndicatorView* activityIndicator = [[UIActivityIndicatorView alloc] initWithFrame:CGRectMake(5,5,50,50)];
-	activityIndicator.hidesWhenStopped = YES;
-	activityIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyleMedium;
-	[activityIndicator startAnimating];
-	[_activityController.view addSubview:activityIndicator];
-
-	[self presentViewController:_activityController animated:YES completion:nil];
-}
-
-- (void)stopActivityWithCompletion:(void (^)(void))completion
-{
-	if(!_activityController) return;
-
-	[_activityController dismissViewControllerAnimated:YES completion:^
-	{
-		_activityController = nil;
-		if(completion)
-		{
-			completion();
-		}
-	}];
-}
-
 - (void)downloadTrollStoreAndDo:(void (^)(NSString* localTrollStoreTarPath))doHandler
 {
 	NSURL* trollStoreURL = [NSURL URLWithString:@"https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar"];
@@ -67,9 +40,9 @@
 
 			dispatch_async(dispatch_get_main_queue(), ^
 			{
-				[self stopActivityWithCompletion:^
+				[TSPresentationDelegate stopActivityWithCompletion:^
 				{
-					[self presentViewController:errorAlert animated:YES completion:nil];
+					[TSPresentationDelegate presentViewController:errorAlert animated:YES completion:nil];
 				}];
 			});
 		}
@@ -89,11 +62,11 @@
 {
 	if(update)
 	{
-		[self startActivity:@"Updating TrollStore"];
+		[TSPresentationDelegate startActivity:@"Updating TrollStore"];
 	}
 	else
 	{
-		[self startActivity:@"Installing TrollStore"];
+		[TSPresentationDelegate startActivity:@"Installing TrollStore"];
 	}
 
 	[self downloadTrollStoreAndDo:^(NSString* tmpTarPath)
@@ -113,7 +86,7 @@
 			{
 				dispatch_async(dispatch_get_main_queue(), ^
 				{
-					[self stopActivityWithCompletion:^
+					[TSPresentationDelegate stopActivityWithCompletion:^
 					{
 						[self reloadSpecifiers];
 					}];
@@ -124,12 +97,12 @@
 		{
 			dispatch_async(dispatch_get_main_queue(), ^
 			{
-				[self stopActivityWithCompletion:^
+				[TSPresentationDelegate stopActivityWithCompletion:^
 				{
 					UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:@"Error" message:[NSString stringWithFormat:@"Error installing TrollStore: trollstorehelper returned %d", ret] preferredStyle:UIAlertControllerStyleAlert];
 					UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
 					[errorAlert addAction:closeAction];
-					[self presentViewController:errorAlert animated:YES completion:nil];
+					[TSPresentationDelegate presentViewController:errorAlert animated:YES completion:nil];
 				}];
 			});
 		}
@@ -148,7 +121,7 @@
 
 - (void)rebuildIconCachePressed
 {
-	[self startActivity:@"Rebuilding Icon Cache"];
+	[TSPresentationDelegate startActivity:@"Rebuilding Icon Cache"];
 
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
 	{
@@ -156,14 +129,14 @@
 
 		dispatch_async(dispatch_get_main_queue(), ^
 		{
-			[self stopActivityWithCompletion:nil];
+			[TSPresentationDelegate stopActivityWithCompletion:nil];
 		});
 	});
 }
 
 - (void)refreshAppRegistrationsPressed
 {
-	[self startActivity:@"Refreshing"];
+	[TSPresentationDelegate startActivity:@"Refreshing"];
 
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
 	{
@@ -172,7 +145,7 @@
 
 		dispatch_async(dispatch_get_main_queue(), ^
 		{
-			[self stopActivityWithCompletion:nil];
+			[TSPresentationDelegate stopActivityWithCompletion:nil];
 		});
 	});
 }
@@ -198,7 +171,7 @@
 		}];
 		[uninstallWarningAlert addAction:continueAction];
 
-		[self presentViewController:uninstallWarningAlert animated:YES completion:nil];
+		[TSPresentationDelegate presentViewController:uninstallWarningAlert animated:YES completion:nil];
 	}
 }
 
@@ -228,7 +201,7 @@
 	}];
 	[uninstallWarningAlert addAction:continueAction];
 
-	[self presentViewController:uninstallWarningAlert animated:YES completion:nil];
+	[TSPresentationDelegate presentViewController:uninstallWarningAlert animated:YES completion:nil];
 }
 
 @end

@@ -1,5 +1,6 @@
 #import "TSHRootViewController.h"
 #import <TSUtil.h>
+#import <TSPresentationDelegate.h>
 
 @implementation TSHRootViewController
 
@@ -11,6 +12,8 @@
 - (void)viewDidLoad
 {
 	[super viewDidLoad];
+	TSPresentationDelegate.presentationViewController = self;
+
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadSpecifiers) name:UIApplicationWillEnterForegroundNotification object:nil];
 
 	fetchLatestTrollStoreVersion(^(NSString* latestVersion)
@@ -123,9 +126,7 @@
 			[_specifiers addObject:installTrollStoreSpecifier];
 		}
 
-		NSString* executableName = NSBundle.mainBundle.bundleURL.lastPathComponent;
-		NSString* backupExecutableName = [executableName stringByAppendingString:@"_TROLLSTORE_BACKUP"];
-		NSString* backupPath = [[NSBundle.mainBundle.bundleURL.path stringByDeletingLastPathComponent] stringByAppendingPathComponent:backupExecutableName];
+		NSString* backupPath = [safe_getExecutablePath() stringByAppendingString:@"_TROLLSTORE_BACKUP"];
 		if([[NSFileManager defaultManager] fileExistsAtPath:backupPath])
 		{
 			PSSpecifier* uninstallHelperGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
