@@ -10,6 +10,11 @@
 	<array>
 		<string>/</string>
 	</array>
+	<key>com.apple.security.exception.iokit-user-client-class</key>
+	<array>
+		<string>AGXDeviceUserClient</string>
+		<string>IOSurfaceRootUserClient</string>
+	</array>
 	<key>com.apple.private.security.no-sandbox</key>
 	<true/>
 	<key>com.apple.private.persona-mgmt</key>

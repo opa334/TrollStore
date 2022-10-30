@@ -859,7 +859,7 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 		}
 	}];
 	
-	__block NSMutableSet* accessibleContainers = [NSMutableSet new];
+	__block NSMutableArray* accessibleContainers = [NSMutableArray new]; //array by design, should be ordered
 	if(!unrestrictedContainerAccess)
 	{
 		[self enumerateAllInfoDictionaries:^(NSString *key, NSObject *value, BOOL *stop) {
@@ -914,7 +914,7 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 						{
 							unrestrictedKeychainAccess = YES;
 						}
-						else if(![accessibleKeychainGroups containsObject:keychainID])
+						else
 						{
 							[accessibleKeychainGroups addObject:keychainID];
 						}
@@ -940,10 +940,7 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 						{
 							for(NSString* URLScheme in cURLSchemes)
 							{
-								if(![URLSchemes containsObject:URLScheme])
-								{
-									[URLSchemes addObject:URLScheme];
-								}
+								[URLSchemes addObject:URLScheme];
 							}
 						}
 					}
