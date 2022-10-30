@@ -1,4 +1,5 @@
 #import "TSAppInfo.h"
+#import "TSCommonTCCServiceNames.h"
 #import <TSUtil.h>
 
 extern CGImageRef LICreateIconForImage(CGImageRef image, int variant, int precomposed);
@@ -950,6 +951,61 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 			}
 		}
 	}];
+	
+	__block NSMutableSet* allowedTccServices = [NSMutableSet new];
+	[self enumerateAllEntitlements:^(NSString *key, NSObject *value, BOOL *stop) {
+		if([key isEqualToString:@"com.apple.private.tcc.allow"])
+		{
+			NSArray* valueArr = (NSArray*)value;
+			if([valueArr isKindOfClass:NSArray.class])
+			{
+				for(NSString* serviceID in valueArr)
+				{
+					if([serviceID isKindOfClass:NSString.class])
+					{
+						NSString* displayName = commonTCCServices[serviceID];
+						if(displayName == nil)
+						{
+							[allowedTccServices addObject:[serviceID stringByReplacingOccurrencesOfString:@"kTCCService" withString:@""]];
+						}
+						else
+						{
+							[allowedTccServices addObject:displayName];
+						}
+					}
+				}
+			}
+		}
+		else if ([key isEqualToString:@"com.apple.locationd.preauthorized"])
+		{
+			NSNumber* valueNum = (NSNumber*)value;
+			if([valueNum isKindOfClass:NSNumber.class])
+			{
+				if([valueNum boolValue])
+				{
+					[allowedTccServices addObject:@"Location"];
+				}
+			}
+		}
+	}];
+
+	__block NSMutableSet* allowedMGKeys = [NSMutableSet new];
+	[self enumerateAllEntitlements:^(NSString *key, NSObject *value, BOOL *stop) {
+		if([key isEqualToString:@"com.apple.private.MobileGestalt.AllowedProtectedKeys"])
+		{
+			NSArray* valueArr = (NSArray*)value;
+			if([valueArr isKindOfClass:NSArray.class])
+			{
+				for(NSString* protectedKey in valueArr)
+				{
+					if([protectedKey isKindOfClass:NSString.class])
+					{
+						[allowedMGKeys addObject:protectedKey];
+					}
+				}
+			}
+		}
+	}];
 
 	NSMutableParagraphStyle* leftAlignment = [[NSMutableParagraphStyle alloc] init];
 	leftAlignment.alignment = NSTextAlignmentLeft;
@@ -1036,6 +1092,20 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\nThe app can not spawn other binaries." attributes:bodyAttributes]];
 	}
 
+	if(allowedTccServices.count)
+	{
+		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n\nPrivacy" attributes:headerAttributes]];
+		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\nThe app can access the following services without asking for permission.\n" attributes:bodyDangerAttributes]];
+		[description appendAttributedString:[[NSAttributedString alloc] initWithString:[NSListFormatter localizedStringByJoiningStrings:[allowedTccServices allObjects]] attributes:bodyAttributes]];
+	}
+	
+	if (allowedMGKeys.count)
+	{
+		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n\nDevice Info" attributes:headerAttributes]];
+		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\nThe app can access protected information about this device.\n" attributes:bodyWarningAttributes]];
+		[description appendAttributedString:[[NSAttributedString alloc] initWithString:[NSListFormatter localizedStringByJoiningStrings:[allowedMGKeys allObjects]] attributes:bodyAttributes]];
+	}
+    
 	if(unrestrictedContainerAccess || accessibleContainers.count)
 	{
 		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n\nAccessible Containers" attributes:headerAttributes]];
