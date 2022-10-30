@@ -1092,7 +1092,7 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 	if(allowedTccServices.count)
 	{
 		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n\nPrivacy" attributes:headerAttributes]];
-		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\nThe app can access the following services without asking for permission.\n" attributes:bodyDangerAttributes]];
+		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\nThe app can access the following services without asking for permission:\n" attributes:bodyDangerAttributes]];
 		[description appendAttributedString:[[NSAttributedString alloc] initWithString:[NSListFormatter localizedStringByJoiningStrings:[allowedTccServices allObjects]] attributes:bodyAttributes]];
 	}
 	
