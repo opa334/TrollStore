@@ -102,6 +102,7 @@ UIImage* imageWithSize(UIImage* image, CGSize size)
 	[super viewDidLoad];
 	
 	self.tableView.allowsMultipleSelectionDuringEditing = NO;
+	self.tableView.tableFooterView = [[UIView alloc] initWithFrame:CGRectZero];
 
 	[self _setUpNavigationBar];
 	[self _setUpSearchBar];
