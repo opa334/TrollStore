@@ -858,7 +858,7 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 		}
 	}];
 	
-	__block NSMutableArray* accessibleContainers = [NSMutableArray new];
+	__block NSMutableSet* accessibleContainers = [NSMutableSet new];
 	if(!unrestrictedContainerAccess)
 	{
 		[self enumerateAllInfoDictionaries:^(NSString *key, NSObject *value, BOOL *stop) {
@@ -898,7 +898,7 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 	// keychain-access-groups
 	// Unrestricted if single * (maybe?)
 	__block BOOL unrestrictedKeychainAccess = NO;
-	__block NSMutableArray* accessibleKeychainGroups = [NSMutableArray new];
+	__block NSMutableSet* accessibleKeychainGroups = [NSMutableSet new];
 	[self enumerateAllEntitlements:^(NSString *key, NSObject *value, BOOL *stop) {
 		if([key isEqualToString:@"keychain-access-groups"])
 		{
@@ -923,7 +923,7 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 		}
 	}];
 
-	__block NSMutableArray* URLSchemes = [NSMutableArray new];
+	__block NSMutableSet* URLSchemes = [NSMutableSet new];
 	[self enumerateAllInfoDictionaries:^(NSString *key, NSObject *value, BOOL *stop) {
 		if([key isEqualToString:@"CFBundleURLTypes"])
 		{
