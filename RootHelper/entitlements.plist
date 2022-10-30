@@ -17,6 +17,8 @@
 	<true/>
 	<key>com.apple.private.security.storage.AppBundles</key>
 	<true/>
+	<key>com.apple.private.security.storage.MobileDocuments</key>
+	<true/>
 	<key>com.apple.private.MobileContainerManager.allowed</key>
 	<true/>
 	<key>com.apple.private.MobileInstallationHelperService.InstallDaemonOpsEnabled</key>

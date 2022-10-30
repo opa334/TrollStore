@@ -59,23 +59,20 @@ static UIAlertController* g_activityController;
 	[self startActivity:activity withCancelHandler:nil];
 }
 
-+ (void)stopActivityWithCompletion:(void (^)(void))completion
++ (void)stopActivityWithCompletion:(void (^)(void))completionBlock
 {
 	if(!self.activityController) return;
 
 	[self.activityController dismissViewControllerAnimated:YES completion:^
 	{
 		self.activityController = nil;
-		if(completion)
-		{
-			completion();
-		}
+		if(completionBlock) completionBlock();
 	}];
 }
 
-+ (void)presentViewController:(UIViewController *)viewControllerToPresent animated:(BOOL)flag completion:(void (^)(void))completion
++ (void)presentViewController:(UIViewController *)viewControllerToPresent animated:(BOOL)flag completion:(void (^)(void))completionBlock
 {
-	[self.presentationViewController presentViewController:viewControllerToPresent animated:flag completion:completion];
+	[self.presentationViewController presentViewController:viewControllerToPresent animated:flag completion:completionBlock];
 }
 
 @end

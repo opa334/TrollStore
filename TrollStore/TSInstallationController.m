@@ -93,7 +93,7 @@
 
 				UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action)
 				{
-					completionBlock(NO, nil);
+					if(completionBlock) completionBlock(NO, nil);
 				}];
 				[installAlert addAction:cancelAction];
 

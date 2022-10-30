@@ -412,22 +412,24 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 	return nil;
 }
 
-- (void)loadBasicInfoWithCompletion:(void (^)(NSError*))completionHandler
+- (void)loadBasicInfoWithCompletion:(void (^)(NSError*))completionBlock
 {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		completionHandler([self sync_loadBasicInfo]);
+		if(completionBlock) completionBlock([self sync_loadBasicInfo]);
 	});
 }
 
-- (void)loadInfoWithCompletion:(void (^)(NSError*))completionHandler
+- (void)loadInfoWithCompletion:(void (^)(NSError*))completionBlock
 {
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-		completionHandler([self sync_loadInfo]);
+		if(completionBlock) completionBlock([self sync_loadInfo]);
 	});
 }
 
 - (void)enumerateAllInfoDictionaries:(void (^)(NSString* key, NSObject* value, BOOL* stop))enumerateBlock
 {
+	if(!enumerateBlock) return;
+
 	__block BOOL b_stop = NO;
 	
 	[_cachedInfoDictionary enumerateKeysAndObjectsUsingBlock:^(NSString* key, NSObject* value, BOOL* stop) {
@@ -455,6 +457,8 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 
 - (void)enumerateAllEntitlements:(void (^)(NSString* key, NSObject* value, BOOL* stop))enumerateBlock
 {
+	if(!enumerateBlock) return;
+
 	__block BOOL b_stop = NO;
 	
 	[_cachedEntitlementsByBinarySubpaths enumerateKeysAndObjectsUsingBlock:^(NSString* binarySubpath, NSDictionary* binaryInfoDictionary, BOOL* stop_1)
@@ -475,6 +479,8 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 
 - (void)enumerateAvailableIcons:(void (^)(CGSize iconSize, NSUInteger iconScale, NSString* iconPath, BOOL* stop))enumerateBlock
 {
+	if(!enumerateBlock) return;
+
 	if(_cachedInfoDictionary)
 	{
 		NSString* iconName = nil;

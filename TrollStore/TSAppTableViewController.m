@@ -111,38 +111,43 @@ UIImage* imageWithSize(UIImage* image, CGSize size)
 {
 	UIAction* installFromFileAction = [UIAction actionWithTitle:@"Install IPA File" image:[UIImage systemImageNamed:@"doc.badge.plus"] identifier:@"InstallIPAFile" handler:^(__kindof UIAction *action)
 	{
-		UTType* ipaType = [UTType typeWithFilenameExtension:@"ipa" conformingToType:UTTypeData];
-		UTType* tipaType = [UTType typeWithFilenameExtension:@"tipa" conformingToType:UTTypeData];
+		dispatch_async(dispatch_get_main_queue(), ^
+		{
+			UTType* ipaType = [UTType typeWithFilenameExtension:@"ipa" conformingToType:UTTypeData];
+			UTType* tipaType = [UTType typeWithFilenameExtension:@"tipa" conformingToType:UTTypeData];
 
-		UIDocumentPickerViewController* documentPickerVC = [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:@[ipaType, tipaType]];
-		//UIDocumentPickerViewController* documentPickerVC = [[UIDocumentPickerViewController alloc] initWithDocumentTypes:@[@"com.apple.itunes.ipa", @"com.opa334.trollstore.tipa"] inMode:UIDocumentPickerModeOpen];
-		documentPickerVC.allowsMultipleSelection = NO;
-		documentPickerVC.delegate = self;
+			UIDocumentPickerViewController* documentPickerVC = [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:@[ipaType, tipaType]];
+			documentPickerVC.allowsMultipleSelection = NO;
+			documentPickerVC.delegate = self;
 
-		[TSPresentationDelegate presentViewController:documentPickerVC animated:YES completion:nil];
+			[TSPresentationDelegate presentViewController:documentPickerVC animated:YES completion:nil];
+		});
 	}];
 
 	UIAction* installFromURLAction = [UIAction actionWithTitle:@"Install from URL" image:[UIImage systemImageNamed:@"link.badge.plus"] identifier:@"InstallFromURL" handler:^(__kindof UIAction *action)
 	{
-		UIAlertController* installURLController = [UIAlertController alertControllerWithTitle:@"Install from URL" message:@"" preferredStyle:UIAlertControllerStyleAlert];
-
-		[installURLController addTextFieldWithConfigurationHandler:^(UITextField *textField) {
-			textField.placeholder = @"URL";
-		}];
-
-		UIAlertAction* installAction = [UIAlertAction actionWithTitle:@"Install" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+		dispatch_async(dispatch_get_main_queue(), ^
 		{
-			NSString* URLString = installURLController.textFields.firstObject.text;
-			NSURL* remoteURL = [NSURL URLWithString:URLString];
+			UIAlertController* installURLController = [UIAlertController alertControllerWithTitle:@"Install from URL" message:@"" preferredStyle:UIAlertControllerStyleAlert];
 
-			[TSInstallationController handleAppInstallFromRemoteURL:remoteURL completion:nil];
-		}];
-		[installURLController addAction:installAction];
+			[installURLController addTextFieldWithConfigurationHandler:^(UITextField *textField) {
+				textField.placeholder = @"URL";
+			}];
 
-		UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-		[installURLController addAction:cancelAction];
+			UIAlertAction* installAction = [UIAlertAction actionWithTitle:@"Install" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+			{
+				NSString* URLString = installURLController.textFields.firstObject.text;
+				NSURL* remoteURL = [NSURL URLWithString:URLString];
 
-		[TSPresentationDelegate presentViewController:installURLController animated:YES completion:nil];
+				[TSInstallationController handleAppInstallFromRemoteURL:remoteURL completion:nil];
+			}];
+			[installURLController addAction:installAction];
+
+			UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+			[installURLController addAction:cancelAction];
+
+			[TSPresentationDelegate presentViewController:installURLController animated:YES completion:nil];
+		});
 	}];
 
 	UIMenu* installMenu = [UIMenu menuWithChildren:@[installFromFileAction, installFromURLAction]];
