@@ -1015,7 +1015,7 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 	[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n\nCapabilities" attributes:headerAttributes]];
 	if(containsRootBinary && canSpawnBinaries && hasPersonaMngmt)
 	{
-		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\nThe app can spawn it's own embedded binaries with root privileges." attributes:bodyDangerAttributes]];
+		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\nThe app can spawn its own embedded binaries with root privileges." attributes:bodyDangerAttributes]];
 	}
 	else if(canSpawnBinaries && hasPersonaMngmt)
 	{
