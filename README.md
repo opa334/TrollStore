@@ -157,17 +157,7 @@ When your app is not sandboxed, you can spawn other binaries using posix_spawn, 
 <true/>
 ```
 
-Because a root binary needs special permissions, you need to specify all your root binaries in the Info.plist of your application like so:
-
-```
-<key>TSRootBinaries</key>
-<array>
-    <string>roothelper1</string>
-    <string>some/nested/roothelper</string>
-</array>
-```
-
-Note: The paths in the TSRootBinaries array are relative to the location of the Info.plist, you can also include this key in other bundles such as app plugins.
+You can also add your own binaries into your app bundle.
 
 Afterwards you can use the [spawnRoot function in TSUtil.m](./Shared/TSUtil.m#L74) to spawn the binary as root.
 

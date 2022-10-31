@@ -8,6 +8,8 @@
 #import <objc/runtime.h>
 #import <TSUtil.h>
 #import <sys/utsname.h>
+#import <mach-o/loader.h>
+#import <mach-o/fat.h>
 
 #import <SpringBoardServices/SpringBoardServices.h>
 #import <Security/Security.h>
@@ -105,6 +107,51 @@ NSString* appPathForAppId(NSString* appId)
 		}
 	}
 	return nil;
+}
+
+BOOL isMachoFile(NSString* filePath)
+{
+	FILE* file = fopen(filePath.UTF8String, "r");
+	if(!file) return NO;
+
+	fseek(file, 0, SEEK_SET);
+	uint32_t magic;
+	fread(&magic, sizeof(uint32_t), 1, file);
+	fclose(file);
+
+	return magic == FAT_MAGIC || magic == FAT_CIGAM || magic == MH_MAGIC_64 || magic == MH_CIGAM_64;
+}
+
+void fixPermissionsOfAppBundle(NSString* appBundlePath)
+{
+	// Apply correct permissions (First run, set everything to 644, owner 33)
+	NSURL* fileURL;
+	NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appBundlePath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
+	while(fileURL = [enumerator nextObject])
+	{
+		NSString* filePath = fileURL.path;
+		chown(filePath.UTF8String, 33, 33);
+		chmod(filePath.UTF8String, 0644);
+	}
+
+	// Apply correct permissions (Second run, set executables and directories to 0755)
+	enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appBundlePath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
+	while(fileURL = [enumerator nextObject])
+	{
+		NSString* filePath = fileURL.path;
+
+		BOOL isDir;
+		[[NSFileManager defaultManager] fileExistsAtPath:fileURL.path isDirectory:&isDir];
+
+		if(isDir || isMachoFile(filePath))
+		{
+			chmod(filePath.UTF8String, 0755);
+		}
+	}
+
+	// Set .app directory permissions too
+	chmod(appBundlePath.UTF8String, 0755);
+	chown(appBundlePath.UTF8String, 33, 33);
 }
 
 void installLdid(NSString* ldidToCopyPath)
@@ -386,25 +433,9 @@ int signApp(NSString* appPath)
 		while(fileURL = [enumerator nextObject])
 		{
 			NSString* filePath = fileURL.path;
-
-			BOOL isDir;
-			[[NSFileManager defaultManager] fileExistsAtPath:fileURL.path isDirectory:&isDir];
-
-			if([filePath.lastPathComponent isEqualToString:@"Info.plist"])
+			if(isMachoFile(filePath))
 			{
-				NSDictionary* infoDictionary = [NSDictionary dictionaryWithContentsOfFile:filePath];
-				NSArray* tsRootBinaries = infoDictionary[@"TSRootBinaries"];
-				if(tsRootBinaries && [tsRootBinaries isKindOfClass:[NSArray class]])
-				{
-					for(NSString* rootBinary in tsRootBinaries)
-					{
-						if([rootBinary isKindOfClass:[NSString class]])
-						{
-							NSString* rootBinaryPath = [[filePath stringByDeletingLastPathComponent] stringByAppendingPathComponent:rootBinary];
-							storedEntitlements[rootBinaryPath] = dumpEntitlementsFromBinaryAtPath(rootBinaryPath);
-						}
-					}
-				}
+				storedEntitlements[filePath] = dumpEntitlementsFromBinaryAtPath(filePath);
 			}
 		}
 
@@ -413,11 +444,15 @@ int signApp(NSString* appPath)
 
 		[storedEntitlements enumerateKeysAndObjectsUsingBlock:^(NSString* binaryPath, NSDictionary* entitlements, BOOL* stop)
 		{
-			NSString* tmpEntitlementPlistPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"ent.xml"];
-			[entitlements writeToURL:[NSURL fileURLWithPath:tmpEntitlementPlistPath] error:nil];
-			NSString* tmpEntitlementArg = [@"-S" stringByAppendingString:tmpEntitlementPlistPath];
-			runLdid(@[tmpEntitlementArg, certArg, binaryPath], nil, nil);
-			[[NSFileManager defaultManager] removeItemAtPath:tmpEntitlementPlistPath error:nil];
+			NSDictionary* newEntitlements = dumpEntitlementsFromBinaryAtPath(binaryPath);
+			if(!newEntitlements || ![newEntitlements isEqualToDictionary:entitlements])
+			{
+				NSString* tmpEntitlementPlistPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"ent.xml"];
+				[entitlements writeToURL:[NSURL fileURLWithPath:tmpEntitlementPlistPath] error:nil];
+				NSString* tmpEntitlementArg = [@"-S" stringByAppendingString:tmpEntitlementPlistPath];
+				runLdid(@[tmpEntitlementArg, certArg, binaryPath], nil, nil);
+				[[NSFileManager defaultManager] removeItemAtPath:tmpEntitlementPlistPath error:nil];
+			}
 		}];
 	}
 
@@ -554,68 +589,7 @@ int installApp(NSString* appPath, BOOL sign, BOOL force)
 		return 177;
 	}
 
-	// Apply correct permissions (First run, set everything to 644, owner 33)
-	NSURL* fileURL;
-	NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
-	while(fileURL = [enumerator nextObject])
-	{
-		NSString* filePath = fileURL.path;
-		chown(filePath.UTF8String, 33, 33);
-		chmod(filePath.UTF8String, 0644);
-		NSLog(@"[installApp] setting %@ to chown(33,33) chmod(0644)", filePath);
-	}
-
-	// Apply correct permissions (Second run, set executables and directories to 0755)
-	enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
-	while(fileURL = [enumerator nextObject])
-	{
-		NSString* filePath = fileURL.path;
-
-		BOOL isDir;
-		[[NSFileManager defaultManager] fileExistsAtPath:fileURL.path isDirectory:&isDir];
-
-		if([filePath.lastPathComponent isEqualToString:@"Info.plist"])
-		{
-			NSDictionary* infoDictionary = [NSDictionary dictionaryWithContentsOfFile:filePath];
-			NSString* executable = infoDictionary[@"CFBundleExecutable"];
-			if(executable && [executable isKindOfClass:[NSString class]])
-			{
-				NSString* executablePath = [[filePath stringByDeletingLastPathComponent] stringByAppendingPathComponent:executable];
-				chmod(executablePath.UTF8String, 0755);
-				NSLog(@"[installApp] applied permissions for bundle executable %@", executablePath);
-			}
-			NSArray* tsRootBinaries = infoDictionary[@"TSRootBinaries"];
-			if(tsRootBinaries && [tsRootBinaries isKindOfClass:[NSArray class]])
-			{
-				for(NSString* rootBinary in tsRootBinaries)
-				{
-					if([rootBinary isKindOfClass:[NSString class]])
-					{
-						NSString* rootBinaryPath = [[filePath stringByDeletingLastPathComponent] stringByAppendingPathComponent:rootBinary];
-						if([[NSFileManager defaultManager] fileExistsAtPath:rootBinaryPath])
-						{
-							chmod(rootBinaryPath.UTF8String, 0755);
-							chown(rootBinaryPath.UTF8String, 0, 0);
-							NSLog(@"[installApp] applied permissions for root binary %@", rootBinaryPath);
-						}
-					}
-				}
-			}
-		}
-		else if(!isDir && [filePath.pathExtension isEqualToString:@"dylib"])
-		{
-			chmod(filePath.UTF8String, 0755);
-		}
-		else if(isDir)
-		{
-			// apparently all dirs are writable by default
-			chmod(filePath.UTF8String, 0755);
-		}
-	}
-
-	// Set .app directory permissions too
-	chmod(appPath.UTF8String, 0755);
-	chown(appPath.UTF8String, 33, 33);
+	fixPermissionsOfAppBundle(appPath);
 
 	// Wipe old version if needed
 	if(existed)

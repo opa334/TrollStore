@@ -24,9 +24,10 @@
 - (BOOL)registerApplicationDictionary:(NSDictionary*)dict;
 - (BOOL)unregisterApplication:(id)arg1;
 - (BOOL)_LSPrivateRebuildApplicationDatabasesForSystemApps:(BOOL)arg1 internal:(BOOL)arg2 user:(BOOL)arg3;
-- (BOOL)uninstallApplication:(NSString*)arg1 withOptions:(id)arg2;
 - (BOOL)openApplicationWithBundleID:(NSString *)arg1 ;
 - (void)enumerateApplicationsOfType:(NSUInteger)type block:(void (^)(LSApplicationProxy*))block;
+- (BOOL)installApplication:(NSString*)pathToExtractedApp withOptions:(NSDictionary*)options;
+- (BOOL)uninstallApplication:(NSString*)appId withOptions:(NSDictionary*)options;
 @end
 
 @interface LSEnumerator : NSEnumerator

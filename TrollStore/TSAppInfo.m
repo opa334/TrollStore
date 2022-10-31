@@ -766,20 +766,6 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 	NSString* version = [self versionString];
 	NSString* sizeString = [self sizeString];
 	
-	// Check if any bundle contains a root binary
-	__block BOOL containsRootBinary = NO;
-	[self enumerateAllInfoDictionaries:^(NSString *key, NSObject *value, BOOL *stop) {
-		if([key isEqualToString:@"TSRootBinaries"])
-		{
-			NSArray* valueArr = (NSArray*)value;
-			if([valueArr isKindOfClass:NSArray.class])
-			{
-				containsRootBinary = valueArr.count;
-				if(containsRootBinary) *stop = YES;
-			}
-		}
-	}];
-	
 	// Check if any bundles main binary runs unsandboxed
 	__block BOOL isUnsandboxed = NO;
 	[self enumerateAllEntitlements:^(NSString *key, NSObject *value, BOOL *stop) {
@@ -811,7 +797,7 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 	}];
 	
 	// Check if any bundles main binary can spawn an external binary
-	__block BOOL canSpawnBinaries = NO;
+	__block BOOL isPlatformApplication = NO;
 	[self enumerateAllEntitlements:^(NSString *key, NSObject *value, BOOL *stop)
 	{
 		if([key isEqualToString:@"platform-application"])
@@ -819,8 +805,8 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 			NSNumber* valueNum = (NSNumber*)value;
 			if(valueNum && [valueNum isKindOfClass:NSNumber.class])
 			{
-				canSpawnBinaries = valueNum.boolValue;
-				if(canSpawnBinaries) *stop = YES;
+				isPlatformApplication = valueNum.boolValue;
+				if(isPlatformApplication) *stop = YES;
 			}
 		}
 	}];
@@ -1072,15 +1058,11 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 	}
 
 	[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n\nCapabilities" attributes:headerAttributes]];
-	if(containsRootBinary && canSpawnBinaries && hasPersonaMngmt)
+	if(isPlatformApplication && isUnsandboxed && hasPersonaMngmt)
 	{
 		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\nThe app can spawn its own embedded binaries with root privileges." attributes:bodyDangerAttributes]];
 	}
-	else if(canSpawnBinaries && hasPersonaMngmt)
-	{
-		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\nThe app can spawn arbitary binaries as root, but does not contain any such binaries by itself." attributes:bodyWarningAttributes]];
-	}
-	else if(canSpawnBinaries)
+	else if(isPlatformApplication && isUnsandboxed)
 	{
 		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\nThe app can spawn arbitary binaries as the mobile user." attributes:bodyWarningAttributes]];
 	}
@@ -1092,15 +1074,15 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 	if(allowedTccServices.count)
 	{
 		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n\nPrivacy" attributes:headerAttributes]];
-		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\nThe app can access the following services without asking for permission:\n" attributes:bodyDangerAttributes]];
-		[description appendAttributedString:[[NSAttributedString alloc] initWithString:[NSListFormatter localizedStringByJoiningStrings:[allowedTccServices allObjects]] attributes:bodyAttributes]];
+		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\nThe app can access the following services without asking for permission:\n" attributes:bodyWarningAttributes]];
+		[description appendAttributedString:[[NSAttributedString alloc] initWithString:[NSListFormatter localizedStringByJoiningStrings:[allowedTccServices allObjects]] attributes:bodyWarningAttributes]];
 	}
 	
 	if (allowedMGKeys.count)
 	{
 		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n\nDevice Info" attributes:headerAttributes]];
-		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\nThe app can access protected information about this device.\n" attributes:bodyWarningAttributes]];
-		[description appendAttributedString:[[NSAttributedString alloc] initWithString:[NSListFormatter localizedStringByJoiningStrings:[allowedMGKeys allObjects]] attributes:bodyAttributes]];
+		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\nThe app can access protected information about this device:\n" attributes:bodyWarningAttributes]];
+		[description appendAttributedString:[[NSAttributedString alloc] initWithString:[NSListFormatter localizedStringByJoiningStrings:[allowedMGKeys allObjects]] attributes:bodyWarningAttributes]];
 	}
     
 	if(unrestrictedContainerAccess || accessibleContainers.count)
