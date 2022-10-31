@@ -49,6 +49,7 @@
 		else
 		{
 			NSString* tarTmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"TrollStore.tar"];
+			[[NSFileManager defaultManager] removeItemAtPath:tarTmpPath error:nil];
 			[[NSFileManager defaultManager] copyItemAtPath:location.path toPath:tarTmpPath error:nil];
 
 			doHandler(tarTmpPath);
