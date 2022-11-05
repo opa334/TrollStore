@@ -4,18 +4,6 @@ TrollStore is a permasigned jailed app that can permanently install any IPA you 
 
 It works because of an AMFI/CoreTrust bug where iOS doesn't verify whether or not a root certificate used to sign a binary is legit.
 
-## Compatibility
-
-TrollStore works on **iOS 14.0 - 15.4.1**, on **iOS 15.5 beta 1 - iOS 15.5 beta 4** and on **iOS 15.6 beta 1 - iOS 15.6 beta 5**.
-
-iOS 15.5 RC / full build is **NOT** supported.
-
-Anything higher than iOS 15.6 beta 5 (including iOS 15.6 RC / full build) is **NOT** supported.
-
-Anything lower than iOS 14.0 is **NOT** supported.
-
-Anything not supported right now will **_NEVER_** be supported, TrollStore is a one time thing, it will not receive compatibility updates in the future, please **stop asking** about it, GitHub issues regarding version support will be **closed without an answer**.
-
 ## Installing TrollStore
 
 ### Installation Guides
@@ -32,7 +20,7 @@ Anything not supported right now will **_NEVER_** be supported, TrollStore is a 
 | 15.6 RC1/2 | Not Supported | Not Supported |
 | >=15.6 | Not Supported | Not Supported |
 
-This version table is final, TrollStore will never support anything other than the versions listed as supported here. Do not bother asking, if you got a device on an unsupported version, it's best if you forget TrollStore even exists.
+This version table is final, TrollStore will never support anything other than the versions listed here. Do not bother asking, if you got a device on an unsupported version, it's best if you forget TrollStore even exists.
 
 ## Updating TrollStore
 
