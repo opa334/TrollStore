@@ -16,9 +16,9 @@ Anything lower than iOS 14.0 is **NOT** supported.
 
 Anything not supported right now will **_NEVER_** be supported, TrollStore is a one time thing, it will not receive compatibility updates in the future, please **stop asking** about it, GitHub issues regarding version support will be **closed without an answer**.
 
-## Installing TrollStore (No Jailbreak)
+## Installing TrollStore
 
-### Installation Links
+### Installation Guides
 
 | Version / Device | arm64 | arm64e |
 | --- | --- | --- |
