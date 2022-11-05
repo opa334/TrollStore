@@ -1,10 +1,10 @@
 # SSH Ramdisk
 
-## Supported Devices: All checkm8 / arm64 devices
+**Supported Devices:** All checkm8 / arm64 devices
 
-## Supported Versions: iOS 14.0 - 15.5b4, 15.6b1 - 15.6b5
+**Supported Versions:** iOS 14.0 - 15.5b4, 15.6b1 - 15.6b5
 
-## Additional requirements: Linux / macOS Computer
+**Additional requirements:** Linux / macOS Computer
 
 ## Guide
 
