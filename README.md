@@ -20,63 +20,18 @@ Anything not supported right now will **_NEVER_** be supported, TrollStore is a 
 
 ### Installation Links
 
-[TrollHelperOTA Link 1 - Supports all devices on iOS 15 and up](https://api.jailbreaks.app/troll)
+| Version / Device | arm64 | arm64e
+| <=13.7 | Not Supported | Not Supported
+| 14.0 - 14.8.1 | [checkra1n + TrollHelper](./install_trollhelper.md) | [TrollHelperOTA (arm64e)](./install_trollhelperota_arm64e.md)
+| 15.0 - 15.4.1 | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md) | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md)
+| 15.5 beta 1 - 4 | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md) | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md)
+| 15.5 RC | Not Supported | Not Supported
+| 15.5 | Not Supported | Not Supported
+| 15.6 beta 1 - 5 | [SSH Ramdisk](./install_sshrd.md) | [TrollHelperOTA (arm64e)](./install_trollhelperota_arm64e.md)
+| 15.6 RC1/2 | Not Supported | Not Supported
+| >=15.6 | Not Supported | Not Supported
 
-[TrollHelperOTA Link 2 - Supports all arm64e (A12 - A15) devices on iOS 14 and up](https://api.jailbreaks.app/troll64e)
-
-Please refer to "Compatibility" above to check whether your version is compatible, if it's not, these links will not work.
-
-This installation method unfortunately does **NOT** work on arm64 (A8 - A11) iOS 14 devices. **HOWEVER**, for these devices, you can jailbreak with checkra1n and then use the jailbroken installation guide below.
-
-### Guide (No Jailbreak)
-
-1. Based on what device you are using, pick one of the two links above and open it.
-
-2. An alert should appear, tap "Install"
-
-3. When the installation is finished, you will find a "GTA Car Tracker" application on your device.
-
-4. If this app has not appeared, that's a stock iOS bug, reboot your device and the app will appear.
-
-5. Launch the app, tap "Install TrollStore"
-
-6. Wait a few seconds, your device should respring and TrollStore will be installed.
-
-7. You can now either delete the "GTA Car Tracker" app, or register it as the persistence helper by opening it and tapping the option at the bottom. If you do this, don't delete the app. 
-
-8. Open the TrollStore app and press "Install ldid" in the Settings tab, then read the information under "Persistence", and install the Persistence Helper into a system app if you want persistence (not needed if you registered the GTA Car Tracker app as the persistence helper in step 7).
-
-9. Done, you can now share IPA files with TrollStore and they will be permanently installed on your device.
-
-## Installing TrollStore (Jailbreak)
-
-Supports jailbroken devices running 14.0 and above.
-
-### Guide
-
-1. Open your package manager, and make sure [Havoc repo](https://havoc.app) is added under Sources, then search for "TrollStore Helper" and install it.
-
-2. After the installation, respring and the "TrollHelper" app should have appeared on your home screen.
-
-3. Launch the app, tap "Install TrollStore"
-
-4. Wait a few seconds, your device should respring and TrollStore will be installed.
-
-5. Open the TrollStore app and press "Install ldid" in the Settings tab, then read the information under "Persistence", the TrollHelper app on the home screen will be your persistence helper.
-
-6. Done, you can now share IPA files with TrollStore and they will be permanently installed on your device.
-
-### Unjailbreaking while retaining TrollStore
-
-Some people might prefer to use TrollStore in an unjailbroken environment, if that applies to you, follow this guide.
-
-1. Uninstall TrollHelper from your package manager
-
-2. Now when you launch TrollStore, it will have an option to install the persistence helper into a System app like on iOS 15, do so.
-
-3. Now restore rootFS through your jailbreak app, afterwards use the System app to refresh app registrations.
-
-4. Done, your device will be jailed, but TrollStore will still work.
+This version table is final, TrollStore will never support anything other than the versions listed as supported here. Do not bother asking, if you got a device on an unsupported version, it's best if you forget TrollStore even exists.
 
 ## Updating TrollStore
 
