@@ -286,6 +286,8 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 
 - (NSError*)loadSize
 {
+	_cachedSize = 0;
+
 	if(_isArchive)
 	{
 		[self enumerateArchive:^(struct archive_entry* entry, BOOL* stop)
