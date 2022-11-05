@@ -1,6 +1,6 @@
 Package: com.opa334.trollstorehelper
 Name: TrollStore Helper
-Version: 1.3.4
+Version: 1.3.5
 Architecture: iphoneos-arm
 Description: Helper utility to install and manage TrollStore!
 Maintainer: opa334
