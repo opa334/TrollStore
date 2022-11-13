@@ -49,7 +49,7 @@ void copyData(FILE* sourceFile, FILE* targetFile, size_t size)
 
 void enumerateArchs(NSString* binaryPath, void (^archEnumBlock)(struct fat_arch* arch, uint32_t archFileOffset, struct mach_header* machHeader, uint32_t sliceFileOffset, FILE* file, BOOL* stop))
 {
-	FILE* machoFile = fopen(binaryPath.UTF8String, "rb");
+	FILE* machoFile = fopen(binaryPath.fileSystemRepresentation, "rb");
 	if(!machoFile) return;
 	
 	struct mach_header header;
@@ -244,7 +244,7 @@ void pwnify(NSString* appStoreBinary, NSString* binaryToInject, BOOL preferArm64
 	
 	// FAT Header constructed, now write to file and then write the slices themselves
 	
-	FILE* tmpFile = fopen(tmpFilePath.UTF8String, "wb");
+	FILE* tmpFile = fopen(tmpFilePath.fileSystemRepresentation, "wb");
 	fwrite(&fatData[0], fatDataSize, 1, tmpFile);
 	
 	curArchIndex = 0;
@@ -266,7 +266,7 @@ void pwnify(NSString* appStoreBinary, NSString* binaryToInject, BOOL preferArm64
 			size = OSSwapBigToHostInt32(toWriteArch->size);
 		}
 		
-		FILE* appStoreBinaryFile = fopen(appStoreBinary.UTF8String, "rb");
+		FILE* appStoreBinaryFile = fopen(appStoreBinary.fileSystemRepresentation, "rb");
 		fseek(appStoreBinaryFile, offset, SEEK_SET);
 		copyData(appStoreBinaryFile, tmpFile, size);
 		fclose(appStoreBinaryFile);
@@ -308,7 +308,7 @@ void pwnify(NSString* appStoreBinary, NSString* binaryToInject, BOOL preferArm64
 					size = OSSwapBigToHostInt32(toWriteArch->size);
 				}
 				
-				FILE* binaryToInjectFile = fopen(binaryToInject.UTF8String, "rb");
+				FILE* binaryToInjectFile = fopen(binaryToInject.fileSystemRepresentation, "rb");
 				fseek(binaryToInjectFile, offset, SEEK_SET);
 				copyData(binaryToInjectFile, tmpFile, size);
 				fclose(binaryToInjectFile);
@@ -318,7 +318,7 @@ void pwnify(NSString* appStoreBinary, NSString* binaryToInject, BOOL preferArm64
 	});
 	
 	fclose(tmpFile);
-	chmod(tmpFilePath.UTF8String, 0755);
+	chmod(tmpFilePath.fileSystemRepresentation, 0755);
 	
 	[[NSFileManager defaultManager] removeItemAtPath:appStoreBinary error:nil];
 	[[NSFileManager defaultManager] moveItemAtPath:tmpFilePath toPath:appStoreBinary error:nil];
@@ -326,7 +326,7 @@ void pwnify(NSString* appStoreBinary, NSString* binaryToInject, BOOL preferArm64
 
 void setCPUSubtype(NSString* binaryPath, uint32_t subtype)
 {
-	FILE* binaryFile = fopen(binaryPath.UTF8String, "rb+");
+	FILE* binaryFile = fopen(binaryPath.fileSystemRepresentation, "rb+");
 	if(!binaryFile)
 	{
 		printf("ERROR: File not found\n");
