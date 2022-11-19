@@ -138,7 +138,7 @@ void registerPath(char* cPath, int unregister, BOOL system)
 			dictToRegister[@"Container"] = containerPath;
 			dictToRegister[@"EnvironmentVariables"] = constructEnvironmentVariablesForContainerPath(containerPath);
 		}
-		dictToRegister[@"IsDeletable"] = @0;
+		dictToRegister[@"IsDeletable"] = @(![appBundleID isEqualToString:@"com.opa334.TrollStore"]);
 		dictToRegister[@"Path"] = path;
 		dictToRegister[@"IsContainerized"] = @(constructContainerizationForEntitlements(entitlements));
 		dictToRegister[@"SignerOrganization"] = @"Apple Inc.";
