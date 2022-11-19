@@ -142,7 +142,7 @@
 		</dict>
 		<dict>
 			<key>CFBundleTypeName</key>
-			<string>AirDrop friendy iOS app</string>
+			<string>AirDrop friendly iOS app</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>LSHandlerRank</key>
@@ -159,7 +159,7 @@
 			<key>UTTypeIdentifier</key>
 			<string>com.opa334.trollstore.tipa</string>
 			<key>UTTypeDescription</key>
-			<string>AirDrop friendy iOS app</string>
+			<string>AirDrop friendly iOS app</string>
 			<key>UTTypeConformsTo</key>
 			<array>
 				<string>public.data</string>
