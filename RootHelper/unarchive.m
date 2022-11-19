@@ -45,7 +45,7 @@ int extract(NSString* fileToExtract, NSString* extractionPath)
     ext = archive_write_disk_new();
     archive_write_disk_set_options(ext, flags);
     archive_write_disk_set_standard_lookup(ext);
-    if ((r = archive_read_open_filename(a, fileToExtract.UTF8String, 10240)))
+    if ((r = archive_read_open_filename(a, fileToExtract.fileSystemRepresentation, 10240)))
         return 1;
     for (;;)
     {
@@ -59,8 +59,8 @@ int extract(NSString* fileToExtract, NSString* extractionPath)
         
         NSString* currentFile = [NSString stringWithUTF8String:archive_entry_pathname(entry)];
         NSString* fullOutputPath = [extractionPath stringByAppendingPathComponent:currentFile];
-        //printf("extracting %s to %s\n", currentFile.UTF8String, fullOutputPath.UTF8String);
-        archive_entry_set_pathname(entry, fullOutputPath.UTF8String);
+        //printf("extracting %@ to %@\n", currentFile, fullOutputPath);
+        archive_entry_set_pathname(entry, fullOutputPath.fileSystemRepresentation);
         
         r = archive_write_header(ext, entry);
         if (r < ARCHIVE_OK)

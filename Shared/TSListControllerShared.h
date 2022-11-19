@@ -3,10 +3,6 @@
 #import <Preferences/PSSpecifier.h>
 
 @interface TSListControllerShared : PSListController
-{
-    UIAlertController* _activityController;
-}
-
 - (BOOL)isTrollStore;
 - (NSString*)getTrollStoreVersion;
 - (void)downloadTrollStoreAndDo:(void (^)(NSString* localTrollStoreTarPath))doHandler;

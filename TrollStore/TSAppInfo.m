@@ -366,7 +366,7 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 	_archive = archive_read_new();
 	archive_read_support_format_all(_archive);
 	archive_read_support_filter_all(_archive);
-	int r = archive_read_open_filename(_archive, _path.UTF8String, 10240);
+	int r = archive_read_open_filename(_archive, _path.fileSystemRepresentation, 10240);
 	return r ? r : 0;
 }
 

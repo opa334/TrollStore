@@ -30,6 +30,12 @@
         case 167:
         errorDescription = @"The IPA file does not appear to contain an app.";
         break;
+        case 168:
+        errorDescription = @"Failed to extract IPA file.";
+        break;
+        case 169:
+        errorDescription = @"Failed to extract update tar file.";
+        break;
         // App install errors
         case 170:
         errorDescription = @"Failed to create container for app bundle.";
@@ -61,10 +67,9 @@
         case 179:
         errorDescription = @"The app you tried to install has the same identifier as a system app already installed on the device. The installation has been prevented to protect you from possible bootloops or other issues.";
         break;
-        // App detach errors
-        /*case 184:
-        errorDescription = @"Refusing to detach, the app is still signed with a fake root certificate. The detach option is only for when you have installed an App Store app on top of a TrollStore app.";
-        break;*/
+        case 180:
+        errorDescription = @"The LSApplicationWorkspace app installation failed.";
+        break;
     }
 
     NSError* error = [NSError errorWithDomain:TrollStoreErrorDomain code:code userInfo:@{NSLocalizedDescriptionKey : errorDescription}];

@@ -178,7 +178,7 @@ UIImage* imageWithSize(UIImage* image, CGSize size)
 - (void)documentPicker:(UIDocumentPickerViewController *)controller didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls
 {
 	NSString* pathToIPA = urls.firstObject.path;
-	[TSInstallationController presentInstallationAlertForFile:pathToIPA completion:nil];
+	[TSInstallationController presentInstallationAlertIfEnabledForFile:pathToIPA isRemoteInstall:NO completion:nil];
 }
 
 - (void)openAppPressedForRowAtIndexPath:(NSIndexPath*)indexPath

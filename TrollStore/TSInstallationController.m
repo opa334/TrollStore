@@ -5,6 +5,8 @@
 #import <TSUtil.h>
 #import <TSPresentationDelegate.h>
 
+extern NSUserDefaults* trollStoreUserDefaults(void);
+
 @implementation TSInstallationController
 
 + (void)handleAppInstallFromFile:(NSString*)pathToIPA forceInstall:(BOOL)force completion:(void (^)(BOOL, NSError*))completionBlock
@@ -73,8 +75,30 @@
 	});
 }
 
-+ (void)presentInstallationAlertForFile:(NSString*)pathToIPA completion:(void (^)(BOOL, NSError*))completionBlock
++ (void)presentInstallationAlertIfEnabledForFile:(NSString*)pathToIPA isRemoteInstall:(BOOL)remoteInstall completion:(void (^)(BOOL, NSError*))completionBlock
 {
+	NSNumber* installAlertConfigurationNum = [trollStoreUserDefaults() objectForKey:@"installAlertConfiguration"];
+	NSUInteger installAlertConfiguration = 0;
+	if(installAlertConfigurationNum)
+	{
+		installAlertConfiguration = installAlertConfigurationNum.unsignedIntegerValue;
+		if(installAlertConfiguration > 2)
+		{
+			// broken pref? revert to 0
+			installAlertConfiguration = 0;
+		}
+	}
+
+	// Check if user disabled alert for this kind of install
+	if(installAlertConfiguration > 0)
+	{
+		if(installAlertConfiguration == 2 || (installAlertConfiguration == 1 && !remoteInstall))
+		{
+			[self handleAppInstallFromFile:pathToIPA completion:completionBlock];
+			return;
+		}
+	}
+
 	TSAppInfo* appInfo = [[TSAppInfo alloc] initWithIPAPath:pathToIPA];
 	[appInfo loadInfoWithCompletion:^(NSError* error)
 	{
@@ -144,7 +168,7 @@
 						NSString* tmpIpaPath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"tmp.ipa"];
 						[[NSFileManager defaultManager] removeItemAtPath:tmpIpaPath error:nil];
 						[[NSFileManager defaultManager] moveItemAtPath:location.path toPath:tmpIpaPath error:nil];
-						[self presentInstallationAlertForFile:tmpIpaPath completion:^(BOOL success, NSError* error)
+						[self presentInstallationAlertIfEnabledForFile:tmpIpaPath isRemoteInstall:YES completion:^(BOOL success, NSError* error)
 						{
 							[[NSFileManager defaultManager] removeItemAtPath:tmpIpaPath error:nil];
 							if(completionBlock) completionBlock(success, error);

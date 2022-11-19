@@ -55,7 +55,13 @@ NSSet<NSString*>* appleURLSchemes(void)
 	LSApplicationProxy* proxy;
 	while(proxy = [enumerator nextObject])
 	{
-		[systemURLSchemes unionSet:proxy.claimedURLSchemes];
+		for(NSString* claimedURLScheme in proxy.claimedURLSchemes)
+		{
+			if([claimedURLScheme isKindOfClass:NSString.class])
+			{
+				[systemURLSchemes addObject:claimedURLScheme.lowercaseString];
+			}
+		}
 	}
 
 	return systemURLSchemes.copy;
@@ -83,22 +89,26 @@ NSSet<NSString*>* immutableAppBundleIdentifiers(void)
 
 NSDictionary* infoDictionaryForAppPath(NSString* appPath)
 {
+	if(!appPath) return nil;
 	NSString* infoPlistPath = [appPath stringByAppendingPathComponent:@"Info.plist"];
 	return [NSDictionary dictionaryWithContentsOfFile:infoPlistPath];
 }
 
 NSString* appIdForAppPath(NSString* appPath)
 {
+	if(!appPath) return nil;
 	return infoDictionaryForAppPath(appPath)[@"CFBundleIdentifier"];
 }
 
 NSString* appMainExecutablePathForAppPath(NSString* appPath)
 {
+	if(!appPath) return nil;
 	return [appPath stringByAppendingPathComponent:infoDictionaryForAppPath(appPath)[@"CFBundleExecutable"]];
 }
 
 NSString* appPathForAppId(NSString* appId)
 {
+	if(!appId) return nil;
 	for(NSString* appPath in trollStoreInstalledAppBundlePaths())
 	{
 		if([appIdForAppPath(appPath) isEqualToString:appId])
@@ -111,7 +121,7 @@ NSString* appPathForAppId(NSString* appId)
 
 BOOL isMachoFile(NSString* filePath)
 {
-	FILE* file = fopen(filePath.UTF8String, "r");
+	FILE* file = fopen(filePath.fileSystemRepresentation, "r");
 	if(!file) return NO;
 
 	fseek(file, 0, SEEK_SET);
@@ -130,8 +140,8 @@ void fixPermissionsOfAppBundle(NSString* appBundlePath)
 	while(fileURL = [enumerator nextObject])
 	{
 		NSString* filePath = fileURL.path;
-		chown(filePath.UTF8String, 33, 33);
-		chmod(filePath.UTF8String, 0644);
+		chown(filePath.fileSystemRepresentation, 33, 33);
+		chmod(filePath.fileSystemRepresentation, 0644);
 	}
 
 	// Apply correct permissions (Second run, set executables and directories to 0755)
@@ -145,14 +155,52 @@ void fixPermissionsOfAppBundle(NSString* appBundlePath)
 
 		if(isDir || isMachoFile(filePath))
 		{
-			chmod(filePath.UTF8String, 0755);
+			chmod(filePath.fileSystemRepresentation, 0755);
 		}
 	}
-
-	// Set .app directory permissions too
-	chmod(appBundlePath.UTF8String, 0755);
-	chown(appBundlePath.UTF8String, 33, 33);
 }
+
+NSArray* TSURLScheme(void)
+{
+	return @[
+		@{
+			@"CFBundleURLName" : @"com.apple.Magnifier",
+			@"CFBundleURLSchemes" : @[
+				@"apple-magnifier"
+			]
+		}
+	];
+}
+
+BOOL getTSURLSchemeState(NSString* customAppPath)
+{
+	NSString* pathToUse = customAppPath ?: trollStoreAppPath();
+
+	NSDictionary* trollStoreInfoDict = infoDictionaryForAppPath(pathToUse);
+	return (BOOL)trollStoreInfoDict[@"CFBundleURLTypes"];
+}
+
+void setTSURLSchemeState(BOOL newState, NSString* customAppPath)
+{
+	NSString* tsAppPath = trollStoreAppPath();
+	NSString* pathToUse = customAppPath ?: tsAppPath;
+	if(newState != getTSURLSchemeState(pathToUse))
+	{
+		NSDictionary* trollStoreInfoDict = infoDictionaryForAppPath(pathToUse);
+		NSMutableDictionary* trollStoreInfoDictM = trollStoreInfoDict.mutableCopy;
+		if(newState)
+		{
+			trollStoreInfoDictM[@"CFBundleURLTypes"] = TSURLScheme();
+		}
+		else
+		{
+			[trollStoreInfoDictM removeObjectForKey:@"CFBundleURLTypes"];
+		}
+		NSString* outPath = [pathToUse stringByAppendingPathComponent:@"Info.plist"];
+		[trollStoreInfoDictM.copy writeToURL:[NSURL fileURLWithPath:outPath] error:nil];
+	}
+}
+
 
 void installLdid(NSString* ldidToCopyPath)
 {
@@ -166,8 +214,8 @@ void installLdid(NSString* ldidToCopyPath)
 
 	[[NSFileManager defaultManager] copyItemAtPath:ldidToCopyPath toPath:ldidPath error:nil];
 
-	chmod(ldidPath.UTF8String, 0755);
-	chown(ldidPath.UTF8String, 0, 0);
+	chmod(ldidPath.fileSystemRepresentation, 0755);
+	chown(ldidPath.fileSystemRepresentation, 0, 0);
 }
 
 BOOL isLdidInstalled(void)
@@ -206,7 +254,7 @@ int runLdid(NSArray* args, NSString** output, NSString** errorOutput)
 	
 	pid_t task_pid;
 	int status = -200;
-	int spawnError = posix_spawn(&task_pid, [ldidPath UTF8String], &action, NULL, (char* const*)argsC, NULL);
+	int spawnError = posix_spawn(&task_pid, [ldidPath fileSystemRepresentation], &action, NULL, (char* const*)argsC, NULL);
 	for (NSUInteger i = 0; i < argCount; i++)
 	{
 		free(argsC[i]);
@@ -500,7 +548,19 @@ void applyPatchesToInfoDictionary(NSString* appPath)
 			if(URLSchemes)
 			{
 				NSMutableSet* URLSchemesSet = [NSMutableSet setWithArray:URLSchemes];
-				[URLSchemesSet minusSet:appleSchemes];
+				for(NSString* existingURLScheme in [URLSchemesSet copy])
+				{
+					if(![existingURLScheme isKindOfClass:[NSString class]])
+					{
+						[URLSchemesSet removeObject:existingURLScheme];
+						continue;
+					}
+
+					if([appleSchemes containsObject:existingURLScheme.lowercaseString])
+					{
+						[URLSchemesSet removeObject:existingURLScheme];
+					}
+				}
 				modifiedURLType[@"CFBundleURLSchemes"] = [URLSchemesSet allObjects];
 			}
 			[CFBundleURLTypesM addObject:modifiedURLType.copy];
@@ -517,172 +577,153 @@ void applyPatchesToInfoDictionary(NSString* appPath)
 // 172: no info.plist found in app
 // 173: app is not signed and cannot be signed because ldid not installed or didn't work
 // 174: 
-int installApp(NSString* appPath, BOOL sign, BOOL force)
+int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate)
 {
 	NSLog(@"[installApp force = %d]", force);
 
-	if(!infoDictionaryForAppPath(appPath)) return 172;
+	NSString* appPayloadPath = [appPackagePath stringByAppendingPathComponent:@"Payload"];
+	
+	NSArray* items = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:appPayloadPath error:nil];
+	if(!items) return 167;
+	
+	NSString* appBundlePath;
+	for(NSString* item in items)
+	{
+		if([item.pathExtension isEqualToString:@"app"])
+		{
+			appBundlePath = [appPayloadPath stringByAppendingPathComponent:item];
+			break;
+		}
+	}
+	if(!appBundlePath) return 167;
 
-	NSString* appId = appIdForAppPath(appPath);
+	NSString* appId = appIdForAppPath(appBundlePath);
 	if(!appId) return 176;
-	if([immutableAppBundleIdentifiers() containsObject:appId.lowercaseString])
+
+	if(([appId.lowercaseString isEqualToString:@"com.opa334.trollstore"] && !isTSUpdate) || [immutableAppBundleIdentifiers() containsObject:appId.lowercaseString])
 	{
 		return 179;
 	}
 
-	if(![appId isEqualToString:@"com.opa334.TrollStore"])
+	if(!infoDictionaryForAppPath(appBundlePath)) return 172;
+
+	if(!isTSUpdate)
 	{
-		applyPatchesToInfoDictionary(appPath);
+		applyPatchesToInfoDictionary(appBundlePath);
 	}
 
 	if(sign)
 	{
-		int signRet = signApp(appPath);
+		int signRet = signApp(appBundlePath);
 		if(signRet != 0) return signRet;
 	}
 
-	BOOL existed;
-	NSError* mcmError;
-	MCMAppContainer* appContainer = [objc_getClass("MCMAppContainer") containerWithIdentifier:appId createIfNecessary:YES existed:&existed error:&mcmError];
-	if(!appContainer || mcmError)
+	LSApplicationProxy* existingAppProxy = [LSApplicationProxy applicationProxyForIdentifier:appId];
+	if(existingAppProxy.installed)
 	{
-		NSLog(@"[installApp] failed to create app container for %@: %@", appId, mcmError);
-		return 170;
-	}
+		// App update
+		// Replace existing bundle with new version
 
-	if(existed)
-	{
-		NSLog(@"[installApp] got existing app container: %@", appContainer);
-	}
-	else
-	{
-		NSLog(@"[installApp] created app container: %@", appContainer);
-	}
+		// Check if the existing app bundle is empty
+		BOOL appBundleExists = existingAppProxy.bundleURL && [existingAppProxy.bundleURL checkResourceIsReachableAndReturnError:nil];
 
-	// check if the bundle is empty
-	BOOL isEmpty = YES;
-	NSArray* bundleItems = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:appContainer.url.path error:nil];
-	for(NSString* bundleItem in bundleItems)
-	{
-		if([bundleItem.pathExtension isEqualToString:@"app"])
+		// LSBundleProxy also has a bundleContainerURL property, but unforunately it is unreliable and just nil most of the time
+		NSURL* bundleContainerURL = existingAppProxy.bundleURL.URLByDeletingLastPathComponent;
+
+		// Make sure the installed app is a TrollStore app or the container is empty (or the force flag is set)
+		NSURL* trollStoreMarkURL = [bundleContainerURL URLByAppendingPathComponent:@"_TrollStore"];
+		if(appBundleExists && ![trollStoreMarkURL checkResourceIsReachableAndReturnError:nil] && !force)
 		{
-			isEmpty = NO;
-			break;
+			NSLog(@"[installApp] already installed and not a TrollStore app... bailing out");
+			return 171;
 		}
-	}
 
-	NSLog(@"[installApp] container is empty? %d", isEmpty);
-
-	// Make sure there isn't already an app store app installed with the same identifier
-	NSURL* trollStoreMarkURL = [appContainer.url URLByAppendingPathComponent:@"_TrollStore"];
-	if(existed && !isEmpty && ![trollStoreMarkURL checkResourceIsReachableAndReturnError:nil] && !force)
-	{
-		NSLog(@"[installApp] already installed and not a TrollStore app... bailing out");
-		return 171;
-	}
-
-	// Mark app as TrollStore app
-	BOOL marked = [[NSFileManager defaultManager] createFileAtPath:trollStoreMarkURL.path contents:[NSData data] attributes:nil];
-	if(!marked)
-	{
-		NSLog(@"[installApp] failed to mark %@ as TrollStore app", appId);
-		return 177;
-	}
-
-	fixPermissionsOfAppBundle(appPath);
-
-	// Wipe old version if needed
-	if(existed)
-	{
-		if(![appId isEqualToString:@"com.opa334.TrollStore"])
+		// Terminate app if it's still running
+		if(!isTSUpdate)
 		{
 			BKSTerminateApplicationForReasonAndReportWithDescription(appId, 5, false, @"TrollStore - App updated");
 		}
 
-		NSLog(@"[installApp] found existing TrollStore app, cleaning directory");
-		NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:appContainer.url includingPropertiesForKeys:nil options:0 errorHandler:nil];
-		NSURL* fileURL;
-		while(fileURL = [enumerator nextObject])
+		NSLog(@"[installApp] replacing existing app with new version");
+
+		// Delete existing .app directory if it exists
+		if(appBundleExists)
 		{
-			// do not under any circumstance delete this file as it makes iOS loose the app registration
-			if([fileURL.lastPathComponent isEqualToString:@".com.apple.mobile_container_manager.metadata.plist"] || [fileURL.lastPathComponent isEqualToString:@"_TrollStore"])
-			{
-				NSLog(@"[installApp] skipping removal of %@", fileURL);
-				continue;
-			}
-
-			[[NSFileManager defaultManager] removeItemAtURL:fileURL error:nil];
+			[[NSFileManager defaultManager] removeItemAtURL:existingAppProxy.bundleURL error:nil];
 		}
-	}
 
-	// Install app
-	NSString* newAppPath = [appContainer.url.path stringByAppendingPathComponent:appPath.lastPathComponent];
-	NSLog(@"[installApp] new app path: %@", newAppPath);
-	
-	NSError* copyError;
-	BOOL suc = [[NSFileManager defaultManager] copyItemAtPath:appPath toPath:newAppPath error:&copyError];
-	if(suc)
-	{
-		NSLog(@"[installApp] App %@ installed, adding to icon cache now...", appId);
-		registerPath((char*)newAppPath.UTF8String, 0, YES);
-		return 0;
+		// Install new version into existing app bundle
+		NSError* copyError;
+		BOOL suc = [[NSFileManager defaultManager] copyItemAtPath:appBundlePath toPath:[bundleContainerURL.path stringByAppendingPathComponent:appBundlePath.lastPathComponent] error:&copyError];
+		if(!suc)
+		{
+			NSLog(@"[installApp] Error copying new version during update: %@", copyError);
+			return 178;
+		}
 	}
 	else
 	{
-		NSLog(@"[installApp] Failed to copy app bundle for app %@, error: %@", appId, copyError);
-		return 178;
+		// Initial app install
+		// Do initial placeholder installation using LSApplicationWorkspace
+
+		NSError* installError;
+		BOOL suc = NO;
+		@try
+		{
+			suc = [[LSApplicationWorkspace defaultWorkspace] installApplication:[NSURL fileURLWithPath:appPackagePath] withOptions:@{
+				LSInstallTypeKey : @1,
+				@"PackageType" : @"Placeholder"
+			} error:&installError];
+		}
+		@catch(NSException* e)
+		{
+			NSLog(@"[installApp] encountered expection %@ while trying to do placeholder install", e);
+			suc = NO;
+		}
+		
+		if(!suc)
+		{
+			NSLog(@"[installApp] encountered error %@ while trying to do placeholder install", installError);
+			return 180;
+		}
+
+		// Get newly installed proxy
+		existingAppProxy = [LSApplicationProxy applicationProxyForIdentifier:appId];
+
+		// Mark app as TrollStore app
+		NSURL* bundleContainerURL = existingAppProxy.bundleURL.URLByDeletingLastPathComponent;
+		NSURL* trollStoreMarkURL = [bundleContainerURL URLByAppendingPathComponent:@"_TrollStore"];
+		BOOL marked = [[NSFileManager defaultManager] createFileAtPath:trollStoreMarkURL.path contents:[NSData data] attributes:nil];
+		if(!marked)
+		{
+			NSLog(@"[installApp] failed to mark %@ as TrollStore app", appId);
+			return 177;
+		}
 	}
+
+	// At this point the (new version of the) app is installed but still needs to be registered
+	// Also permissions need to be fixed
+	fixPermissionsOfAppBundle(existingAppProxy.bundleURL.path);
+	registerPath((char*)existingAppProxy.bundleURL.path.fileSystemRepresentation, 0, YES);
 }
 
 int uninstallApp(NSString* appPath, NSString* appId)
 {
-	if(appId)
+	BOOL deleteSuc = NO;
+	if(!appId && appPath)
 	{
-		BKSTerminateApplicationForReasonAndReportWithDescription(appId, 5, false, @"TrollStore - App uninstalled");
-
-		LSApplicationProxy* appProxy = [LSApplicationProxy applicationProxyForIdentifier:appId];
-		MCMContainer *appContainer = [objc_getClass("MCMAppDataContainer") containerWithIdentifier:appId createIfNecessary:NO existed:nil error:nil];
-		NSString *containerPath = [appContainer url].path;
-		if(containerPath)
-		{
-			NSLog(@"[uninstallApp] deleting %@", containerPath);
-			// delete app container path
-			[[NSFileManager defaultManager] removeItemAtPath:containerPath error:nil];
-		}
-
-		// delete group container paths
-		[[appProxy groupContainerURLs] enumerateKeysAndObjectsUsingBlock:^(NSString* groupId, NSURL* groupURL, BOOL* stop)
-		{
-			// If another app still has this group, don't delete it
-			NSArray<LSApplicationProxy*>* appsWithGroup = applicationsWithGroupId(groupId);
-			if(appsWithGroup.count > 1)
-			{
-				NSLog(@"[uninstallApp] not deleting %@, appsWithGroup.count:%lu", groupURL, appsWithGroup.count);
-				return;
-			}
-
-			NSLog(@"[uninstallApp] deleting %@", groupURL);
-			[[NSFileManager defaultManager] removeItemAtURL:groupURL error:nil];
-		}];
-
-		// delete app plugin paths
-		for(LSPlugInKitProxy* pluginProxy in appProxy.plugInKitPlugins)
-		{
-			NSURL* pluginURL = pluginProxy.dataContainerURL;
-			if(pluginURL)
-			{
-				NSLog(@"[uninstallApp] deleting %@", pluginURL);
-				[[NSFileManager defaultManager] removeItemAtURL:pluginURL error:nil];
-			}
-		}
+		// Special case, something is wrong about this app
+		// Most likely the Info.plist is missing
+		// (Hopefully this never happens)
+		deleteSuc = [[NSFileManager defaultManager] removeItemAtPath:[appPath stringByDeletingLastPathComponent] error:nil];
+		registerPath((char*)appPath.fileSystemRepresentation, 1, YES);
 	}
 
-	// unregister app
-	registerPath((char*)appPath.UTF8String, 1, YES);
+	if(appId)
+	{
+		deleteSuc = [[LSApplicationWorkspace defaultWorkspace] uninstallApplication:appId withOptions:nil];
+	}
 
-	NSLog(@"[uninstallApp] deleting %@", [appPath stringByDeletingLastPathComponent]);
-	// delete app
-	BOOL deleteSuc = [[NSFileManager defaultManager] removeItemAtPath:[appPath stringByDeletingLastPathComponent] error:nil];
 	if(deleteSuc)
 	{
 		return 0;
@@ -693,35 +734,18 @@ int uninstallApp(NSString* appPath, NSString* appId)
 	}
 }
 
-/*int detachApp(NSString* appId)
-{
-	NSString* appPath = appPathForAppId(appId);
-	NSString* executablePath = appMainExecutablePathForAppPath(appPath);
-	NSString* trollStoreMarkPath = [[appPath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"_TrollStore"];
-
-	// Not attached to TrollStore
-	if(![[NSFileManager defaultManager] fileExistsAtPath:trollStoreMarkPath]) return 0;
-
-	// Refuse to detach app if it's still signed with fake root cert
-	SecStaticCodeRef codeRef = getStaticCodeRef(executablePath);
-	if(codeRef != NULL)
-	{
-		if(codeCertChainContainsFakeAppStoreExtensions(codeRef))
-		{
-			CFRelease(codeRef);
-			return 184;
-		}
-	}
-
-	// Deleting TrollStore mark to detach app
-	BOOL suc = [[NSFileManager defaultManager] removeItemAtPath:trollStoreMarkPath error:nil];
-	return !suc;
-}*/
-
 int uninstallAppByPath(NSString* appPath)
 {
 	if(!appPath) return 1;
-	NSString* appId = appIdForAppPath(appPath);
+
+	NSString* standardizedAppPath = appPath.stringByStandardizingPath;
+
+	if(![standardizedAppPath hasPrefix:@"/var/containers/Bundle/Application/"] && standardizedAppPath.pathComponents.count == 5)
+	{
+		return 1;
+	}
+
+	NSString* appId = appIdForAppPath(standardizedAppPath);
 	return uninstallApp(appPath, appId);
 }
 
@@ -741,38 +765,21 @@ int installIpa(NSString* ipaPath, BOOL force)
 	if(![[NSFileManager defaultManager] fileExistsAtPath:ipaPath]) return 166;
 
 	BOOL suc = NO;
-	NSString* tmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSUUID UUID].UUIDString];
+	NSString* tmpPackagePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSUUID UUID].UUIDString];
 	
-	suc = [[NSFileManager defaultManager] createDirectoryAtPath:tmpPath withIntermediateDirectories:NO attributes:nil error:nil];
+	suc = [[NSFileManager defaultManager] createDirectoryAtPath:tmpPackagePath withIntermediateDirectories:NO attributes:nil error:nil];
 	if(!suc) return 1;
 
-	extract(ipaPath, tmpPath);
-
-	NSString* tmpPayloadPath = [tmpPath stringByAppendingPathComponent:@"Payload"];
-	
-	NSArray* items = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:tmpPayloadPath error:nil];
-	if(!items) return 167;
-	
-	NSString* tmpAppPath;
-	for(NSString* item in items)
+	int extractRet = extract(ipaPath, tmpPackagePath);
+	if(extractRet != 0)
 	{
-		if([item.pathExtension isEqualToString:@"app"])
-		{
-			tmpAppPath = [tmpPayloadPath stringByAppendingPathComponent:item];
-			break;
-		}
+		[[NSFileManager defaultManager] removeItemAtPath:tmpPackagePath error:nil];
+		return 168;
 	}
-	if(!tmpAppPath) return 167;
 
-	NSString* appId = appIdForAppPath(tmpAppPath);
-	if([appId.lowercaseString isEqualToString:@"com.opa334.trollstore"])
-	{
-		return 179;
-	}
+	int ret = installApp(tmpPackagePath, YES, force, NO);
 	
-	int ret = installApp(tmpAppPath, YES, force);
-	
-	[[NSFileManager defaultManager] removeItemAtPath:tmpAppPath error:nil];
+	[[NSFileManager defaultManager] removeItemAtPath:tmpPackagePath error:nil];
 
 	return ret;
 }
@@ -785,78 +792,85 @@ void uninstallAllApps(void)
 	}
 }
 
-BOOL uninstallTrollStore(BOOL unregister)
+int uninstallTrollStore(BOOL unregister)
 {
 	NSString* trollStore = trollStorePath();
 	if(![[NSFileManager defaultManager] fileExistsAtPath:trollStore]) return NO;
 
 	if(unregister)
 	{
-		registerPath((char*)trollStoreAppPath().UTF8String, 1, YES);
+		registerPath((char*)trollStoreAppPath().fileSystemRepresentation, 1, YES);
 	}
 
 	return [[NSFileManager defaultManager] removeItemAtPath:trollStore error:nil];
 }
 
-BOOL installTrollStore(NSString* pathToTar)
+int installTrollStore(NSString* pathToTar)
 {
-	//_CFPreferencesCopyValueWithContainerType _CFPreferencesCopyValueWithContainer = (_CFPreferencesCopyValueWithContainerType)dlsym(RTLD_DEFAULT, "_CFPreferencesCopyValueWithContainer");
 	_CFPreferencesSetValueWithContainerType _CFPreferencesSetValueWithContainer = (_CFPreferencesSetValueWithContainerType)dlsym(RTLD_DEFAULT, "_CFPreferencesSetValueWithContainer");
 	_CFPreferencesSynchronizeWithContainerType _CFPreferencesSynchronizeWithContainer = (_CFPreferencesSynchronizeWithContainerType)dlsym(RTLD_DEFAULT, "_CFPreferencesSynchronizeWithContainer");
-
-	/*CFPropertyListRef SBShowNonDefaultSystemAppsValue = _CFPreferencesCopyValueWithContainer(CFSTR("SBShowNonDefaultSystemApps"), CFSTR("com.apple.springboard"), CFSTR("mobile"), kCFPreferencesAnyHost, kCFPreferencesNoContainer);
-	if(SBShowNonDefaultSystemAppsValue != kCFBooleanTrue)
-	{*/
-		_CFPreferencesSetValueWithContainer(CFSTR("SBShowNonDefaultSystemApps"), kCFBooleanTrue, CFSTR("com.apple.springboard"), CFSTR("mobile"), kCFPreferencesAnyHost, kCFPreferencesNoContainer);
-		_CFPreferencesSynchronizeWithContainer(CFSTR("com.apple.springboard"), CFSTR("mobile"), kCFPreferencesAnyHost, kCFPreferencesNoContainer);
-		//NSLog(@"unrestricted springboard apps");
-	/*}*/
-
+	_CFPreferencesSetValueWithContainer(CFSTR("SBShowNonDefaultSystemApps"), kCFBooleanTrue, CFSTR("com.apple.springboard"), CFSTR("mobile"), kCFPreferencesAnyHost, kCFPreferencesNoContainer);
+	_CFPreferencesSynchronizeWithContainer(CFSTR("com.apple.springboard"), CFSTR("mobile"), kCFPreferencesAnyHost, kCFPreferencesNoContainer);
 
 	if(![[NSFileManager defaultManager] fileExistsAtPath:pathToTar]) return 1;
 	if(![pathToTar.pathExtension isEqualToString:@"tar"]) return 1;
 
-	NSString* tmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSUUID UUID].UUIDString];
-	BOOL suc = [[NSFileManager defaultManager] createDirectoryAtPath:tmpPath withIntermediateDirectories:NO attributes:nil error:nil];
+	NSString* tmpPackagePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSUUID UUID].UUIDString];
+	NSString* tmpPayloadPath = [tmpPackagePath stringByAppendingPathComponent:@"Payload"];
+	BOOL suc = [[NSFileManager defaultManager] createDirectoryAtPath:tmpPayloadPath withIntermediateDirectories:YES attributes:nil error:nil];
 	if(!suc) return 1;
 
-	extract(pathToTar, tmpPath);
+	int extractRet = extract(pathToTar, tmpPayloadPath);
+	if(extractRet != 0)
+	{
+		[[NSFileManager defaultManager] removeItemAtPath:tmpPackagePath error:nil];
+		return 169;
+	}
 
-	NSString* tmpTrollStore = [tmpPath stringByAppendingPathComponent:@"TrollStore.app"];
-	if(![[NSFileManager defaultManager] fileExistsAtPath:tmpTrollStore]) return 1;
+	NSString* tmpTrollStorePath = [tmpPayloadPath stringByAppendingPathComponent:@"TrollStore.app"];
+	if(![[NSFileManager defaultManager] fileExistsAtPath:tmpTrollStorePath]) return 1;
 
 	// Save existing ldid installation if it exists
 	NSString* existingLdidPath = [trollStoreAppPath() stringByAppendingPathComponent:@"ldid"];
 	if([[NSFileManager defaultManager] fileExistsAtPath:existingLdidPath])
 	{
-		NSString* tmpLdidPath = [tmpTrollStore stringByAppendingPathComponent:@"ldid"];
+		NSString* tmpLdidPath = [tmpTrollStorePath stringByAppendingPathComponent:@"ldid"];
 		if(![[NSFileManager defaultManager] fileExistsAtPath:tmpLdidPath])
 		{
 			[[NSFileManager defaultManager] copyItemAtPath:existingLdidPath toPath:tmpLdidPath error:nil];
 		}
 	}
 
+	// Merge existing URL scheme settings value
+	if(!getTSURLSchemeState(nil))
+	{
+		setTSURLSchemeState(NO, tmpTrollStorePath);
+	}
+
 	// Update system app persistence helper if used
 	LSApplicationProxy* persistenceHelperApp = findPersistenceHelperApp(PERSISTENCE_HELPER_TYPE_SYSTEM);
 	if(persistenceHelperApp)
 	{
-		NSString* trollStorePersistenceHelper = [tmpTrollStore stringByAppendingPathComponent:@"PersistenceHelper"];
-		NSString* trollStoreRootHelper = [tmpTrollStore stringByAppendingPathComponent:@"trollstorehelper"];
+		NSString* trollStorePersistenceHelper = [tmpTrollStorePath stringByAppendingPathComponent:@"PersistenceHelper"];
+		NSString* trollStoreRootHelper = [tmpTrollStorePath stringByAppendingPathComponent:@"trollstorehelper"];
 		_installPersistenceHelper(persistenceHelperApp, trollStorePersistenceHelper, trollStoreRootHelper);
 	}
 
-	return installApp(tmpTrollStore, NO, YES);;
+	int ret = installApp(tmpPackagePath, NO, YES, YES);
+	NSLog(@"[installTrollStore] installApp => %d", ret);
+	[[NSFileManager defaultManager] removeItemAtPath:tmpPackagePath error:nil];
+	return ret;
 }
 
 void refreshAppRegistrations()
 {
-	//registerPath((char*)trollStoreAppPath().UTF8String, 1, YES);
-	registerPath((char*)trollStoreAppPath().UTF8String, 0, YES);
+	//registerPath((char*)trollStoreAppPath().fileSystemRepresentation, 1, YES);
+	registerPath((char*)trollStoreAppPath().fileSystemRepresentation, 0, YES);
 
 	for(NSString* appPath in trollStoreInstalledAppBundlePaths())
 	{
-		//registerPath((char*)appPath.UTF8String, 1, YES);
-		registerPath((char*)appPath.UTF8String, 0, YES);
+		//registerPath((char*)appPath.fileSystemRepresentation, 1, YES);
+		registerPath((char*)appPath.fileSystemRepresentation, 0, YES);
 	}
 }
 
@@ -893,8 +907,8 @@ BOOL _installPersistenceHelper(LSApplicationProxy* appProxy, NSString* sourcePer
 		return NO;
 	}
 
-	chmod(executablePath.UTF8String, 0755);
-	chown(executablePath.UTF8String, 33, 33);
+	chmod(executablePath.fileSystemRepresentation, 0755);
+	chown(executablePath.fileSystemRepresentation, 33, 33);
 
 	NSError* error;
 	if(![[NSFileManager defaultManager] copyItemAtPath:sourceRootHelper toPath:rootHelperPath error:&error])
@@ -902,8 +916,8 @@ BOOL _installPersistenceHelper(LSApplicationProxy* appProxy, NSString* sourcePer
 		NSLog(@"error copying root helper: %@", error);
 	}
 
-	chmod(rootHelperPath.UTF8String, 0755);
-	chown(rootHelperPath.UTF8String, 0, 0);
+	chmod(rootHelperPath.fileSystemRepresentation, 0755);
+	chown(rootHelperPath.fileSystemRepresentation, 0, 0);
 
 	// mark system app as persistence helper
 	if(![[NSFileManager defaultManager] fileExistsAtPath:markPath])
@@ -1050,8 +1064,6 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 
 		NSLog(@"trollstore helper go, uid: %d, gid: %d", getuid(), getgid());
 
-		loadMCMFramework();
-
 		int ret = 0;
 
 		NSString* cmd = [NSString stringWithUTF8String:argv[1]];
@@ -1073,12 +1085,7 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 			if(argc <= 2) return -3;
 			NSString* appId = [NSString stringWithUTF8String:argv[2]];
 			ret = uninstallAppById(appId);
-		} /*else if([cmd isEqualToString:@"detach"])
-		{
-			if(argc <= 2) return -3;
-			NSString* appId = [NSString stringWithUTF8String:argv[2]];
-			ret = detachApp(appId);
-		} */else if([cmd isEqualToString:@"uninstall-path"])
+		} else if([cmd isEqualToString:@"uninstall-path"])
 		{
 			if(argc <= 2) return -3;
 			NSString* appPath = [NSString stringWithUTF8String:argv[2]];
@@ -1093,7 +1100,10 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 		{
 			uninstallAllApps();
 			uninstallTrollStore(YES);
-		} else if([cmd isEqualToString:@"install-ldid"])
+		} else if([cmd isEqualToString:@"uninstall-trollstore-preserve-apps"])
+		{
+			uninstallTrollStore(YES);
+		}else if([cmd isEqualToString:@"install-ldid"])
 		{
 			if(argc <= 2) return -3;
 			NSString* ldidPath = [NSString stringWithUTF8String:argv[2]];
@@ -1129,7 +1139,16 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 			NSString* trollStoreMark = [[appPath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"_TrollStore"];
 			if([[NSFileManager defaultManager] fileExistsAtPath:trollStoreMark])
 			{
-				registerPath((char*)appPath.UTF8String, 0, [newRegistration isEqualToString:@"System"]);
+				registerPath((char*)appPath.fileSystemRepresentation, 0, [newRegistration isEqualToString:@"System"]);
+			}
+		} else if([cmd isEqualToString:@"url-scheme"])
+		{
+			if(argc <= 2) return -3;
+			NSString* modifyArg = [NSString stringWithUTF8String:argv[2]];
+			BOOL newState = [modifyArg isEqualToString:@"enable"];
+			if(newState == YES || [modifyArg isEqualToString:@"disable"])
+			{
+				setTSURLSchemeState(newState, nil);
 			}
 		}
 

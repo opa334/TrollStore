@@ -190,19 +190,26 @@
 
 - (void)uninstallTrollStorePressed
 {
-	UIAlertController* uninstallWarningAlert = [UIAlertController alertControllerWithTitle:@"Warning" message:@"About to uninstall TrollStore and all of the apps installed by it. Continue?" preferredStyle:UIAlertControllerStyleAlert];
+	UIAlertController* uninstallAlert = [UIAlertController alertControllerWithTitle:@"Uninstall" message:@"You are about to uninstall TrollStore, do you want to preserve the apps installed by it?" preferredStyle:UIAlertControllerStyleAlert];
 	
-	UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
-	[uninstallWarningAlert addAction:cancelAction];
-
-	UIAlertAction* continueAction = [UIAlertAction actionWithTitle:@"Continue" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action)
+	UIAlertAction* uninstallAllAction = [UIAlertAction actionWithTitle:@"Uninstall TrollStore, Uninstall Apps" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action)
 	{
 		spawnRoot(rootHelperPath(), @[@"uninstall-trollstore"], nil, nil);
 		[self handleUninstallation];
 	}];
-	[uninstallWarningAlert addAction:continueAction];
+	[uninstallAlert addAction:uninstallAllAction];
 
-	[TSPresentationDelegate presentViewController:uninstallWarningAlert animated:YES completion:nil];
+	UIAlertAction* preserveAppsAction = [UIAlertAction actionWithTitle:@"Uninstall TrollStore, Preserve Apps" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action)
+	{
+		spawnRoot(rootHelperPath(), @[@"uninstall-trollstore-preserve-apps"], nil, nil);
+		[self handleUninstallation];
+	}];
+	[uninstallAlert addAction:preserveAppsAction];
+
+	UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+	[uninstallAlert addAction:cancelAction];
+
+	[TSPresentationDelegate presentViewController:uninstallAlert animated:YES completion:nil];
 }
 
 @end

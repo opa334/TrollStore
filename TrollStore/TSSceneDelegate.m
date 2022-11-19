@@ -32,7 +32,7 @@
 				
 				if ([url.pathExtension.lowercaseString isEqualToString:@"ipa"] || [url.pathExtension.lowercaseString isEqualToString:@"tipa"])
 				{
-					[TSInstallationController presentInstallationAlertForFile:url.path completion:^(BOOL success, NSError* error){
+					[TSInstallationController presentInstallationAlertIfEnabledForFile:url.path isRemoteInstall:NO completion:^(BOOL success, NSError* error){
 						doneBlock(NO);
 					}];
 				}

@@ -1,7 +1,13 @@
 #import "TSSettingsListController.h"
 #import <TSUtil.h>
 #import <Preferences/PSSpecifier.h>
+#import <Preferences/PSListItemsController.h>
 #import <TSPresentationDelegate.h>
+
+@interface NSUserDefaults (Private)
+- (instancetype)_initWithSuiteName:(NSString *)suiteName container:(NSURL *)container;
+@end
+extern NSUserDefaults* trollStoreUserDefaults(void);
 
 @implementation TSSettingsListController
 
@@ -195,6 +201,40 @@
 			}
 		}
 
+		PSSpecifier* installationSettingsGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
+		installationSettingsGroupSpecifier.name = @"Security";
+		[installationSettingsGroupSpecifier setProperty:@"The URL Scheme, when enabled, will allow apps and websites to trigger TrollStore installations through the apple-magnifier://install?url=<IPA_URL> URL scheme." forKey:@"footerText"];
+
+		[_specifiers addObject:installationSettingsGroupSpecifier];
+
+		PSSpecifier* URLSchemeToggle = [PSSpecifier preferenceSpecifierNamed:@"URL Scheme Enabled"
+										target:self
+										set:@selector(setURLSchemeEnabled:forSpecifier:)
+										get:@selector(getURLSchemeEnabledForSpecifier:)
+										detail:nil
+										cell:PSSwitchCell
+										edit:nil];
+
+		[_specifiers addObject:URLSchemeToggle];
+
+		PSSpecifier* installAlertConfigurationSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Show Install Confirmation Alert"
+										target:self
+										set:@selector(setPreferenceValue:specifier:)
+										get:@selector(readPreferenceValue:)
+										detail:nil
+										cell:PSLinkListCell
+										edit:nil];
+
+		installAlertConfigurationSpecifier.detailControllerClass = [PSListItemsController class];
+		[installAlertConfigurationSpecifier setProperty:@"installationConfirmationValues" forKey:@"valuesDataSource"];
+        [installAlertConfigurationSpecifier setProperty:@"installationConfirmationNames" forKey:@"titlesDataSource"];
+		[installAlertConfigurationSpecifier setProperty:@"com.opa334.TrollStore" forKey:@"defaults"];
+		[installAlertConfigurationSpecifier setProperty:@"installAlertConfiguration" forKey:@"key"];
+        [installAlertConfigurationSpecifier setProperty:@0 forKey:@"default"];
+
+		[_specifiers addObject:installAlertConfigurationSpecifier];
+
+
 		PSSpecifier* otherGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
 		[otherGroupSpecifier setProperty:[NSString stringWithFormat:@"TrollStore %@\n\n© 2022 Lars Fröder (opa334)\n\nCredits:\n@LinusHenze: CoreTrust bug\n@zhuowei: CoreTrust bug writeup and cert\n@lunotech11, @SerenaKit, @tylinux: Various contributions\n@ProcursusTeam: uicache and ldid build\n@cstar_ow: uicache\n@saurik: ldid", [self getTrollStoreVersion]] forKey:@"footerText"];
 		[_specifiers addObject:otherGroupSpecifier];
@@ -228,6 +268,16 @@
 
 	[(UINavigationItem *)self.navigationItem setTitle:@"Settings"];
 	return _specifiers;
+}
+
+- (NSArray*)installationConfirmationValues
+{
+	return @[@0, @1, @2];
+}
+
+- (NSArray*)installationConfirmationNames
+{
+	return @[@"Always (Recommended)", @"Only on Remote Installs", @"Never (Not Recommeded)"];
 }
 
 - (void)respringButtonPressed
@@ -313,9 +363,51 @@
 	[TSPresentationDelegate presentViewController:selectAppAlert animated:YES completion:nil];
 }
 
+- (id)getURLSchemeEnabledForSpecifier:(PSSpecifier*)specifier
+{
+	BOOL URLSchemeActive = (BOOL)[NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleURLTypes"];
+	return @(URLSchemeActive);
+}
+
+- (void)setURLSchemeEnabled:(id)value forSpecifier:(PSSpecifier*)specifier
+{
+	NSNumber* newValue = value;
+	NSString* newStateString = [newValue boolValue] ? @"enable" : @"disable";
+	spawnRoot(rootHelperPath(), @[@"url-scheme", newStateString], nil, nil);
+
+	UIAlertController* rebuildNoticeAlert = [UIAlertController alertControllerWithTitle:@"URL Scheme Changed" message:@"In order to properly apply the change of the URL scheme setting, rebuilding the icon cache is needed." preferredStyle:UIAlertControllerStyleAlert];
+	UIAlertAction* rebuildNowAction = [UIAlertAction actionWithTitle:@"Rebuild Now" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+	{
+		[self rebuildIconCachePressed];
+	}];
+	[rebuildNoticeAlert addAction:rebuildNowAction];
+
+	UIAlertAction* rebuildLaterAction = [UIAlertAction actionWithTitle:@"Rebuild Later" style:UIAlertActionStyleCancel handler:nil];
+	[rebuildNoticeAlert addAction:rebuildLaterAction];
+
+	[TSPresentationDelegate presentViewController:rebuildNoticeAlert animated:YES completion:nil];
+}
+
 - (void)doTheDashPressed
 {
 	spawnRoot(rootHelperPath(), @[@"dash"], nil, nil);
+}
+
+- (void)setPreferenceValue:(NSObject*)value specifier:(PSSpecifier*)specifier
+{
+	NSUserDefaults* tsDefaults = trollStoreUserDefaults();
+	[tsDefaults setObject:value forKey:[specifier propertyForKey:@"key"]];
+}
+
+- (NSObject*)readPreferenceValue:(PSSpecifier*)specifier
+{
+	NSUserDefaults* tsDefaults = trollStoreUserDefaults();
+	NSObject* toReturn = [tsDefaults objectForKey:[specifier propertyForKey:@"key"]];
+	if(!toReturn)
+	{
+		toReturn = [specifier propertyForKey:@"default"];
+	}
+	return toReturn;
 }
 
 @end
