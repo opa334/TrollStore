@@ -3,6 +3,7 @@
 #import "CoreServices.h"
 #import <objc/runtime.h>
 #import "dlfcn.h"
+#import <TSUtil.h>
 
 // uicache on steroids
 
@@ -93,6 +94,7 @@ void registerPath(char* cPath, int unregister, BOOL system)
 {
 	if(!cPath) return;
 	NSString* path = [NSString stringWithUTF8String:cPath];
+	loadMCMFramework();
 
 	LSApplicationWorkspace* workspace = [LSApplicationWorkspace defaultWorkspace];
 	if(unregister && ![[NSFileManager defaultManager] fileExistsAtPath:path])

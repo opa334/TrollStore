@@ -691,10 +691,13 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate)
 
 		// Get newly installed proxy
 		existingAppProxy = [LSApplicationProxy applicationProxyForIdentifier:appId];
+	}
 
-		// Mark app as TrollStore app
-		NSURL* bundleContainerURL = existingAppProxy.bundleURL.URLByDeletingLastPathComponent;
-		NSURL* trollStoreMarkURL = [bundleContainerURL URLByAppendingPathComponent:@"_TrollStore"];
+	// Mark app as TrollStore app
+	NSURL* bundleContainerURL = existingAppProxy.bundleURL.URLByDeletingLastPathComponent;
+	NSURL* trollStoreMarkURL = [bundleContainerURL URLByAppendingPathComponent:@"_TrollStore"];
+	if(![[NSFileManager defaultManager] fileExistsAtPath:trollStoreMarkURL.path])
+	{
 		BOOL marked = [[NSFileManager defaultManager] createFileAtPath:trollStoreMarkURL.path contents:[NSData data] attributes:nil];
 		if(!marked)
 		{
