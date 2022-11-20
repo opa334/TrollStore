@@ -204,20 +204,27 @@ void enumerateProcessesUsingBlock(void (^enumerator)(pid_t pid, NSString* execut
 	free(info);
 }
 
-void killall(NSString* processName)
+void killall(NSString* processName, BOOL softly)
 {
 	enumerateProcessesUsingBlock(^(pid_t pid, NSString* executablePath, BOOL* stop)
 	{
 		if([executablePath.lastPathComponent isEqualToString:processName])
 		{
-			kill(pid, SIGTERM);
+			if(softly)
+			{
+				kill(pid, SIGTERM);
+			}
+			else
+			{
+				kill(pid, SIGKILL);
+			}
 		}
 	});
 }
 
 void respring(void)
 {
-	killall(@"SpringBoard");
+	killall(@"SpringBoard", YES);
 	exit(0);
 }
 

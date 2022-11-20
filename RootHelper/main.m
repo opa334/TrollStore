@@ -20,6 +20,8 @@
 #define MAIN_NAME main
 #endif
 
+void cleanRestrictions(void);
+
 extern mach_msg_return_t SBReloadIconForIdentifier(mach_port_t machport, const char* identifier);
 @interface SBSHomeScreenService : NSObject
 - (void)reloadIcons;
@@ -717,6 +719,7 @@ int uninstallApp(NSString* appPath, NSString* appId)
 		// (Hopefully this never happens)
 		deleteSuc = [[NSFileManager defaultManager] removeItemAtPath:[appPath stringByDeletingLastPathComponent] error:nil];
 		registerPath((char*)appPath.fileSystemRepresentation, 1, YES);
+		return 0;
 	}
 
 	if(appId)
@@ -726,6 +729,7 @@ int uninstallApp(NSString* appPath, NSString* appId)
 
 	if(deleteSuc)
 	{
+		cleanRestrictions();
 		return 0;
 	}
 	else
@@ -762,6 +766,8 @@ int uninstallAppById(NSString* appId)
 
 int installIpa(NSString* ipaPath, BOOL force)
 {
+	cleanRestrictions();
+
 	if(![[NSFileManager defaultManager] fileExistsAtPath:ipaPath]) return 166;
 
 	BOOL suc = NO;
@@ -1055,6 +1061,8 @@ void cleanRestrictions(void)
 	clientTruthDictionaryM[@"com.apple.lsd.appremoval"][@"clientRestrictions"][@"union"][@"removedSystemAppBundleIDs"][@"values"] = valuesArrM;
 
 	[clientTruthDictionaryM writeToURL:clientTruthURL error:nil];
+
+	killall(@"profiled", NO); // profiled needs to restart for the changes to apply
 }
 
 int MAIN_NAME(int argc, char *argv[], char *envp[])
@@ -1116,7 +1124,7 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 			cleanRestrictions();
 			[[LSApplicationWorkspace defaultWorkspace] _LSPrivateRebuildApplicationDatabasesForSystemApps:YES internal:YES user:YES];
 			refreshAppRegistrations();
-			killall(@"backboardd");
+			killall(@"backboardd", YES);
 		} else if([cmd isEqualToString:@"install-persistence-helper"])
 		{
 			if(argc <= 2) return -3;
