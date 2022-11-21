@@ -727,6 +727,34 @@ int uninstallApp(NSString* appPath, NSString* appId)
 
 	if(appId)
 	{
+		LSApplicationProxy* appProxy = [LSApplicationProxy applicationProxyForIdentifier:appId];
+
+		// delete group container paths
+		[[appProxy groupContainerURLs] enumerateKeysAndObjectsUsingBlock:^(NSString* groupId, NSURL* groupURL, BOOL* stop)
+		{
+			// If another app still has this group, don't delete it
+			NSArray<LSApplicationProxy*>* appsWithGroup = applicationsWithGroupId(groupId);
+			if(appsWithGroup.count > 1)
+			{
+				NSLog(@"[uninstallApp] not deleting %@, appsWithGroup.count:%lu", groupURL, appsWithGroup.count);
+				return;
+			}
+
+			NSLog(@"[uninstallApp] deleting %@", groupURL);
+			[[NSFileManager defaultManager] removeItemAtURL:groupURL error:nil];
+		}];
+
+		// delete app plugin paths
+		for(LSPlugInKitProxy* pluginProxy in appProxy.plugInKitPlugins)
+		{
+			NSURL* pluginURL = pluginProxy.dataContainerURL;
+			if(pluginURL)
+			{
+				NSLog(@"[uninstallApp] deleting %@", pluginURL);
+				[[NSFileManager defaultManager] removeItemAtURL:pluginURL error:nil];
+			}
+		}
+
 		deleteSuc = [[LSApplicationWorkspace defaultWorkspace] uninstallApplication:appId withOptions:nil];
 	}
 
