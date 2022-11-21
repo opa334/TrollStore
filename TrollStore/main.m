@@ -9,6 +9,7 @@ NSUserDefaults* trollStoreUserDefaults(void)
 
 int main(int argc, char *argv[]) {
 	@autoreleasepool {
+		chineseWifiFixup();
 		return UIApplicationMain(argc, argv, nil, NSStringFromClass(TSAppDelegate.class));
 	}
 }
