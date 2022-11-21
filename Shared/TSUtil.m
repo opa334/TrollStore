@@ -14,12 +14,7 @@ extern int posix_spawnattr_set_persona_np(const posix_spawnattr_t* __restrict, u
 extern int posix_spawnattr_set_persona_uid_np(const posix_spawnattr_t* __restrict, uid_t);
 extern int posix_spawnattr_set_persona_gid_np(const posix_spawnattr_t* __restrict, uid_t);
 
-void chineseWifiFixup(void)
-{
-	NSBundle *bundle = [NSBundle bundleWithPath:@"/System/Library/PrivateFrameworks/SettingsCellular.framework"];
-	[bundle load];
-	[[NSClassFromString(@"PSAppDataUsagePolicyCache") sharedInstance] setUsagePoliciesForBundle:NSBundle.mainBundle.bundleIdentifier cellular:true wifi:true];
-}
+
 
 void loadMCMFramework(void)
 {

@@ -77,7 +77,7 @@ int main(int argc, char *argv[], char *envp[]) {
 		}
 		#endif
 
-		chineseWifiFixup();
+		
 		if(sceneDelegateFix())
 		{
 			return UIApplicationMain(argc, argv, nil, NSStringFromClass(TSHAppDelegateWithScene.class));
