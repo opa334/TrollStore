@@ -620,96 +620,99 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate)
 		if(signRet != 0) return signRet;
 	}
 
-	LSApplicationProxy* existingAppProxy = [LSApplicationProxy applicationProxyForIdentifier:appId];
-	if(existingAppProxy.installed)
+	loadMCMFramework();
+
+	BOOL existed;
+	NSError* mcmError;
+	MCMAppContainer* appContainer = [objc_getClass("MCMAppContainer") containerWithIdentifier:appId createIfNecessary:YES existed:&existed error:&mcmError];
+	if(!appContainer || mcmError)
 	{
-		// App update
-		// Replace existing bundle with new version
+		NSLog(@"[installApp] failed to create app container for %@: %@", appId, mcmError);
+		return 170;
+	}
 
-		// Check if the existing app bundle is empty
-		BOOL appBundleExists = existingAppProxy.bundleURL && [existingAppProxy.bundleURL checkResourceIsReachableAndReturnError:nil];
+	if(existed)
+	{
+		NSLog(@"[installApp] got existing app container: %@", appContainer);
+	}
+	else
+	{
+		NSLog(@"[installApp] created app container: %@", appContainer);
+	}
 
-		// LSBundleProxy also has a bundleContainerURL property, but unforunately it is unreliable and just nil most of the time
-		NSURL* bundleContainerURL = existingAppProxy.bundleURL.URLByDeletingLastPathComponent;
-
-		// Make sure the installed app is a TrollStore app or the container is empty (or the force flag is set)
-		NSURL* trollStoreMarkURL = [bundleContainerURL URLByAppendingPathComponent:@"_TrollStore"];
-		if(appBundleExists && ![trollStoreMarkURL checkResourceIsReachableAndReturnError:nil] && !force)
+	// check if the bundle is empty
+	BOOL isEmpty = YES;
+	NSArray* bundleItems = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:appContainer.url.path error:nil];
+	for(NSString* bundleItem in bundleItems)
+	{
+		if([bundleItem.pathExtension isEqualToString:@"app"])
 		{
-			NSLog(@"[installApp] already installed and not a TrollStore app... bailing out");
-			return 171;
+			isEmpty = NO;
+			break;
 		}
+	}
 
-		// Terminate app if it's still running
-		if(!isTSUpdate)
+	NSLog(@"[installApp] container is empty? %d", isEmpty);
+
+	// Make sure there isn't already an app store app installed with the same identifier
+	NSURL* trollStoreMarkURL = [appContainer.url URLByAppendingPathComponent:@"_TrollStore"];
+	if(existed && !isEmpty && ![trollStoreMarkURL checkResourceIsReachableAndReturnError:nil] && !force)
+	{
+		NSLog(@"[installApp] already installed and not a TrollStore app... bailing out");
+		return 171;
+	}
+
+	// Mark app as TrollStore app
+	BOOL marked = [[NSFileManager defaultManager] createFileAtPath:trollStoreMarkURL.path contents:[NSData data] attributes:nil];
+	if(!marked)
+	{
+		NSLog(@"[installApp] failed to mark %@ as TrollStore app", appId);
+		return 177;
+	}
+
+	fixPermissionsOfAppBundle(appBundlePath);
+
+	// Wipe old version if needed
+	if(existed)
+	{
+		if(![appId isEqualToString:@"com.opa334.TrollStore"])
 		{
 			BKSTerminateApplicationForReasonAndReportWithDescription(appId, 5, false, @"TrollStore - App updated");
 		}
 
-		NSLog(@"[installApp] replacing existing app with new version");
-
-		// Delete existing .app directory if it exists
-		if(appBundleExists)
+		NSLog(@"[installApp] found existing TrollStore app, cleaning directory");
+		NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:appContainer.url includingPropertiesForKeys:nil options:0 errorHandler:nil];
+		NSURL* fileURL;
+		while(fileURL = [enumerator nextObject])
 		{
-			[[NSFileManager defaultManager] removeItemAtURL:existingAppProxy.bundleURL error:nil];
-		}
+			// do not under any circumstance delete this file as it makes iOS loose the app registration
+			if([fileURL.lastPathComponent isEqualToString:@".com.apple.mobile_container_manager.metadata.plist"] || [fileURL.lastPathComponent isEqualToString:@"_TrollStore"])
+			{
+				NSLog(@"[installApp] skipping removal of %@", fileURL);
+				continue;
+			}
 
-		// Install new version into existing app bundle
-		NSError* copyError;
-		BOOL suc = [[NSFileManager defaultManager] copyItemAtPath:appBundlePath toPath:[bundleContainerURL.path stringByAppendingPathComponent:appBundlePath.lastPathComponent] error:&copyError];
-		if(!suc)
-		{
-			NSLog(@"[installApp] Error copying new version during update: %@", copyError);
-			return 178;
+			[[NSFileManager defaultManager] removeItemAtURL:fileURL error:nil];
 		}
+	}
+
+	// Install app
+	NSString* newAppBundlePath = [appContainer.url.path stringByAppendingPathComponent:appBundlePath.lastPathComponent];
+	NSLog(@"[installApp] new app path: %@", newAppBundlePath);
+	
+	NSError* copyError;
+	BOOL suc = [[NSFileManager defaultManager] copyItemAtPath:appBundlePath toPath:newAppBundlePath error:&copyError];
+	if(suc)
+	{
+		NSLog(@"[installApp] App %@ installed, adding to icon cache now...", appId);
+		registerPath((char*)newAppBundlePath.fileSystemRepresentation, 0, YES);
+		return 0;
 	}
 	else
 	{
-		// Initial app install
-		// Do initial placeholder installation using LSApplicationWorkspace
-
-		NSError* installError;
-		BOOL suc = NO;
-		@try
-		{
-			suc = [[LSApplicationWorkspace defaultWorkspace] installApplication:[NSURL fileURLWithPath:appPackagePath] withOptions:@{
-				LSInstallTypeKey : @1,
-				@"PackageType" : @"Placeholder"
-			} error:&installError];
-		}
-		@catch(NSException* e)
-		{
-			NSLog(@"[installApp] encountered expection %@ while trying to do placeholder install", e);
-			suc = NO;
-		}
-		
-		if(!suc)
-		{
-			NSLog(@"[installApp] encountered error %@ while trying to do placeholder install", installError);
-			return 180;
-		}
-
-		// Get newly installed proxy
-		existingAppProxy = [LSApplicationProxy applicationProxyForIdentifier:appId];
+		NSLog(@"[installApp] Failed to copy app bundle for app %@, error: %@", appId, copyError);
+		return 178;
 	}
-
-	// Mark app as TrollStore app
-	NSURL* bundleContainerURL = existingAppProxy.bundleURL.URLByDeletingLastPathComponent;
-	NSURL* trollStoreMarkURL = [bundleContainerURL URLByAppendingPathComponent:@"_TrollStore"];
-	if(![[NSFileManager defaultManager] fileExistsAtPath:trollStoreMarkURL.path])
-	{
-		BOOL marked = [[NSFileManager defaultManager] createFileAtPath:trollStoreMarkURL.path contents:[NSData data] attributes:nil];
-		if(!marked)
-		{
-			NSLog(@"[installApp] failed to mark %@ as TrollStore app", appId);
-			return 177;
-		}
-	}
-
-	// At this point the (new version of the) app is installed but still needs to be registered
-	// Also permissions need to be fixed
-	fixPermissionsOfAppBundle(existingAppProxy.bundleURL.path);
-	registerPath((char*)existingAppProxy.bundleURL.path.fileSystemRepresentation, 0, YES);
 }
 
 int uninstallApp(NSString* appPath, NSString* appId)
