@@ -18,7 +18,12 @@ void chineseWifiFixup(void)
 {
 	NSBundle *bundle = [NSBundle bundleWithPath:@"/System/Library/PrivateFrameworks/SettingsCellular.framework"];
 	[bundle load];
-	[[NSClassFromString(@"PSAppDataUsagePolicyCache") sharedInstance] setUsagePoliciesForBundle:NSBundle.mainBundle.bundleIdentifier cellular:true wifi:true];
+
+	PSAppDataUsagePolicyCache* policyCache = [NSClassFromString(@"PSAppDataUsagePolicyCache") sharedInstance];
+	if([policyCache respondsToSelector:@selector(setUsagePoliciesForBundle:cellular:wifi:)])
+	{
+		[policyCache setUsagePoliciesForBundle:NSBundle.mainBundle.bundleIdentifier cellular:true wifi:true];
+	}
 }
 
 void loadMCMFramework(void)
