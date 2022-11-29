@@ -84,7 +84,7 @@
 
 		lastGroupSpecifier = utilitiesGroupSpecifier;
 
-		if(isInstalled)
+		if(isInstalled || trollStoreInstalledAppContainerPaths().count)
 		{
 			PSSpecifier* refreshAppRegistrationsSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Refresh App Registrations"
 												target:self
@@ -97,7 +97,9 @@
 			[refreshAppRegistrationsSpecifier setProperty:@YES forKey:@"enabled"];
 			refreshAppRegistrationsSpecifier.buttonAction = @selector(refreshAppRegistrationsPressed);
 			[_specifiers addObject:refreshAppRegistrationsSpecifier];
-
+		}
+		if(isInstalled)
+		{
 			PSSpecifier* uninstallTrollStoreSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Uninstall TrollStore"
 										target:self
 										set:nil

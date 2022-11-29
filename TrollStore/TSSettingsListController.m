@@ -329,7 +329,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 	{
 		if(appProxy.installed && !appProxy.restricted)
 		{
-			if([appProxy.bundleURL.path hasPrefix:@"/private/var/containers"])
+			if([[NSFileManager defaultManager] fileExistsAtPath:[@"/System/Library/AppSignatures" stringByAppendingPathComponent:appProxy.bundleIdentifier]])
 			{
 				NSURL* trollStoreMarkURL = [appProxy.bundleURL.URLByDeletingLastPathComponent URLByAppendingPathComponent:@"_TrollStore"];
 				if(![trollStoreMarkURL checkResourceIsReachableAndReturnError:nil])

@@ -4,6 +4,7 @@
 #import <objc/runtime.h>
 #import "dlfcn.h"
 #import <TSUtil.h>
+#import <version.h>
 
 // uicache on steroids
 
@@ -90,10 +91,9 @@ NSDictionary* constructEnvironmentVariablesForContainerPath(NSString* containerP
 	};
 }
 
-void registerPath(char* cPath, int unregister, BOOL system)
+void registerPath(NSString* path, BOOL unregister, BOOL system)
 {
-	if(!cPath) return;
-	NSString* path = [NSString stringWithUTF8String:cPath];
+	if(!path) return;
 	loadMCMFramework();
 
 	LSApplicationWorkspace* workspace = [LSApplicationWorkspace defaultWorkspace];
@@ -140,7 +140,7 @@ void registerPath(char* cPath, int unregister, BOOL system)
 			dictToRegister[@"Container"] = containerPath;
 			dictToRegister[@"EnvironmentVariables"] = constructEnvironmentVariablesForContainerPath(containerPath);
 		}
-		dictToRegister[@"IsDeletable"] = @NO;
+		dictToRegister[@"IsDeletable"] = @(![appBundleID isEqualToString:@"com.opa334.TrollStore"] && kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber_iOS_15_0);
 		dictToRegister[@"Path"] = path;
 		dictToRegister[@"IsContainerized"] = @(constructContainerizationForEntitlements(entitlements));
 		dictToRegister[@"SignerOrganization"] = @"Apple Inc.";
@@ -159,7 +159,7 @@ void registerPath(char* cPath, int unregister, BOOL system)
 		// Add group containers
 
 		NSDictionary* appGroupContainers = constructGroupsContainersForEntitlements(entitlements, NO);
-		NSDictionary* systemGroupContainers = constructGroupsContainersForEntitlements(entitlements, NO);
+		NSDictionary* systemGroupContainers = constructGroupsContainersForEntitlements(entitlements, YES);
 		NSMutableDictionary* groupContainers = [NSMutableDictionary new];
 		[groupContainers addEntriesFromDictionary:appGroupContainers];
 		[groupContainers addEntriesFromDictionary:systemGroupContainers];

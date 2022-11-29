@@ -326,6 +326,11 @@ NSString* trollStoreAppPath()
 	return [trollStorePath() stringByAppendingPathComponent:@"TrollStore.app"];
 }
 
+BOOL isRemovableSystemApp(NSString* appId)
+{
+	return [[NSFileManager defaultManager] fileExistsAtPath:[@"/System/Library/AppSignatures" stringByAppendingPathComponent:appId]];
+}
+
 LSApplicationProxy* findPersistenceHelperApp(PERSISTENCE_HELPER_TYPE allowedTypes)
 {
 	__block LSApplicationProxy* outProxy;

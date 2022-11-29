@@ -48,25 +48,27 @@ NSArray<LSApplicationProxy*>* applicationsWithGroupId(NSString* groupId)
 	return enumerator.allObjects;
 }
 
-NSSet<NSString*>* appleURLSchemes(void)
+NSSet<NSString*>* systemURLSchemes(void)
 {
 	LSEnumerator* enumerator = [LSEnumerator enumeratorForApplicationProxiesWithOptions:0];
-	enumerator.predicate = [NSPredicate predicateWithFormat:@"bundleIdentifier BEGINSWITH 'com.apple'"];
 
-	NSMutableSet* systemURLSchemes = [NSMutableSet new];
+	NSMutableSet* systemURLSchemesSet = [NSMutableSet new];
 	LSApplicationProxy* proxy;
 	while(proxy = [enumerator nextObject])
 	{
-		for(NSString* claimedURLScheme in proxy.claimedURLSchemes)
+		if(isRemovableSystemApp(proxy.bundleIdentifier) || ![proxy.bundleURL.path hasPrefix:@"/private/var/containers"])
 		{
-			if([claimedURLScheme isKindOfClass:NSString.class])
+			for(NSString* claimedURLScheme in proxy.claimedURLSchemes)
 			{
-				[systemURLSchemes addObject:claimedURLScheme.lowercaseString];
+				if([claimedURLScheme isKindOfClass:NSString.class])
+				{
+					[systemURLSchemesSet addObject:claimedURLScheme.lowercaseString];
+				}
 			}
 		}
 	}
 
-	return systemURLSchemes.copy;
+	return systemURLSchemesSet.copy;
 }
 
 NSSet<NSString*>* immutableAppBundleIdentifiers(void)
@@ -535,7 +537,7 @@ void applyPatchesToInfoDictionary(NSString* appPath)
 	infoDictM[@"SBAppUsesLocalNotifications"] = @1;
 
 	// Remove system claimed URL schemes if existant
-	NSSet* appleSchemes = appleURLSchemes();
+	NSSet* appleSchemes = systemURLSchemes();
 	NSArray* CFBundleURLTypes = infoDictM[@"CFBundleURLTypes"];
 	if([CFBundleURLTypes isKindOfClass:[NSArray class]])
 	{
@@ -705,7 +707,7 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate)
 	if(suc)
 	{
 		NSLog(@"[installApp] App %@ installed, adding to icon cache now...", appId);
-		registerPath((char*)newAppBundlePath.fileSystemRepresentation, 0, YES);
+		registerPath(newAppBundlePath, NO, YES);
 		return 0;
 	}
 	else
@@ -724,7 +726,7 @@ int uninstallApp(NSString* appPath, NSString* appId)
 		// Most likely the Info.plist is missing
 		// (Hopefully this never happens)
 		deleteSuc = [[NSFileManager defaultManager] removeItemAtPath:[appPath stringByDeletingLastPathComponent] error:nil];
-		registerPath((char*)appPath.fileSystemRepresentation, 1, YES);
+		registerPath(appPath, YES, YES);
 		return 0;
 	}
 
@@ -839,7 +841,7 @@ int uninstallTrollStore(BOOL unregister)
 
 	if(unregister)
 	{
-		registerPath((char*)trollStoreAppPath().fileSystemRepresentation, 1, YES);
+		registerPath(trollStoreAppPath(), YES, YES);
 	}
 
 	return [[NSFileManager defaultManager] removeItemAtPath:trollStore error:nil];
@@ -902,15 +904,19 @@ int installTrollStore(NSString* pathToTar)
 	return ret;
 }
 
-void refreshAppRegistrations()
+void refreshAppRegistrations(BOOL system)
 {
-	//registerPath((char*)trollStoreAppPath().fileSystemRepresentation, 1, YES);
-	registerPath((char*)trollStoreAppPath().fileSystemRepresentation, 0, YES);
+	// avoid registering TrollStore itself as user ever
+	if(system)
+	{
+		registerPath(trollStoreAppPath(), NO, system);
+	}
 
+	// the reason why there is even an option to register everything as user
+	// is because it fixes an issue where app permissions would reset during an icon cache reload
 	for(NSString* appPath in trollStoreInstalledAppBundlePaths())
 	{
-		//registerPath((char*)appPath.fileSystemRepresentation, 1, YES);
-		registerPath((char*)appPath.fileSystemRepresentation, 0, YES);
+		registerPath(appPath, NO, system);
 	}
 }
 
@@ -1081,7 +1087,7 @@ void cleanRestrictions(void)
 
 	[valuesArrM enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(NSString* value, NSUInteger idx, BOOL *stop)
 	{
-		if(![value hasPrefix:@"com.apple."])
+		if(!isRemovableSystemApp(value))
 		{
 			[valuesArrM removeObjectAtIndex:idx];
 			changed = YES;
@@ -1152,12 +1158,13 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 			installLdid(ldidPath);
 		} else if([cmd isEqualToString:@"refresh"])
 		{
-			refreshAppRegistrations();
+			refreshAppRegistrations(YES);
 		} else if([cmd isEqualToString:@"refresh-all"])
 		{
 			cleanRestrictions();
+			refreshAppRegistrations(NO); // <- fix app permissions resetting
 			[[LSApplicationWorkspace defaultWorkspace] _LSPrivateRebuildApplicationDatabasesForSystemApps:YES internal:YES user:YES];
-			refreshAppRegistrations();
+			refreshAppRegistrations(YES);
 			killall(@"backboardd", YES);
 		} else if([cmd isEqualToString:@"install-persistence-helper"])
 		{
@@ -1181,7 +1188,7 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 			NSString* trollStoreMark = [[appPath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"_TrollStore"];
 			if([[NSFileManager defaultManager] fileExistsAtPath:trollStoreMark])
 			{
-				registerPath((char*)appPath.fileSystemRepresentation, 0, [newRegistration isEqualToString:@"System"]);
+				registerPath(appPath, NO, [newRegistration isEqualToString:@"System"]);
 			}
 		} else if([cmd isEqualToString:@"url-scheme"])
 		{

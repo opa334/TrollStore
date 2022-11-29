@@ -188,7 +188,7 @@ BOOL installApp(NSString* appPath, NSString* appId, BOOL sign, NSError** error)
 
     NSLog(@"installApp copied app? %d, adding to uicache now...", suc);
 
-	registerPath((char*)newAppPath.UTF8String, 0);
+	registerPath(newAppPath, NO);
 
     return YES;
 }
@@ -198,7 +198,7 @@ BOOL uninstallApp(NSString* appId, NSError** error)
 	NSString* appPath = appPathForAppId(appId, error);
     if(!appPath) return NO;
 
-    registerPath((char*)appPath.UTF8String, 1);
+    registerPath(appPath, YES);
 
     return [[NSFileManager defaultManager] removeItemAtPath:[appPath stringByDeletingLastPathComponent] error:error];
 }
@@ -244,7 +244,7 @@ void uninstallAllApps(void)
     for(NSString* appId in items)
     {
         NSString* appPath = appPathForAppId(appId, nil);
-        registerPath((char*)appPath.UTF8String, 1);
+        registerPath(appPath, YES);
     }
 
     [[NSFileManager defaultManager] removeItemAtPath:TROLLSTORE_ROOT_PATH error:nil];
@@ -255,7 +255,7 @@ BOOL uninstallTrollStore(void)
     NSString* trollStore = [TROLLSTORE_MAIN_PATH stringByAppendingPathComponent:@"TrollStore.app"];
     if(![[NSFileManager defaultManager] fileExistsAtPath:trollStore]) return NO;
 
-    registerPath((char*)trollStore.UTF8String, 1);
+    registerPath(trollStore, YES);
     return [[NSFileManager defaultManager] removeItemAtPath:trollStore error:nil];
 }
 

@@ -19,6 +19,8 @@ extern NSArray* trollStoreInstalledAppContainerPaths();
 extern NSString* trollStorePath();
 extern NSString* trollStoreAppPath();
 
+extern BOOL isRemovableSystemApp(NSString* appId);
+
 #import <UIKit/UIAlertController.h>
 
 @interface UIAlertController (Private)
