@@ -79,8 +79,14 @@ UIImage* imageWithSize(UIImage* image, CGSize size)
 		[self loadAppInfos];
 		_placeholderIcon = [UIImage _applicationIconImageForBundleIdentifier:@"com.apple.WebSheet" format:iconFormatToUse() scale:[UIScreen mainScreen].scale];
 		_cachedIcons = [NSMutableDictionary new];
+		[[LSApplicationWorkspace defaultWorkspace] addObserver:self];
 	}
 	return self;
+}
+
+- (void)dealloc
+{
+	[[LSApplicationWorkspace defaultWorkspace] removeObserver:self];
 }
 
 - (void)reloadTable
@@ -465,6 +471,16 @@ UIImage* imageWithSize(UIImage* image, CGSize size)
 	appSelectAlert.popoverPresentationController.sourceRect = [tableView rectForRowAtIndexPath:indexPath];
 
 	[TSPresentationDelegate presentViewController:appSelectAlert animated:YES completion:nil];
+}
+
+- (void)applicationsDidInstall:(id)arg1
+{
+	[self reloadTable];
+}
+
+- (void)applicationsDidUninstall:(id)arg1
+{
+	[self reloadTable];
 }
 
 @end

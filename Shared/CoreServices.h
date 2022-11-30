@@ -31,6 +31,14 @@ extern NSString *LSInstallTypeKey;
 - (void)enumerateApplicationsOfType:(NSUInteger)type block:(void (^)(LSApplicationProxy*))block;
 - (BOOL)installApplication:(NSURL*)appPackageURL withOptions:(NSDictionary*)options error:(NSError**)error;
 - (BOOL)uninstallApplication:(NSString*)appId withOptions:(NSDictionary*)options;
+- (void)addObserver:(id)arg1;
+- (void)removeObserver:(id)arg1;
+@end
+
+@protocol LSApplicationWorkspaceObserverProtocol <NSObject>
+@optional
+-(void)applicationsDidInstall:(id)arg1;
+-(void)applicationsDidUninstall:(id)arg1;
 @end
 
 @interface LSEnumerator : NSEnumerator

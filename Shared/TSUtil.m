@@ -54,14 +54,21 @@ NSString* rootHelperPath(void)
 }
 #endif
 
+int fd_is_valid(int fd)
+{
+	return fcntl(fd, F_GETFD) != -1 || errno != EBADF;
+}
+
 NSString* getNSStringFromFile(int fd)
 {
 	NSMutableString* ms = [NSMutableString new];
 	ssize_t num_read;
 	char c;
+	if(!fd_is_valid(fd)) return @"";
 	while((num_read = read(fd, &c, sizeof(c))))
 	{
 		[ms appendString:[NSString stringWithFormat:@"%c", c]];
+		if(c == '\n') break;
 	}
 	return ms.copy;
 }
@@ -79,7 +86,7 @@ void printMultilineNSString(NSString* stringToPrint)
 int spawnRoot(NSString* path, NSArray* args, NSString** stdOut, NSString** stdErr)
 {
 	NSMutableArray* argsM = args.mutableCopy ?: [NSMutableArray new];
-	[argsM insertObject:path.lastPathComponent atIndex:0];
+	[argsM insertObject:path atIndex:0];
 	
 	NSUInteger argCount = [argsM count];
 	char **argsC = (char **)malloc((argCount + 1) * sizeof(char*));
@@ -132,6 +139,41 @@ int spawnRoot(NSString* path, NSArray* args, NSString** stdOut, NSString** stdEr
 		return spawnError;
 	}
 
+	__block volatile BOOL _isRunning = YES;
+	NSMutableString* outString = [NSMutableString new];
+	NSMutableString* errString = [NSMutableString new];
+	dispatch_semaphore_t sema = 0;
+	dispatch_queue_t logQueue;
+	if(stdOut || stdErr)
+	{
+		logQueue = dispatch_queue_create("com.opa334.TrollStore.LogCollector", NULL);
+		sema = dispatch_semaphore_create(0);
+
+		int outPipe = out[0];
+		int outErrPipe = outErr[0];
+
+		__block BOOL outEnabled = (BOOL)stdOut;
+		__block BOOL errEnabled = (BOOL)stdErr;
+		dispatch_async(logQueue, ^
+		{
+			while(_isRunning)
+			{
+				@autoreleasepool
+				{
+					if(outEnabled)
+					{
+						[outString appendString:getNSStringFromFile(outPipe)];
+					}
+					if(errEnabled)
+					{
+						[errString appendString:getNSStringFromFile(outErrPipe)];
+					}
+				}
+			}
+			dispatch_semaphore_signal(sema);
+		});
+	}
+
 	do
 	{
 		if (waitpid(task_pid, &status, 0) != -1) {
@@ -139,24 +181,36 @@ int spawnRoot(NSString* path, NSArray* args, NSString** stdOut, NSString** stdEr
 		} else
 		{
 			perror("waitpid");
+			_isRunning = NO;
 			return -222;
 		}
 	} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 
-	if(stdOut)
+	_isRunning = NO;
+	if(stdOut || stdErr)
 	{
-		close(out[1]);
-		NSString* output = getNSStringFromFile(out[0]);
-		*stdOut = output;
+		if(stdOut)
+		{
+			close(out[1]);
+		}
+		if(stdErr)
+		{
+			close(outErr[1]);
+		}
+
+		// wait for logging queue to finish
+		dispatch_semaphore_wait(sema, DISPATCH_TIME_FOREVER);
+
+		if(stdOut)
+		{
+			*stdOut = outString.copy;
+		}
+		if(stdErr)
+		{
+			*stdErr = errString.copy;
+		}
 	}
 
-	if(stdErr)
-	{
-		close(outErr[1]);
-		NSString* errorOutput = getNSStringFromFile(outErr[0]);
-		*stdErr = errorOutput;
-	}
-	
 	return WEXITSTATUS(status);
 }
 

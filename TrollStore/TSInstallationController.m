@@ -17,8 +17,8 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 		dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
 		{
 			// Install IPA
-			//NSString* log;
-			int ret = [[TSApplicationsManager sharedInstance] installIpa:pathToIPA force:force log:nil];
+			NSString* log;
+			int ret = [[TSApplicationsManager sharedInstance] installIpa:pathToIPA force:force log:&log];
 
 			NSError* error;
 			if(ret != 0)
@@ -54,12 +54,12 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 						}
 						else
 						{
-							/*UIAlertAction* copyLogAction = [UIAlertAction actionWithTitle:@"Copy Log" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+							UIAlertAction* copyLogAction = [UIAlertAction actionWithTitle:@"Copy Debug Log" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
 							{
 								UIPasteboard* pasteboard = [UIPasteboard generalPasteboard];
 								pasteboard.string = log;
 							}];
-							[errorAlert addAction:copyLogAction];*/
+							[errorAlert addAction:copyLogAction];
 						}
 
 						[TSPresentationDelegate presentViewController:errorAlert animated:YES completion:nil];
@@ -186,7 +186,5 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 		[downloadTask resume];
 	});
 }
-
-//+ (void)showInstallAppAlertForFile:(NSString*)pathToIPA 
 
 @end

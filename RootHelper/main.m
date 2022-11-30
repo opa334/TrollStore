@@ -1163,6 +1163,7 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 		{
 			cleanRestrictions();
 			refreshAppRegistrations(NO); // <- fix app permissions resetting
+			sleep(5); // <- fix app permission fix causing apps to move on home screen (?)
 			[[LSApplicationWorkspace defaultWorkspace] _LSPrivateRebuildApplicationDatabasesForSystemApps:YES internal:YES user:YES];
 			refreshAppRegistrations(YES);
 			killall(@"backboardd", YES);

@@ -362,7 +362,6 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 	{
 		[self closeArchive];
 	}
-	NSLog(@"open");
 	_archive = archive_read_new();
 	archive_read_support_format_all(_archive);
 	archive_read_support_filter_all(_archive);
