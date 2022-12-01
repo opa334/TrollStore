@@ -906,11 +906,7 @@ int installTrollStore(NSString* pathToTar)
 
 void refreshAppRegistrations(BOOL system)
 {
-	// avoid registering TrollStore itself as user ever
-	if(system)
-	{
-		registerPath(trollStoreAppPath(), NO, system);
-	}
+	registerPath(trollStoreAppPath(), NO, system);
 
 	// the reason why there is even an option to register everything as user
 	// is because it fixes an issue where app permissions would reset during an icon cache reload
@@ -1162,8 +1158,7 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 		} else if([cmd isEqualToString:@"refresh-all"])
 		{
 			cleanRestrictions();
-			refreshAppRegistrations(NO); // <- fix app permissions resetting
-			sleep(5); // <- fix app permission fix causing apps to move on home screen (?)
+			//refreshAppRegistrations(NO); // <- fixes app permissions resetting, causes apps to move around on home screen, so I had to disable it
 			[[LSApplicationWorkspace defaultWorkspace] _LSPrivateRebuildApplicationDatabasesForSystemApps:YES internal:YES user:YES];
 			refreshAppRegistrations(YES);
 			killall(@"backboardd", YES);
