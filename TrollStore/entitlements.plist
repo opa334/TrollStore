@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>application-identifier</key>
-    <string>com.opa334.TrollStore</string>
+	<string>com.opa334.TrollStore</string>
 	<key>platform-application</key>
 	<true/>
 	<key>com.apple.security.exception.files.absolute-path.read-write</key>
@@ -21,17 +21,17 @@
 	<true/>
 	<key>com.apple.private.security.container-manager</key>
 	<true/>
-    <key>com.apple.private.coreservices.canmaplsdatabase</key>
-    <true/>
-    <key>com.apple.lsapplicationworkspace.rebuildappdatabases</key>
-    <true/>
-    <key>com.apple.private.MobileContainerManager.allowed</key>
+	<key>com.apple.private.coreservices.canmaplsdatabase</key>
 	<true/>
-    <key>com.apple.private.MobileInstallationHelperService.InstallDaemonOpsEnabled</key>
+	<key>com.apple.lsapplicationworkspace.rebuildappdatabases</key>
+	<true/>
+	<key>com.apple.private.MobileContainerManager.allowed</key>
+	<true/>
+	<key>com.apple.private.MobileInstallationHelperService.InstallDaemonOpsEnabled</key>
 	<true/>
 	<key>com.apple.private.MobileInstallationHelperService.allowed</key>
 	<true/>
-    <key>com.apple.private.uninstall.deletion</key>
+	<key>com.apple.private.uninstall.deletion</key>
 	<true/>
 	<key>com.apple.private.security.storage.MobileDocuments</key>
 	<true/>
