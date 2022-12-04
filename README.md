@@ -10,13 +10,13 @@ It works because of an AMFI/CoreTrust bug where iOS doesn't verify whether or no
 
 | Version / Device | arm64 (A8 - A11) | arm64e (A12 - A15, M1) |
 | --- | --- | --- |
-| 13.7 and below | Not Supported (Exploit only got introduced in 14.0) | Not Supported (Exploit only got introduced in 14.0) |
+| 13.7 and below | Not Supported (CT Bug only got introduced in 14.0) | Not Supported (CT Bug only got introduced in 14.0) |
 | 14.0 - 14.8.1 | [checkra1n + TrollHelper](./install_trollhelper.md) | [TrollHelperOTA (arm64e)](./install_trollhelperota_arm64e.md) |
 | 15.0 - 15.4.1 | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md) | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md) |
 | 15.5 beta 1 - 4 | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md) | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md) |
-| 15.5 (RC) | Not Supported (Exploit fixed) | Not Supported (Exploit fixed) |
+| 15.5 (RC) | Not Supported (CT Bug fixed) | Not Supported (CT Bug fixed) |
 | 15.6 beta 1 - 5 | [SSH Ramdisk](./install_sshrd.md) | [TrollHelperOTA (arm64e)](./install_trollhelperota_arm64e.md) |
-| 15.6 (RC1/2) and above | Not Supported (Exploit fixed) | Not Supported (Exploit fixed) |
+| 15.6 (RC1/2) and above | Not Supported (CT Bug fixed) | Not Supported (CT Bug fixed) |
 
 This version table is final, TrollStore will never support anything other than the versions listed here. Do not bother asking, if you got a device on an unsupported version, it's best if you forget TrollStore even exists.
 
