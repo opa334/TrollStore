@@ -14,9 +14,9 @@ It works because of an AMFI/CoreTrust bug where iOS does not verify whether or n
 | 14.0 - 14.8.1 | [checkra1n + TrollHelper](./install_trollhelper.md) | [TrollHelperOTA (arm64e)](./install_trollhelperota_arm64e.md) |
 | 15.0 - 15.4.1 | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md) | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md) |
 | 15.5 beta 1 - 4 | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md) | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md) |
-| 15.5 (RC) | Not Supported (CT Bug fixed) | Not Supported (CT Bug fixed) |
+| 15.5 (RC) | [palera1n + TrollHelper](./install_trollhelper.md) | Not Supported (CT Bug fixed) |
 | 15.6 beta 1 - 5 | [SSH Ramdisk](./install_sshrd.md) | [TrollHelperOTA (arm64e)](./install_trollhelperota_arm64e.md) |
-| 15.6 (RC1/2) and above | Not Supported (CT Bug fixed) | Not Supported (CT Bug fixed) |
+| 15.6 (RC1/2) and above | [palera1n + TrollHelper](./install_trollhelper.md) | Not Supported (CT Bug fixed) |
 
 This version table is final, TrollStore will never support anything other than the versions listed here. Do not bother asking, if you got a device on an unsupported version, it's best if you forget TrollStore even exists.
 
