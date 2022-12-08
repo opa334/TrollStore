@@ -2,7 +2,7 @@
 
 **Supported Devices:** All jailbroken devices
 
-**Supported Versions:** iOS 14.0 - 15.5b4, 15.6b1 - 15.6b5
+**Supported Versions:** iOS 14.0 - 15.7.1
 
 ## Guide
 
