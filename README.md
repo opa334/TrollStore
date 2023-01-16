@@ -64,17 +64,17 @@ iOS 15 on A12+ has banned the following three entitlements related to running un
 
 Your app can run unsandboxed using one of the following entitlements:
 
-```
+```xml
 <key>com.apple.private.security.container-required</key>
 <false/>
 ```
 
-```
+```xml
 <key>com.apple.private.security.no-container</key>
 <true/>
 ```
 
-```
+```xml
 <key>com.apple.private.security.no-sandbox</key>
 <true/>
 ```
@@ -83,12 +83,19 @@ The third one is recommended if you still want a sandbox container for your appl
 
 You might also need the platform-application entitlement in order for these to work properly:
 
-```
+```xml
 <key>platform-application</key>
 <true/>
 ```
 
 Please note that the platform-application entitlement causes side effects such as some parts of the sandbox becoming tighter, so you may need additional private entitlements to circumvent that. (For example afterwards you need an exception entitlement for every single IOKit user client class you want to access).
+
+In order for an app with `com.apple.private.security.no-sandbox` and `platform-application` to be able to access it's own data container, you might need the additional entitlement:
+
+```xml
+<key>com.apple.private.security.storage.AppDataContainers</key>
+<true/>
+```
 
 ### Root Helpers
 
