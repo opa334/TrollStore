@@ -101,7 +101,7 @@ In order for an app with `com.apple.private.security.no-sandbox` and `platform-a
 
 When your app is not sandboxed, you can spawn other binaries using posix_spawn, you can also spawn binaries as root with the following entitlement:
 
-```
+```xml
 <key>com.apple.private.persona-mgmt</key>
 <true/>
 ```
