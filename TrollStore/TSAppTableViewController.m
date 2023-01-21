@@ -344,9 +344,11 @@ UIImage* imageWithSize(UIImage* image, CGSize size)
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ApplicationCell"];
-	if (!cell) {
+	if(!cell) {
 		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"ApplicationCell"];
 	}
+
+	if(!indexPath || indexPath.row > (_cachedAppInfos.count - 1)) return cell;
 
 	TSAppInfo* appInfo = _cachedAppInfos[indexPath.row];
 	NSString* appId = [appInfo bundleIdentifier];

@@ -191,6 +191,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 {
 	fetchLatestLdidVersion(^(NSString* latestVersion)
 	{
+		if(!latestVersion) return;
 		dispatch_async(dispatch_get_main_queue(), ^
 		{
 			NSURL* ldidURL = [NSURL URLWithString:@"https://github.com/opa334/ldid/releases/latest/download/ldid"];
@@ -214,7 +215,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 						}];
 					});
 				}
-				else
+				else if(location)
 				{
 					spawnRoot(rootHelperPath(), @[@"install-ldid", location.path, latestVersion], nil, nil);
 					dispatch_async(dispatch_get_main_queue(), ^
