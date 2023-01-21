@@ -187,4 +187,47 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 	});
 }
 
++ (void)installLdid
+{
+	fetchLatestLdidVersion(^(NSString* latestVersion)
+	{
+		dispatch_async(dispatch_get_main_queue(), ^
+		{
+			NSURL* ldidURL = [NSURL URLWithString:@"https://github.com/opa334/ldid/releases/latest/download/ldid"];
+			NSURLRequest* ldidRequest = [NSURLRequest requestWithURL:ldidURL];
+
+			[TSPresentationDelegate startActivity:@"Installing ldid"];
+
+			NSURLSessionDownloadTask* downloadTask = [NSURLSession.sharedSession downloadTaskWithRequest:ldidRequest completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error)
+			{
+				if(error)
+				{
+					UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:@"Error" message:[NSString stringWithFormat:@"Error downloading ldid: %@", error] preferredStyle:UIAlertControllerStyleAlert];
+					UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
+					[errorAlert addAction:closeAction];
+
+					dispatch_async(dispatch_get_main_queue(), ^
+					{
+						[TSPresentationDelegate stopActivityWithCompletion:^
+						{
+							[TSPresentationDelegate presentViewController:errorAlert animated:YES completion:nil];
+						}];
+					});
+				}
+				else
+				{
+					spawnRoot(rootHelperPath(), @[@"install-ldid", location.path, latestVersion], nil, nil);
+					dispatch_async(dispatch_get_main_queue(), ^
+					{
+						[TSPresentationDelegate stopActivityWithCompletion:nil];
+						[[NSNotificationCenter defaultCenter] postNotificationName:@"TrollStoreReloadSettingsNotification" object:nil userInfo:nil];
+					});
+				}
+			}];
+
+			[downloadTask resume];
+		});
+	});
+}
+
 @end

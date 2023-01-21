@@ -12,5 +12,6 @@
 - (void)refreshAppRegistrationsPressed;
 - (void)uninstallPersistenceHelperPressed;
 - (void)handleUninstallation;
+- (NSMutableArray*)argsForUninstallingTrollStore;
 - (void)uninstallTrollStorePressed;
 @end

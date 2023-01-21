@@ -13,6 +13,7 @@ extern int spawnRoot(NSString* path, NSArray* args, NSString** stdOut, NSString*
 extern void killall(NSString* processName, BOOL softly);
 extern void respring(void);
 extern void fetchLatestTrollStoreVersion(void (^completionHandler)(NSString* latestVersion));
+extern void fetchLatestLdidVersion(void (^completionHandler)(NSString* latestVersion));
 
 extern NSArray* trollStoreInstalledAppBundlePaths();
 extern NSArray* trollStoreInstalledAppContainerPaths();

@@ -3,6 +3,8 @@
 #import <Preferences/PSSpecifier.h>
 #import <Preferences/PSListItemsController.h>
 #import <TSPresentationDelegate.h>
+#import "TSInstallationController.h"
+#import "TSSettingsAdvancedListController.h"
 
 @interface NSUserDefaults (Private)
 - (instancetype)_initWithSuiteName:(NSString *)suiteName container:(NSURL *)container;
@@ -15,6 +17,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 {
 	[super viewDidLoad];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadSpecifiers) name:UIApplicationWillEnterForegroundNotification object:nil];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadSpecifiers) name:@"TrollStoreReloadSettingsNotification" object:nil];
 
 	fetchLatestTrollStoreVersion(^(NSString* latestVersion)
 	{
@@ -23,6 +26,26 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 		if(result == NSOrderedAscending)
 		{
 			_newerVersion = latestVersion;
+			dispatch_async(dispatch_get_main_queue(), ^
+			{
+				[self reloadSpecifiers];
+			});
+		}
+	});
+
+	fetchLatestLdidVersion(^(NSString* latestVersion)
+	{
+		NSString* ldidVersionPath = [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"ldid.version"];
+		NSString* ldidVersion = nil;
+		NSData* ldidVersionData = [NSData dataWithContentsOfFile:ldidVersionPath];
+		if(ldidVersionData)
+		{
+			ldidVersion = [[NSString alloc] initWithData:ldidVersionData encoding:NSUTF8StringEncoding];
+		}
+		
+		if(![latestVersion isEqualToString:ldidVersion])
+		{
+			_newerLdidVersion = latestVersion;
 			dispatch_async(dispatch_get_main_queue(), ^
 			{
 				[self reloadSpecifiers];
@@ -88,7 +111,15 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 		[_specifiers addObject:rebuildIconCacheSpecifier];
 
 		NSString* ldidPath = [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"ldid"];
+		NSString* ldidVersionPath = [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"ldid.version"];
 		BOOL ldidInstalled = [[NSFileManager defaultManager] fileExistsAtPath:ldidPath];
+
+		NSString* ldidVersion = nil;
+		NSData* ldidVersionData = [NSData dataWithContentsOfFile:ldidVersionPath];
+		if(ldidVersionData)
+		{
+			ldidVersion = [[NSString alloc] initWithData:ldidVersionData encoding:NSUTF8StringEncoding];
+		}
 
 		PSSpecifier* signingGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
 		signingGroupSpecifier.name = @"Signing";
@@ -106,7 +137,13 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 
 		if(ldidInstalled)
 		{
-			PSSpecifier* ldidInstalledSpecifier = [PSSpecifier preferenceSpecifierNamed:@"ldid: Installed"
+			NSString* installedTitle = @"ldid: Installed";
+			if(ldidVersion)
+			{
+				installedTitle = [NSString stringWithFormat:@"%@ (%@)", installedTitle, ldidVersion];
+			}
+
+			PSSpecifier* ldidInstalledSpecifier = [PSSpecifier preferenceSpecifierNamed:installedTitle
 											target:self
 											set:nil
 											get:nil
@@ -116,6 +153,22 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 			[ldidInstalledSpecifier setProperty:@NO forKey:@"enabled"];
 			ldidInstalledSpecifier.identifier = @"ldidInstalled";
 			[_specifiers addObject:ldidInstalledSpecifier];
+
+			if(_newerLdidVersion && ![_newerLdidVersion isEqualToString:ldidVersion])
+			{
+				NSString* updateTitle = [NSString stringWithFormat:@"Update to %@", _newerLdidVersion];
+				PSSpecifier* ldidUpdateSpecifier = [PSSpecifier preferenceSpecifierNamed:updateTitle
+											target:self
+											set:nil
+											get:nil
+											detail:nil
+											cell:PSButtonCell
+											edit:nil];
+				ldidUpdateSpecifier.identifier = @"updateLdid";
+				[ldidUpdateSpecifier setProperty:@YES forKey:@"enabled"];
+				ldidUpdateSpecifier.buttonAction = @selector(installOrUpdateLdidPressed);
+				[_specifiers addObject:ldidUpdateSpecifier];
+			}
 		}
 		else
 		{
@@ -126,9 +179,9 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 											detail:nil
 											cell:PSButtonCell
 											edit:nil];
-			installLdidSpecifier.identifier = @"ldidInstalled";
+			installLdidSpecifier.identifier = @"installLdid";
 			[installLdidSpecifier setProperty:@YES forKey:@"enabled"];
-			installLdidSpecifier.buttonAction = @selector(installLdidPressed);
+			installLdidSpecifier.buttonAction = @selector(installOrUpdateLdidPressed);
 			[_specifiers addObject:installLdidSpecifier];
 		}
 
@@ -234,10 +287,20 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 
 		[_specifiers addObject:installAlertConfigurationSpecifier];
 
-
 		PSSpecifier* otherGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
-		[otherGroupSpecifier setProperty:[NSString stringWithFormat:@"TrollStore %@\n\n© 2022 Lars Fröder (opa334)\n\nCredits:\n@LinusHenze: CoreTrust bug\n@zhuowei: CoreTrust bug writeup and cert\n@lunotech11, @SerenaKit, @tylinux: Various contributions\n@ProcursusTeam: uicache and ldid build\n@cstar_ow: uicache\n@saurik: ldid", [self getTrollStoreVersion]] forKey:@"footerText"];
+		[otherGroupSpecifier setProperty:[NSString stringWithFormat:@"TrollStore %@\n\n© 2022 Lars Fröder (opa334)\n\nTrollStore is NOT for piracy!\n\nCredits:\n@LinusHenze: CoreTrust bug\n@zhuowei: CoreTrust bug writeup and cert\n@lunotech11, @SerenaKit, @tylinux: Various contributions\n@ProcursusTeam: uicache and ldid build\n@cstar_ow: uicache\n@saurik: ldid", [self getTrollStoreVersion]] forKey:@"footerText"];
 		[_specifiers addObject:otherGroupSpecifier];
+
+		PSSpecifier* advancedLinkSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Advanced"
+										target:self
+										set:nil
+										get:nil
+										detail:nil
+										cell:PSLinkListCell
+										edit:nil];
+		advancedLinkSpecifier.detailControllerClass = [TSSettingsAdvancedListController class];
+		[advancedLinkSpecifier setProperty:@YES forKey:@"enabled"];
+		[_specifiers addObject:advancedLinkSpecifier];
 
 		// Uninstall TrollStore
 		PSSpecifier* uninstallTrollStoreSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Uninstall TrollStore"
@@ -277,7 +340,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 
 - (NSArray*)installationConfirmationNames
 {
-	return @[@"Always (Recommended)", @"Only on Remote Installs", @"Never (Not Recommeded)"];
+	return @[@"Always (Recommended)", @"Only on Remote URL Installs", @"Never (Not Recommeded)"];
 }
 
 - (void)respringButtonPressed
@@ -285,41 +348,9 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 	respring();
 }
 
-- (void)installLdidPressed
+- (void)installOrUpdateLdidPressed
 {
-	NSURL* ldidURL = [NSURL URLWithString:@"https://github.com/opa334/ldid/releases/download/v2.1.5-procursus5/ldid"];
-	NSURLRequest* ldidRequest = [NSURLRequest requestWithURL:ldidURL];
-
-	[TSPresentationDelegate startActivity:@"Installing ldid"];
-
-	NSURLSessionDownloadTask* downloadTask = [NSURLSession.sharedSession downloadTaskWithRequest:ldidRequest completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error)
-	{
-		if(error)
-		{
-			UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:@"Error" message:[NSString stringWithFormat:@"Error downloading ldid: %@", error] preferredStyle:UIAlertControllerStyleAlert];
-			UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
-			[errorAlert addAction:closeAction];
-
-			dispatch_async(dispatch_get_main_queue(), ^
-			{
-				[TSPresentationDelegate stopActivityWithCompletion:^
-				{
-					[TSPresentationDelegate presentViewController:errorAlert animated:YES completion:nil];
-				}];
-			});
-		}
-		else
-		{
-			spawnRoot(rootHelperPath(), @[@"install-ldid", location.path], nil, nil);
-			dispatch_async(dispatch_get_main_queue(), ^
-			{
-				[TSPresentationDelegate stopActivityWithCompletion:nil];
-				[self reloadSpecifiers];
-			});
-		}
-	}];
-
-	[downloadTask resume];
+	[TSInstallationController installLdid];
 }
 
 - (void)installPersistenceHelperPressed
@@ -408,6 +439,20 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 		toReturn = [specifier propertyForKey:@"default"];
 	}
 	return toReturn;
+}
+
+- (NSMutableArray*)argsForUninstallingTrollStore
+{
+	NSMutableArray* args = @[@"uninstall-trollstore"].mutableCopy;
+
+	NSNumber* uninstallationMethodToUseNum = [trollStoreUserDefaults() objectForKey:@"uninstallationMethod"];
+    int uninstallationMethodToUse = uninstallationMethodToUseNum ? uninstallationMethodToUseNum.intValue : 0;
+    if(uninstallationMethodToUse == 1)
+    {
+        [args addObject:@"custom"];
+    }
+
+	return args;
 }
 
 @end

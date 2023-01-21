@@ -287,9 +287,10 @@ void respring(void)
 	exit(0);
 }
 
-void fetchLatestTrollStoreVersion(void (^completionHandler)(NSString* latestVersion))
+void github_fetchLatestVersion(NSString* repo, void (^completionHandler)(NSString* latestVersion))
 {
-	NSURL* githubLatestAPIURL = [NSURL URLWithString:@"https://api.github.com/repos/opa334/TrollStore/releases/latest"];
+	NSString* urlString = [NSString stringWithFormat:@"https://api.github.com/repos/%@/releases/latest", repo];
+	NSURL* githubLatestAPIURL = [NSURL URLWithString:urlString];
 
 	NSURLSessionDataTask* task = [NSURLSession.sharedSession dataTaskWithURL:githubLatestAPIURL completionHandler:^(NSData *data, NSURLResponse *response, NSError *error)
 	{
@@ -309,6 +310,16 @@ void fetchLatestTrollStoreVersion(void (^completionHandler)(NSString* latestVers
 	}];
 
 	[task resume];
+}
+
+void fetchLatestTrollStoreVersion(void (^completionHandler)(NSString* latestVersion))
+{
+	github_fetchLatestVersion(@"opa334/TrollStore", completionHandler);
+}
+
+void fetchLatestLdidVersion(void (^completionHandler)(NSString* latestVersion))
+{
+	github_fetchLatestVersion(@"opa334/ldid", completionHandler);
 }
 
 NSArray* trollStoreInstalledAppContainerPaths()

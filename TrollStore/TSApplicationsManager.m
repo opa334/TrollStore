@@ -1,5 +1,6 @@
 #import "TSApplicationsManager.h"
 #import <TSUtil.h>
+extern NSUserDefaults* trollStoreUserDefaults();
 
 @implementation TSApplicationsManager
 
@@ -75,15 +76,25 @@
 
 - (int)installIpa:(NSString*)pathToIpa force:(BOOL)force log:(NSString**)logOut
 {
-    int ret;
+    NSMutableArray* args = [NSMutableArray new];
+    [args addObject:@"install"];
     if(force)
     {
-        ret = spawnRoot(rootHelperPath(), @[@"install", pathToIpa, @"force"], nil, logOut);
+        [args addObject:@"force"];
+    }
+    NSNumber* installationMethodToUseNum = [trollStoreUserDefaults() objectForKey:@"installationMethod"];
+    int installationMethodToUse = installationMethodToUseNum ? installationMethodToUseNum.intValue : 1;
+    if(installationMethodToUse == 1)
+    {
+        [args addObject:@"custom"];
     }
     else
     {
-        ret = spawnRoot(rootHelperPath(), @[@"install", pathToIpa], nil, logOut);
+        [args addObject:@"installd"];
     }
+    [args addObject:pathToIpa];
+
+    int ret = spawnRoot(rootHelperPath(), args, nil, logOut);
     [[NSNotificationCenter defaultCenter] postNotificationName:@"ApplicationsChanged" object:nil];
     return ret;
 }
@@ -96,7 +107,24 @@
 - (int)uninstallApp:(NSString*)appId
 {
     if(!appId) return -200;
-    int ret = spawnRoot(rootHelperPath(), @[@"uninstall", appId], nil, nil);
+
+    NSMutableArray* args = [NSMutableArray new];
+    [args addObject:@"uninstall"];
+
+    NSNumber* uninstallationMethodToUseNum = [trollStoreUserDefaults() objectForKey:@"uninstallationMethod"];
+    int uninstallationMethodToUse = uninstallationMethodToUseNum ? uninstallationMethodToUseNum.intValue : 0;
+    if(uninstallationMethodToUse == 1)
+    {
+        [args addObject:@"custom"];
+    }
+    else
+    {
+        [args addObject:@"installd"];
+    }
+
+    [args addObject:appId];
+
+    int ret = spawnRoot(rootHelperPath(), args, nil, nil);
     [[NSNotificationCenter defaultCenter] postNotificationName:@"ApplicationsChanged" object:nil];
     return ret;
 }
@@ -104,7 +132,24 @@
 - (int)uninstallAppByPath:(NSString*)path
 {
     if(!path) return -200;
-    int ret = spawnRoot(rootHelperPath(), @[@"uninstall-path", path], nil, nil);
+
+    NSMutableArray* args = [NSMutableArray new];
+    [args addObject:@"uninstall-path"];
+
+    NSNumber* uninstallationMethodToUseNum = [trollStoreUserDefaults() objectForKey:@"uninstallationMethod"];
+    int uninstallationMethodToUse = uninstallationMethodToUseNum ? uninstallationMethodToUseNum.intValue : 0;
+    if(uninstallationMethodToUse == 1)
+    {
+        [args addObject:@"custom"];
+    }
+    else
+    {
+        [args addObject:@"installd"];
+    }
+
+    [args addObject:path];
+
+    int ret = spawnRoot(rootHelperPath(), args, nil, nil);
     [[NSNotificationCenter defaultCenter] postNotificationName:@"ApplicationsChanged" object:nil];
     return ret;
 }
