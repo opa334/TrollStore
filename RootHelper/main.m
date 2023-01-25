@@ -590,19 +590,8 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 	NSLog(@"[installApp force = %d]", force);
 
 	NSString* appPayloadPath = [appPackagePath stringByAppendingPathComponent:@"Payload"];
-	
-	NSArray* items = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:appPayloadPath error:nil];
-	if(!items) return 167;
-	
-	NSString* appBundleToInstallPath;
-	for(NSString* item in items)
-	{
-		if([item.pathExtension isEqualToString:@"app"])
-		{
-			appBundleToInstallPath = [appPayloadPath stringByAppendingPathComponent:item];
-			break;
-		}
-	}
+
+	NSString* appBundleToInstallPath = findAppPathInBundlePath(appPayloadPath);
 	if(!appBundleToInstallPath) return 167;
 
 	NSString* appId = appIdForAppPath(appBundleToInstallPath);
@@ -626,7 +615,7 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 		if(signRet != 0) return signRet;
 	}
 
-	MCMAppContainer* appContainer = [objc_getClass("MCMAppContainer") containerWithIdentifier:appId createIfNecessary:NO existed:nil error:nil];
+	MCMAppContainer* appContainer = [MCMAppContainer containerWithIdentifier:appId createIfNecessary:NO existed:nil error:nil];
 	if(appContainer)
 	{
 		// App update
@@ -638,7 +627,7 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 
 		// Make sure the installed app is a TrollStore app or the container is empty (or the force flag is set)
 		NSURL* trollStoreMarkURL = [bundleContainerURL URLByAppendingPathComponent:@"_TrollStore"];
-		if(!appBundleURL && ![trollStoreMarkURL checkResourceIsReachableAndReturnError:nil] && !force)
+		if(appBundleURL && ![trollStoreMarkURL checkResourceIsReachableAndReturnError:nil] && !force)
 		{
 			NSLog(@"[installApp] already installed and not a TrollStore app... bailing out");
 			return 171;
@@ -680,10 +669,21 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 			// Do initial placeholder installation using LSApplicationWorkspace
 			NSLog(@"[installApp] doing placeholder installation using LSApplicationWorkspace");
 
+			// The installApplication API (re)moves the app bundle, so in order to be able to later 
+			// fall back to the custom method, we need to make a temporary copy just for using it on this API once
+			// Yeah this sucks, but there is no better solution unfortunately
+			NSError* tmpCopyError;
+			NSString* lsAppPackageTmpCopy = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSUUID UUID].UUIDString];
+			if(![[NSFileManager defaultManager] copyItemAtPath:appPackagePath toPath:lsAppPackageTmpCopy error:&tmpCopyError])
+			{
+				NSLog(@"failed to make temporary copy of app packge: %@", tmpCopyError);
+				return 170;
+			}
+
 			NSError* installError;
 			@try
 			{
-				systemMethodSuccessful = [[LSApplicationWorkspace defaultWorkspace] installApplication:[NSURL fileURLWithPath:appPackagePath] withOptions:@{
+				systemMethodSuccessful = [[LSApplicationWorkspace defaultWorkspace] installApplication:[NSURL fileURLWithPath:lsAppPackageTmpCopy] withOptions:@{
 					LSInstallTypeKey : @1,
 					@"PackageType" : @"Placeholder"
 				} error:&installError];
@@ -698,7 +698,11 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 			{
 				NSLog(@"[installApp] encountered error %@ while trying to do placeholder install", installError);
 			}
+
+			[[NSFileManager defaultManager] removeItemAtPath:lsAppPackageTmpCopy error:nil];
 		}
+
+		NSLog(@"[installApp] app bundle still exists? %d", [[NSFileManager defaultManager] fileExistsAtPath:appBundleToInstallPath]);
 	
 		if(!systemMethodSuccessful)
 		{
@@ -707,7 +711,7 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 			NSLog(@"[installApp] doing custom installation using MCMAppContainer");
 
 			NSError* mcmError;
-			appContainer = [objc_getClass("MCMAppContainer") containerWithIdentifier:appId createIfNecessary:YES existed:nil error:&mcmError];
+			appContainer = [MCMAppContainer containerWithIdentifier:appId createIfNecessary:YES existed:nil error:&mcmError];
 
 			if(!appContainer || mcmError)
 			{
@@ -726,14 +730,13 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 			BOOL suc = [[NSFileManager defaultManager] copyItemAtPath:appBundleToInstallPath toPath:newAppBundlePath error:&copyError];
 			if(!suc)
 			{
-				
 				NSLog(@"[installApp] Failed to copy app bundle for app %@, error: %@", appId, copyError);
 				return 178;
 			}
 		}
 	}
 
-	appContainer = [objc_getClass("MCMAppContainer") containerWithIdentifier:appId createIfNecessary:NO existed:nil error:nil];
+	appContainer = [MCMAppContainer containerWithIdentifier:appId createIfNecessary:NO existed:nil error:nil];
 
 	// Mark app as TrollStore app
 	NSURL* trollStoreMarkURL = [appContainer.url URLByAppendingPathComponent:@"_TrollStore"];

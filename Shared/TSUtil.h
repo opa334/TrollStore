@@ -4,7 +4,6 @@
 #define TrollStoreErrorDomain @"TrollStoreErrorDomain"
 
 extern void chineseWifiFixup(void);
-extern void loadMCMFramework(void);
 extern NSString* safe_getExecutablePath();
 extern NSString* rootHelperPath(void);
 extern NSString* getNSStringFromFile(int fd);

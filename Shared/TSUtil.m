@@ -26,15 +26,6 @@ void chineseWifiFixup(void)
 	}
 }
 
-void loadMCMFramework(void)
-{
-	static dispatch_once_t onceToken;
-	dispatch_once (&onceToken, ^{
-		NSBundle* mcmBundle = [NSBundle bundleWithPath:@"/System/Library/PrivateFrameworks/MobileContainerManager.framework"];
-		[mcmBundle load];
-	});
-}
-
 extern char*** _NSGetArgv();
 NSString* safe_getExecutablePath()
 {
@@ -379,9 +370,8 @@ NSArray* trollStoreInstalledAppBundlePaths()
 
 NSString* trollStorePath()
 {
-	loadMCMFramework();
 	NSError* mcmError;
-	MCMAppContainer* appContainer = [NSClassFromString(@"MCMAppContainer") containerWithIdentifier:@"com.opa334.TrollStore" createIfNecessary:NO existed:NULL error:&mcmError];
+	MCMAppContainer* appContainer = [MCMAppContainer containerWithIdentifier:@"com.opa334.TrollStore" createIfNecessary:NO existed:NULL error:&mcmError];
 	if(!appContainer) return nil;
 	return appContainer.url.path;
 }

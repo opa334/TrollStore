@@ -9,7 +9,7 @@ APPLICATION_NAME = TrollStorePersistenceHelper
 
 TrollStorePersistenceHelper_FILES = $(wildcard *.m) $(wildcard ../Shared/*.m)
 TrollStorePersistenceHelper_FRAMEWORKS = UIKit CoreGraphics CoreServices
-TrollStorePersistenceHelper_PRIVATE_FRAMEWORKS = Preferences
+TrollStorePersistenceHelper_PRIVATE_FRAMEWORKS = Preferences MobileContainerManager
 TrollStorePersistenceHelper_CFLAGS = -fobjc-arc -I../Shared
 TrollStorePersistenceHelper_CODESIGN_FLAGS = -Sentitlements.plist -K../cert.p12
 

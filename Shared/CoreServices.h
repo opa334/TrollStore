@@ -70,3 +70,9 @@ extern NSString *LSInstallTypeKey;
 
 @interface MCMPluginKitPluginDataContainer : MCMDataContainer
 @end
+
+@interface MCMSystemDataContainer : MCMContainer
+@end
+
+@interface MCMSharedDataContainer : MCMContainer
+@end

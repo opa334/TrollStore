@@ -10,6 +10,6 @@ trollstorehelper_CFLAGS = -fobjc-arc -I../Shared
 trollstorehelper_CODESIGN_FLAGS = -Sentitlements.plist -K../cert.p12
 trollstorehelper_INSTALL_PATH = /usr/local/bin
 trollstorehelper_LIBRARIES = archive
-trollstorehelper_PRIVATE_FRAMEWORKS = SpringBoardServices BackBoardServices
+trollstorehelper_PRIVATE_FRAMEWORKS = SpringBoardServices BackBoardServices MobileContainerManager
 
 include $(THEOS_MAKE_PATH)/tool.mk

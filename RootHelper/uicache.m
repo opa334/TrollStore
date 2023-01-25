@@ -16,16 +16,16 @@ NSDictionary* constructGroupsContainersForEntitlements(NSDictionary* entitlement
 	if(!entitlements) return nil;
 
 	NSString* entitlementForGroups;
-	NSString* mcmClass;
+	Class mcmClass;
 	if(systemGroups)
 	{
 		entitlementForGroups = @"com.apple.security.system-groups";
-		mcmClass = @"MCMSystemDataContainer";
+		mcmClass = [MCMSystemDataContainer class];
 	}
 	else
 	{
 		entitlementForGroups = @"com.apple.security.application-groups";
-		mcmClass = @"MCMSharedDataContainer";
+		mcmClass = [MCMSharedDataContainer class];
 	}
 
 	NSArray* groupIDs = entitlements[entitlementForGroups];
@@ -35,7 +35,7 @@ NSDictionary* constructGroupsContainersForEntitlements(NSDictionary* entitlement
 
 		for(NSString* groupID in groupIDs)
 		{
-			MCMContainer* container = [NSClassFromString(mcmClass) containerWithIdentifier:groupID createIfNecessary:YES existed:nil error:nil];
+			MCMContainer* container = [mcmClass containerWithIdentifier:groupID createIfNecessary:YES existed:nil error:nil];
 			if(container.url)
 			{
 				groupContainers[groupID] = container.url.path;
@@ -94,7 +94,6 @@ NSDictionary* constructEnvironmentVariablesForContainerPath(NSString* containerP
 void registerPath(NSString* path, BOOL unregister, BOOL system)
 {
 	if(!path) return;
-	loadMCMFramework();
 
 	LSApplicationWorkspace* workspace = [LSApplicationWorkspace defaultWorkspace];
 	if(unregister && ![[NSFileManager defaultManager] fileExistsAtPath:path])
