@@ -702,8 +702,6 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 			[[NSFileManager defaultManager] removeItemAtPath:lsAppPackageTmpCopy error:nil];
 		}
 
-		NSLog(@"[installApp] app bundle still exists? %d", [[NSFileManager defaultManager] fileExistsAtPath:appBundleToInstallPath]);
-	
 		if(!systemMethodSuccessful)
 		{
 			// Custom method
