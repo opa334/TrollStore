@@ -227,7 +227,7 @@ void registerPath(NSString* path, BOOL unregister, BOOL system)
 			// Add plugin group containers
 
 			NSDictionary* pluginAppGroupContainers = constructGroupsContainersForEntitlements(pluginEntitlements, NO);
-			NSDictionary* pluginSystemGroupContainers = constructGroupsContainersForEntitlements(pluginEntitlements, NO);
+			NSDictionary* pluginSystemGroupContainers = constructGroupsContainersForEntitlements(pluginEntitlements, YES);
 			NSMutableDictionary* pluginGroupContainers = [NSMutableDictionary new];
 			[pluginGroupContainers addEntriesFromDictionary:pluginAppGroupContainers];
 			[pluginGroupContainers addEntriesFromDictionary:pluginSystemGroupContainers];
