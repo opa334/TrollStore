@@ -58,11 +58,9 @@ extern NSString *LSInstallTypeKey;
 @end
 
 @interface MCMDataContainer : MCMContainer
-
 @end
 
 @interface MCMAppDataContainer : MCMDataContainer
-
 @end
 
 @interface MCMAppContainer : MCMContainer
