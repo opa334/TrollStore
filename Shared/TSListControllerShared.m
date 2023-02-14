@@ -200,7 +200,7 @@
 	UIAlertAction* uninstallAllAction = [UIAlertAction actionWithTitle:@"Uninstall TrollStore, Uninstall Apps" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action)
 	{
 		NSMutableArray* args = [self argsForUninstallingTrollStore];
-		spawnRoot(rootHelperPath(), @[args], nil, nil);
+		spawnRoot(rootHelperPath(), args, nil, nil);
 		[self handleUninstallation];
 	}];
 	[uninstallAlert addAction:uninstallAllAction];
