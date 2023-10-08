@@ -108,7 +108,7 @@ When your app is not sandboxed, you can spawn other binaries using posix_spawn, 
 
 You can also add your own binaries into your app bundle.
 
-Afterwards you can use the [spawnRoot function in TSUtil.m](./Shared/TSUtil.m#L74) to spawn the binary as root.
+Afterwards you can use the [spawnRoot function in TSUtil.m](./Shared/TSUtil.m#L77) to spawn the binary as root.
 
 ### Things that are not possible using TrollStore
 
