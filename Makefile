@@ -1,6 +1,6 @@
 TOPTARGETS := all clean
 
-$(TOPTARGETS): pre_build make_roothelper make_trollstore make_trollhelper make_trollhelper_package assemble_trollstore make_trollhelper_embedded build_installer15 build_installer64e
+$(TOPTARGETS): pre_build make_fastPathSign make_roothelper make_trollstore make_trollhelper make_trollhelper_package assemble_trollstore make_trollhelper_embedded build_installer15 build_installer64e
 
 pre_build:
 		@rm -rf ./_build 2>/dev/null || true
@@ -8,6 +8,8 @@ pre_build:
 
 make_external:
 		
+make_fastPathSign:
+		@$(MAKE) -C ./Exploits/fastPathSign $(MAKECMDGOALS)
 
 make_roothelper:
 		@$(MAKE) -C ./RootHelper FINALPACKAGE=1 $(MAKECMDGOALS)
