@@ -13,6 +13,10 @@
 #ifndef EMBEDDED_ROOT_HELPER
 #import "adhoc.h"
 #import "coretrust_bug.h"
+#import <choma/FAT.h>
+#import <choma/MachO.h>
+#import <choma/FileStream.h>
+#import <choma/Host.h>
 #endif
 
 #import <SpringBoardServices/SpringBoardServices.h>
@@ -356,6 +360,14 @@ BOOL codeCertChainContainsFakeAppStoreExtensions(SecStaticCodeRef codeRef)
 	return evaluatesToCustomAnchor;
 }
 
+#ifdef EMBEDDED_ROOT_HELPER
+// The embedded root helper is not able to sign apps
+// But it does not need that functionality anyways
+int signApp(NSString* appPath)
+{
+	return -1;
+}
+#else
 int signApp(NSString* appPath)
 {
 	NSDictionary* appInfoDict = infoDictionaryForAppPath(appPath);
@@ -378,7 +390,59 @@ int signApp(NSString* appPath)
 		}
 	}
 
-	SecStaticCodeRef codeRef = getStaticCodeRef(executablePath);
+	// XXX: There used to be a check here whether the main binary was already signed with bypass
+	// In that case it would skip signing aswell, no clue if that's still desirable
+
+	NSURL* fileURL;
+	NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
+	while(fileURL = [enumerator nextObject])
+	{
+		NSString *filePath = fileURL.path;
+		FAT *fat = fat_init_from_path(filePath.fileSystemRepresentation);
+		if (fat) {
+			// This is FAT or MachO, sign and apply CoreTrust bypass
+			MachO *machoForExtraction = fat_find_preferred_slice(fat);
+			if (machoForExtraction) {
+				NSLog(@"Starting signing of %@\n", filePath);
+				NSString *tmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSUUID UUID].UUIDString];
+				MemoryStream *sliceOutStream = file_stream_init_from_path(tmpPath.fileSystemRepresentation, 0, 0, FILE_STREAM_FLAG_WRITABLE | FILE_STREAM_FLAG_AUTO_EXPAND);
+				MemoryStream *sliceStream = macho_get_stream(machoForExtraction);
+				memory_stream_copy_data(sliceStream, 0, sliceOutStream, 0, memory_stream_get_size(sliceStream));
+				memory_stream_free(sliceOutStream);
+
+				// Now we have the single slice at tmpPath, which we will sign and apply the bypass, then copy over the original file
+
+				NSLog(@"[%@] Adhoc signing...", filePath);
+
+				// First attempt ad hoc signing
+				int r = binary_sign_adhoc(tmpPath.fileSystemRepresentation, true);
+				if (r != 0) {
+					NSLog(@"[%@] Adhoc signing failed with error code %d, continuing anyways...\n", filePath, r);
+				}
+				else {
+					NSLog(@"[%@] Adhoc signing worked!\n", filePath);
+				}
+
+				NSLog(@"[%@] Applying CoreTrust bypass...", filePath);
+				r = apply_coretrust_bypass(tmpPath.fileSystemRepresentation);
+				if (r == 0) {
+					NSLog(@"[%@] Applied CoreTrust bypass!", filePath);
+				}
+				else {
+					NSLog(@"[%@] CoreTrust bypass failed!!! :(", filePath);
+					fat_free(fat);
+					return 175;
+				}
+
+				// tempFile is now signed, overwrite original file at filePath with it
+				[[NSFileManager defaultManager] removeItemAtPath:filePath error:nil];
+				[[NSFileManager defaultManager] moveItemAtPath:tmpPath toPath:filePath error:nil];
+			}
+			fat_free(fat);
+		}
+	}
+
+	/*SecStaticCodeRef codeRef = getStaticCodeRef(executablePath);
 	if(codeRef != NULL)
 	{
 		if(codeCertChainContainsFakeAppStoreExtensions(codeRef))
@@ -391,9 +455,10 @@ int signApp(NSString* appPath)
 	else
 	{
 		NSLog(@"[signApp] failed to get static code, can't derive entitlements from %@, continuing anways...", executablePath);
-	}
+	}*/
 	return 0;
 }
+#endif
 
 void applyPatchesToInfoDictionary(NSString* appPath)
 {
