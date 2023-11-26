@@ -33,7 +33,6 @@ make_trollhelper_embedded:
 		@$(MAKE) -C ./TrollHelper FINALPACKAGE=1 EMBEDDED_ROOT_HELPER=1 $(MAKECMDGOALS)
 
 assemble_trollstore:
-		@cp cert.p12 ./TrollStore/.theos/obj/TrollStore.app/cert.p12
 		@cp ./RootHelper/.theos/obj/trollstorehelper ./TrollStore/.theos/obj/TrollStore.app/trollstorehelper
 		@cp ./TrollHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper ./TrollStore/.theos/obj/TrollStore.app/PersistenceHelper
 		@export COPYFILE_DISABLE=1

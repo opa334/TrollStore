@@ -360,6 +360,15 @@ BOOL codeCertChainContainsFakeAppStoreExtensions(SecStaticCodeRef codeRef)
 	return evaluatesToCustomAnchor;
 }
 
+BOOL isSameFile(NSString *path1, NSString *path2)
+{
+	struct stat sb1;
+	struct stat sb2;
+	stat(path1.fileSystemRepresentation, &sb1);
+	stat(path2.fileSystemRepresentation, &sb2);
+	return sb1.st_ino == sb2.st_ino;
+}
+
 #ifdef EMBEDDED_ROOT_HELPER
 // The embedded root helper is not able to sign apps
 // But it does not need that functionality anyways
@@ -373,10 +382,10 @@ int signApp(NSString* appPath)
 	NSDictionary* appInfoDict = infoDictionaryForAppPath(appPath);
 	if(!appInfoDict) return 172;
 
-	NSString* executablePath = appMainExecutablePathForAppPath(appPath);
-	if(!executablePath) return 176;
+	NSString* mainExecutablePath = appMainExecutablePathForAppPath(appPath);
+	if(!mainExecutablePath) return 176;
 
-	if(![[NSFileManager defaultManager] fileExistsAtPath:executablePath]) return 174;
+	if(![[NSFileManager defaultManager] fileExistsAtPath:mainExecutablePath]) return 174;
 	
 	NSObject *tsBundleIsPreSigned = appInfoDict[@"TSBundlePreSigned"];
 	if([tsBundleIsPreSigned isKindOfClass:[NSNumber class]])
@@ -385,13 +394,28 @@ int signApp(NSString* appPath)
 		NSNumber *tsBundleIsPreSignedNum = (NSNumber *)tsBundleIsPreSigned;
 		if([tsBundleIsPreSignedNum boolValue] == YES)
 		{
-			NSLog(@"[signApp] taking fast path for app which declares it has already been signed (%@)", executablePath);
+			NSLog(@"[signApp] taking fast path for app which declares it has already been signed (%@)", mainExecutablePath);
 			return 0;
 		}
 	}
 
 	// XXX: There used to be a check here whether the main binary was already signed with bypass
-	// In that case it would skip signing aswell, no clue if that's still desirable
+	// In that case it would skip signing aswell, no clue if that's still needed
+	// With the new bypass adhoc signing should fail and reapplying the bypass should produce an identical binary
+	/*SecStaticCodeRef codeRef = getStaticCodeRef(mainExecutablePath);
+	if(codeRef != NULL)
+	{
+		if(codeCertChainContainsFakeAppStoreExtensions(codeRef))
+		{
+			NSLog(@"[signApp] taking fast path for app signed using a custom root certificate (%@)", mainExecutablePath);
+			CFRelease(codeRef);
+			return 0;
+		}
+	}
+	else
+	{
+		NSLog(@"[signApp] failed to get static code, can't derive entitlements from %@, continuing anways...", mainExecutablePath);
+	}*/
 
 	NSURL* fileURL;
 	NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
@@ -416,8 +440,27 @@ int signApp(NSString* appPath)
 
 					NSLog(@"[%@] Adhoc signing...", filePath);
 
+					NSDictionary *entitlementsToUse = nil;
+					if (isSameFile(filePath, mainExecutablePath)) {
+						// In the case where the main executable currently has no entitlements at all
+						// We want to ensure it gets signed with fallback entitlements
+						// These mimic the entitlements that Xcodes gives every app it signs
+						NSDictionary* mainExecutableEntitlements = dumpEntitlementsFromBinaryAtPath(filePath);
+						if (!mainExecutableEntitlements) {
+							entitlementsToUse = @{
+								@"application-identifier" : @"TROLLTROLL.*",
+								@"com.apple.developer.team-identifier" : @"TROLLTROLL",
+								@"get-task-allow" : (__bridge id)kCFBooleanTrue,
+								@"keychain-access-groups" : @[
+									@"TROLLTROLL.*",
+									@"com.apple.token"
+								],
+							};
+						}
+					}
+
 					// First attempt ad hoc signing
-					int r = codesign_sign_adhoc(tmpPath.fileSystemRepresentation, true, nil);
+					int r = codesign_sign_adhoc(tmpPath.fileSystemRepresentation, true, entitlementsToUse);
 					if (r != 0) {
 						NSLog(@"[%@] Adhoc signing failed with error code %d, continuing anyways...\n", filePath, r);
 					}
@@ -445,20 +488,6 @@ int signApp(NSString* appPath)
 		}
 	}
 
-	/*SecStaticCodeRef codeRef = getStaticCodeRef(executablePath);
-	if(codeRef != NULL)
-	{
-		if(codeCertChainContainsFakeAppStoreExtensions(codeRef))
-		{
-			NSLog(@"[signApp] taking fast path for app signed using a custom root certificate (%@)", executablePath);
-			CFRelease(codeRef);
-			return 0;
-		}
-	}
-	else
-	{
-		NSLog(@"[signApp] failed to get static code, can't derive entitlements from %@, continuing anways...", executablePath);
-	}*/
 	return 0;
 }
 #endif
