@@ -10,8 +10,10 @@
 #import <sys/utsname.h>
 #import <mach-o/loader.h>
 #import <mach-o/fat.h>
+#ifndef EMBEDDED_ROOT_HELPER
 #import "adhoc.h"
 #import "coretrust_bug.h"
+#endif
 
 #import <SpringBoardServices/SpringBoardServices.h>
 #import <Security/Security.h>
