@@ -10,6 +10,8 @@
 #import <sys/utsname.h>
 #import <mach-o/loader.h>
 #import <mach-o/fat.h>
+#import "adhoc.h"
+#import "coretrust_bug.h"
 
 #import <SpringBoardServices/SpringBoardServices.h>
 #import <Security/Security.h>

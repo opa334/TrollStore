@@ -5,8 +5,9 @@ include $(THEOS)/makefiles/common.mk
 
 TOOL_NAME = trollstorehelper
 
-trollstorehelper_FILES = $(wildcard *.m) $(wildcard ../Shared/*.m)
-trollstorehelper_CFLAGS = -fobjc-arc -I../Shared
+trollstorehelper_FILES = $(wildcard *.m) $(wildcard ../Shared/*.m) ../Exploits/fastPathSign/src/coretrust_bug.c ../Exploits/fastPathSign/src/adhoc.m
+trollstorehelper_CFLAGS = -fobjc-arc -I../Shared $(shell pkg-config --cflags libcrypto) -Iexternal/include -I../Exploits/fastPathSign/src
+trollstorehelper_LDFLAGS = -Lexternal/lib -lcrypto -lchoma
 trollstorehelper_CODESIGN_FLAGS = -Sentitlements.plist -K../cert.p12
 trollstorehelper_INSTALL_PATH = /usr/local/bin
 trollstorehelper_LIBRARIES = archive
