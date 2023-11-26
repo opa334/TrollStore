@@ -8,7 +8,7 @@ It works because of an AMFI/CoreTrust bug where iOS does not verify whether or n
 
 ### Installation Guides
 
-| Version / Device | arm64 (A8 - A11) | arm64e (A12 - A15, M1) |
+| Version / Device | arm64 (A8 - A11) | arm64e (A12 - A17, M1) |
 | --- | --- | --- |
 | 13.7 and below | Not Supported (Both CT Bugs only got introduced in 14.0) | Not Supported (Both CT Bugs only got introduced in 14.0) |
 | 14.0 - 14.8.1 | [checkra1n + TrollHelper](./install_trollhelper.md) | [TrollHelperOTA (arm64e)](./install_trollhelperota_arm64e.md) |
