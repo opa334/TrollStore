@@ -775,6 +775,11 @@ int uninstallApp(NSString* appPath, NSString* appId, BOOL useCustomMethod)
 	{
 		LSApplicationProxy* appProxy = [LSApplicationProxy applicationProxyForIdentifier:appId];
 
+		// delete data container
+		if (appProxy.dataContainerURL) {
+			[[NSFileManager defaultManager] removeItemAtURL:appProxy.dataContainerURL error:nil];
+		}
+
 		// delete group container paths
 		[[appProxy groupContainerURLs] enumerateKeysAndObjectsUsingBlock:^(NSString* groupId, NSURL* groupURL, BOOL* stop)
 		{
