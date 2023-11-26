@@ -72,21 +72,6 @@
 	}
 }
 
-// We want to auto install ldid if either it doesn't exist
-// or if it's the one from an old TrollStore version that's no longer supported
-- (void)handleLdidCheck
-{
-	NSString* tsAppPath = [NSBundle mainBundle].bundlePath;
-
-	NSString* ldidPath = [tsAppPath stringByAppendingPathComponent:@"ldid"];
-	NSString* ldidVersionPath = [tsAppPath stringByAppendingPathComponent:@"ldid.version"];
-
-	if(![[NSFileManager defaultManager] fileExistsAtPath:ldidPath] || ![[NSFileManager defaultManager] fileExistsAtPath:ldidVersionPath])
-	{
-		[TSInstallationController installLdid];
-	}
-}
-
 - (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions {
 	// Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
 	// If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
@@ -101,10 +86,6 @@
 	if(connectionOptions.URLContexts.count)
 	{
 		[self handleURLContexts:connectionOptions.URLContexts scene:(UIWindowScene*)scene];
-	}
-	else
-	{
-		[self handleLdidCheck];
 	}
 }
 

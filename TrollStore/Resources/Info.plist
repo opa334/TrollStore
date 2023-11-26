@@ -191,7 +191,6 @@
 	<key>TSRootBinaries</key>
 	<array>
 		<string>trollstorehelper</string>
-		<string>ldid</string>
 	</array>
 </dict>
 </plist>

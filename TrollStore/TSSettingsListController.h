@@ -4,6 +4,5 @@
 {
     PSSpecifier* _installPersistenceHelperSpecifier;
     NSString* _newerVersion;
-    NSString* _newerLdidVersion;
 }
 @end

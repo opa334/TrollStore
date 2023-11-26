@@ -236,105 +236,6 @@ void setTSURLSchemeState(BOOL newState, NSString* customAppPath)
 	}
 }
 
-void installLdid(NSString* ldidToCopyPath, NSString* ldidVersion)
-{
-	if(![[NSFileManager defaultManager] fileExistsAtPath:ldidToCopyPath]) return;
-
-	NSString* ldidPath = [trollStoreAppPath() stringByAppendingPathComponent:@"ldid"];
-	NSString* ldidVersionPath = [trollStoreAppPath() stringByAppendingPathComponent:@"ldid.version"];
-
-	if([[NSFileManager defaultManager] fileExistsAtPath:ldidPath])
-	{
-		[[NSFileManager defaultManager] removeItemAtPath:ldidPath error:nil];
-	}
-
-	[[NSFileManager defaultManager] copyItemAtPath:ldidToCopyPath toPath:ldidPath error:nil];
-
-	NSData* ldidVersionData = [ldidVersion dataUsingEncoding:NSUTF8StringEncoding];
-	[ldidVersionData writeToFile:ldidVersionPath atomically:YES];
-
-	chmod(ldidPath.fileSystemRepresentation, 0755);
-	chmod(ldidVersionPath.fileSystemRepresentation, 0644);
-}
-
-BOOL isLdidInstalled(void)
-{
-	NSString* ldidPath = [trollStoreAppPath() stringByAppendingPathComponent:@"ldid"];
-	return [[NSFileManager defaultManager] fileExistsAtPath:ldidPath];
-}
-
-int runLdid(NSArray* args, NSString** output, NSString** errorOutput)
-{
-	NSString* ldidPath = [trollStoreAppPath() stringByAppendingPathComponent:@"ldid"];
-	NSMutableArray* argsM = args.mutableCopy ?: [NSMutableArray new];
-	[argsM insertObject:ldidPath.lastPathComponent atIndex:0];
-
-	NSUInteger argCount = [argsM count];
-	char **argsC = (char **)malloc((argCount + 1) * sizeof(char*));
-
-	for (NSUInteger i = 0; i < argCount; i++)
-	{
-		argsC[i] = strdup([[argsM objectAtIndex:i] UTF8String]);
-	}
-	argsC[argCount] = NULL;
-
-	posix_spawn_file_actions_t action;
-	posix_spawn_file_actions_init(&action);
-
-	int outErr[2];
-	pipe(outErr);
-	posix_spawn_file_actions_adddup2(&action, outErr[1], STDERR_FILENO);
-	posix_spawn_file_actions_addclose(&action, outErr[0]);
-
-	int out[2];
-	pipe(out);
-	posix_spawn_file_actions_adddup2(&action, out[1], STDOUT_FILENO);
-	posix_spawn_file_actions_addclose(&action, out[0]);
-	
-	pid_t task_pid;
-	int status = -200;
-	int spawnError = posix_spawn(&task_pid, [ldidPath fileSystemRepresentation], &action, NULL, (char* const*)argsC, NULL);
-	for (NSUInteger i = 0; i < argCount; i++)
-	{
-		free(argsC[i]);
-	}
-	free(argsC);
-
-	if(spawnError != 0)
-	{
-		NSLog(@"posix_spawn error %d\n", spawnError);
-		return spawnError;
-	}
-
-	do
-	{
-		if (waitpid(task_pid, &status, 0) != -1) {
-			//printf("Child status %dn", WEXITSTATUS(status));
-		} else
-		{
-			perror("waitpid");
-			return -222;
-		}
-	} while (!WIFEXITED(status) && !WIFSIGNALED(status));
-
-	close(outErr[1]);
-	close(out[1]);
-
-	NSString* ldidOutput = getNSStringFromFile(out[0]);
-	if(output)
-	{
-		*output = ldidOutput;
-	}
-
-	NSString* ldidErrorOutput = getNSStringFromFile(outErr[0]);
-	if(errorOutput)
-	{
-		*errorOutput = ldidErrorOutput;
-	}
-
-	return WEXITSTATUS(status);
-}
-
 BOOL certificateHasDataForExtensionOID(SecCertificateRef certificate, CFStringRef oidString)
 {
 	if(certificate == NULL || oidString == NULL)
@@ -491,47 +392,7 @@ int signApp(NSString* appPath)
 	{
 		NSLog(@"[signApp] failed to get static code, can't derive entitlements from %@, continuing anways...", executablePath);
 	}
-
-	if(!isLdidInstalled()) return 173;
-
-	NSString* certPath = [trollStoreAppPath() stringByAppendingPathComponent:@"cert.p12"];
-	NSString* certArg = [@"-K" stringByAppendingPathComponent:certPath];
-	NSString* errorOutput;
-	int ldidRet;
-
-	NSDictionary* entitlements = dumpEntitlements(codeRef);
-	CFRelease(codeRef);
-	
-	if(!entitlements)
-	{
-		NSLog(@"app main binary has no entitlements, signing app with fallback entitlements...");
-		// app has no entitlements, sign with fallback entitlements
-		NSString* entitlementPath = [trollStoreAppPath() stringByAppendingPathComponent:@"fallback.entitlements"];
-		NSString* entitlementArg = [@"-S" stringByAppendingString:entitlementPath];
-		ldidRet = runLdid(@[entitlementArg, certArg, appPath], nil, &errorOutput);
-	}
-	else
-	{
-		// app has entitlements, keep them
-		ldidRet = runLdid(@[@"-s", certArg, appPath], nil, &errorOutput);
-	}
-
-	NSLog(@"ldid exited with status %d", ldidRet);
-
-	NSLog(@"- ldid error output start -");
-
-	printMultilineNSString(errorOutput);
-
-	NSLog(@"- ldid error output end -");
-
-	if(ldidRet == 0)
-	{
-		return 0;
-	}
-	else
-	{
-		return 175;
-	}
+	return 0;
 }
 
 void applyPatchesToInfoDictionary(NSString* appPath)
@@ -587,7 +448,6 @@ void applyPatchesToInfoDictionary(NSString* appPath)
 // 170: failed to create container for app bundle
 // 171: a non trollstore app with the same identifier is already installled
 // 172: no info.plist found in app
-// 173: app is not signed and cannot be signed because ldid not installed or didn't work
 // 174: 
 int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate, BOOL useInstalldMethod)
 {
@@ -935,39 +795,6 @@ int installTrollStore(NSString* pathToTar)
 	NSString* tmpTrollStorePath = [tmpPayloadPath stringByAppendingPathComponent:@"TrollStore.app"];
 	if(![[NSFileManager defaultManager] fileExistsAtPath:tmpTrollStorePath]) return 1;
 
-	// Transfer existing ldid installation if it exists
-	// But only if the to-be-installed version of TrollStore is 1.5.0 or above
-	// This is to make it possible to downgrade to older versions still
-
-	NSString* toInstallInfoPlistPath = [tmpTrollStorePath stringByAppendingPathComponent:@"Info.plist"];
-	if(![[NSFileManager defaultManager] fileExistsAtPath:toInstallInfoPlistPath]) return 1;
-
-	NSDictionary* toInstallInfoDict = [NSDictionary dictionaryWithContentsOfFile:toInstallInfoPlistPath];
-	NSString* toInstallVersion = toInstallInfoDict[@"CFBundleVersion"];
-
-	NSComparisonResult result = [@"1.5.0" compare:toInstallVersion options:NSNumericSearch];
-	if(result != NSOrderedDescending)
-	{
-		NSString* existingLdidPath = [trollStoreAppPath() stringByAppendingPathComponent:@"ldid"];
-		NSString* existingLdidVersionPath = [trollStoreAppPath() stringByAppendingPathComponent:@"ldid.version"];
-		if([[NSFileManager defaultManager] fileExistsAtPath:existingLdidPath])
-		{
-			NSString* tmpLdidPath = [tmpTrollStorePath stringByAppendingPathComponent:@"ldid"];
-			if(![[NSFileManager defaultManager] fileExistsAtPath:tmpLdidPath])
-			{
-				[[NSFileManager defaultManager] copyItemAtPath:existingLdidPath toPath:tmpLdidPath error:nil];
-			}
-		}
-		if([[NSFileManager defaultManager] fileExistsAtPath:existingLdidVersionPath])
-		{
-			NSString* tmpLdidVersionPath = [tmpTrollStorePath stringByAppendingPathComponent:@"ldid.version"];
-			if(![[NSFileManager defaultManager] fileExistsAtPath:tmpLdidVersionPath])
-			{
-				[[NSFileManager defaultManager] copyItemAtPath:existingLdidVersionPath toPath:tmpLdidVersionPath error:nil];
-			}
-		}
-	}
-
 	// Merge existing URL scheme settings value
 	if(!getTSURLSchemeState(nil))
 	{
@@ -1246,13 +1073,6 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 				uninstallAllApps([args containsObject:@"custom"]);
 			}
 			uninstallTrollStore(YES);
-		}
-		else if([cmd isEqualToString:@"install-ldid"])
-		{
-			if(args.count < 3) return -3;
-			NSString* ldidPath = args[1];
-			NSString* ldidVersion = args[2];
-			installLdid(ldidPath, ldidVersion);
 		}
 		else if([cmd isEqualToString:@"refresh"])
 		{

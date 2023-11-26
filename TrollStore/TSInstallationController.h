@@ -9,6 +9,4 @@
 
 + (void)handleAppInstallFromRemoteURL:(NSURL*)remoteURL completion:(void (^)(BOOL, NSError*))completion;
 
-+ (void)installLdid;
-
 @end

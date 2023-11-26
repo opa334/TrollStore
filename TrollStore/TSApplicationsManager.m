@@ -47,14 +47,11 @@ extern NSUserDefaults* trollStoreUserDefaults();
         case 172:
         errorDescription = @"The app does not contain an Info.plist file.";
         break;
-        case 173:
-        errorDescription = @"The app is not signed with a fake CoreTrust certificate and ldid is not installed. Install ldid in the settings tab and try again.";
-        break;
         case 174:
         errorDescription = @"The app's main executable does not exist.";
         break;
         case 175:
-        errorDescription = @"Failed to sign the app. ldid returned a non zero status code.";
+        errorDescription = @"Failed to sign the app.";
         break;
         case 176:
         errorDescription = @"The app's Info.plist is missing required values.";
