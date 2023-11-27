@@ -73,7 +73,7 @@ char *cs_blob_magic_to_string(int magic);
 // Extract Code Signature to file
 int macho_extract_cs_to_file(MachO *macho, CS_SuperBlob *superblob);
 
-void macho_find_code_signature_bounds(MachO *macho, uint32_t *offsetOut, uint32_t *sizeOut);
+int macho_find_code_signature_bounds(MachO *macho, uint32_t *offsetOut, uint32_t *sizeOut);
 
 CS_SuperBlob *macho_read_code_signature(MachO *macho);
 
