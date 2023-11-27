@@ -21,6 +21,8 @@ make_trollhelper_package:
 		@$(MAKE) clean -C ./TrollHelper
 		@cp ./RootHelper/.theos/obj/trollstorehelper ./TrollHelper/Resources/trollstorehelper
 		@$(MAKE) -C ./TrollHelper FINALPACKAGE=1 package $(MAKECMDGOALS)
+		@$(MAKE) clean -C ./TrollHelper
+		@$(MAKE) -C ./TrollHelper THEOS_PACKAGE_SCHEME=rootless FINALPACKAGE=1 package $(MAKECMDGOALS)
 		@rm ./TrollHelper/Resources/trollstorehelper
 
 make_trollhelper_embedded:
