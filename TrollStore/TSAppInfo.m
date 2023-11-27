@@ -1065,7 +1065,7 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 	}
 	else if(isPlatformApplication && isUnsandboxed)
 	{
-		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\nThe app can spawn arbitary binaries as the mobile user." attributes:bodyWarningAttributes]];
+		[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\nThe app can spawn arbitrary binaries as the mobile user." attributes:bodyWarningAttributes]];
 	}
 	else
 	{
