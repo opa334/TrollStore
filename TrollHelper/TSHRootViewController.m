@@ -38,9 +38,9 @@
 		_specifiers = [NSMutableArray new];
 
 		#ifdef EMBEDDED_ROOT_HELPER
-		NSString* credits = @"Powered by Fugu15 CoreTrust & installd bugs, thanks to @LinusHenze\n\n© 2022 Lars Fröder (opa334)";
+		NSString* credits = @"Powered by Fugu15 CoreTrust & installd bugs, thanks to @LinusHenze\n\n© 2023 Lars Fröder (opa334)";
 		#else
-		NSString* credits = @"Powered by Fugu15 CoreTrust bug, thanks to @LinusHenze\n\n© 2022 Lars Fröder (opa334)";
+		NSString* credits = @"Powered by Fugu15 CoreTrust bug, thanks to @LinusHenze\n\n© 2023 Lars Fröder (opa334)";
 		#endif
 
 		PSSpecifier* infoGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
