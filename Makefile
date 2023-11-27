@@ -6,8 +6,6 @@ pre_build:
 		@rm -rf ./_build 2>/dev/null || true
 		@mkdir -p ./_build
 
-make_external:
-		
 make_fastPathSign:
 		@$(MAKE) -C ./Exploits/fastPathSign $(MAKECMDGOALS)
 
