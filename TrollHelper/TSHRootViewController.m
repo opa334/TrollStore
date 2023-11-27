@@ -37,10 +37,10 @@
 	{
 		_specifiers = [NSMutableArray new];
 
-		#ifdef EMBEDDED_ROOT_HELPER
-		NSString* credits = @"Powered by Fugu15 CoreTrust & installd bugs, thanks to @LinusHenze\n\n© 2023 Lars Fröder (opa334)";
+		#ifdef LEGACY_CT_BUG
+		NSString* credits = @"Powered by Fugu15 CoreTrust & installd bugs, thanks to @LinusHenze\n\n© 2022-2023 Lars Fröder (opa334)";
 		#else
-		NSString* credits = @"Powered by Fugu15 CoreTrust bug, thanks to @LinusHenze\n\n© 2023 Lars Fröder (opa334)";
+		NSString* credits = @"Powered by CVE-2023-41991, originally discovered by Google TAG, rediscovered via patchdiffing by @alfiecg_dev\n\n© 2022-2023 Lars Fröder (opa334)";
 		#endif
 
 		PSSpecifier* infoGroupSpecifier = [PSSpecifier emptyGroupSpecifier];

@@ -20,6 +20,7 @@ TrollStorePersistenceHelper_CFLAGS = -fobjc-arc -I../Shared
 
 ifeq ($(LEGACY_CT_BUG),1)
 TrollStorePersistenceHelper_CODESIGN_FLAGS = -Sentitlements.plist -K../legacy.p12
+TrollStorePersistenceHelper_CFLAGS += -DLEGACY_CT_BUG=1
 else
 TrollStorePersistenceHelper_CODESIGN_FLAGS = --entitlements entitlements.plist
 endif
