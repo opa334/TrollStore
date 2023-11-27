@@ -3,7 +3,12 @@ export LEGACY_CT_BUG ?= 0
 
 TARGET := iphone:clang:16.4:14.0
 INSTALL_TARGET_PROCESSES = TrollStorePersistenceHelper
+
+ifdef CUSTOM_ARCHS
+ARCHS = $(CUSTOM_ARCHS)
+else
 ARCHS = arm64
+endif
 
 ifneq ($(LEGACY_CT_BUG),1)
 TARGET_CODESIGN = ../Exploits/fastPathSign/fastPathSign

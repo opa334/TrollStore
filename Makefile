@@ -31,7 +31,10 @@ make_trollhelper_embedded:
 		@cp ./TrollHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper ./_build/PersistenceHelper_Embedded
 		@$(MAKE) clean -C ./TrollHelper
 		@$(MAKE) -C ./TrollHelper FINALPACKAGE=1 EMBEDDED_ROOT_HELPER=1 LEGACY_CT_BUG=1 $(MAKECMDGOALS)
-		@cp ./TrollHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper ./_build/PersistenceHelper_Embedded_Legacy
+		@cp ./TrollHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper ./_build/PersistenceHelper_Embedded_Legacy_arm64
+		@$(MAKE) clean -C ./TrollHelper
+		@$(MAKE) -C ./TrollHelper FINALPACKAGE=1 EMBEDDED_ROOT_HELPER=1 CUSTOM_ARCHS=arm64e $(MAKECMDGOALS)
+		@cp ./TrollHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper ./_build/PersistenceHelper_Embedded_Legacy_arm64e
 		@$(MAKE) clean -C ./TrollHelper
 
 assemble_trollstore:
@@ -43,7 +46,7 @@ assemble_trollstore:
 build_installer15:
 		@mkdir -p ./_build/tmp15
 		@unzip ./Victim/InstallerVictim.ipa -d ./_build/tmp15
-		@cp ./_build/PersistenceHelper_Embedded_Legacy ./_build/TrollStorePersistenceHelperToInject
+		@cp ./_build/PersistenceHelper_Embedded_Legacy_arm64 ./_build/TrollStorePersistenceHelperToInject
 		@pwnify set-cpusubtype ./_build/TrollStorePersistenceHelperToInject 1
 		@ldid -s -K./Victim/victim.p12 ./_build/TrollStorePersistenceHelperToInject
 		APP_PATH=$$(find ./_build/tmp15/Payload -name "*" -depth 1) ; \
@@ -64,7 +67,7 @@ build_installer64e:
 		APP_NAME=$$(basename $$APP_PATH) ; \
 		BINARY_NAME=$$(echo "$$APP_NAME" | cut -f 1 -d '.') ; \
 		echo $$BINARY_NAME ; \
-		pwnify pwn64e ./_build/tmp64e/Payload/$$APP_NAME/$$BINARY_NAME ./_build/PersistenceHelper_Embedded_Legacy
+		pwnify pwn64e ./_build/tmp64e/Payload/$$APP_NAME/$$BINARY_NAME ./_build/PersistenceHelper_Embedded_Legacy_arm64e
 		@pushd ./_build/tmp64e ; \
 		zip -vrD ../../_build/TrollHelper_arm64e.ipa * ; \
 		popd
