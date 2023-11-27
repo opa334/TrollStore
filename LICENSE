@@ -4,7 +4,7 @@ Upstream-Contact: opa334 <opa334@protonmail.com>
 Source: https://github.com/opa334/TrollStore
 
 Files: *
-Copyright: 2022 Lars Fröder
+Copyright: 2023 Lars Fröder
 License: MIT
 
 Files: RootHelper/uicache.m
