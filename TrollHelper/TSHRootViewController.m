@@ -128,7 +128,7 @@
 			[_specifiers addObject:installTrollStoreSpecifier];
 		}
 
-		NSString* backupPath = [safe_getExecutablePath() stringByAppendingString:@"_TROLLSTORE_BACKUP"];
+		NSString* backupPath = [getExecutablePath() stringByAppendingString:@"_TROLLSTORE_BACKUP"];
 		if([[NSFileManager defaultManager] fileExistsAtPath:backupPath])
 		{
 			PSSpecifier* uninstallHelperGroupSpecifier = [PSSpecifier emptyGroupSpecifier];

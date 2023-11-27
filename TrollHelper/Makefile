@@ -1,10 +1,13 @@
 export EMBEDDED_ROOT_HELPER ?= 0
+export LEGACY_CT_BUG ?= 0
 
 TARGET := iphone:clang:16.4:14.0
 INSTALL_TARGET_PROCESSES = TrollStorePersistenceHelper
 ARCHS = arm64
 
+ifneq ($(LEGACY_CT_BUG),1)
 TARGET_CODESIGN = ../Exploits/fastPathSign/fastPathSign
+endif
 
 include $(THEOS)/makefiles/common.mk
 
@@ -14,7 +17,12 @@ TrollStorePersistenceHelper_FILES = $(wildcard *.m) $(wildcard ../Shared/*.m)
 TrollStorePersistenceHelper_FRAMEWORKS = UIKit CoreGraphics CoreServices
 TrollStorePersistenceHelper_PRIVATE_FRAMEWORKS = Preferences MobileContainerManager
 TrollStorePersistenceHelper_CFLAGS = -fobjc-arc -I../Shared
+
+ifeq ($(LEGACY_CT_BUG),1)
+TrollStorePersistenceHelper_CODESIGN_FLAGS = -Sentitlements.plist -K../legacy.p12
+else
 TrollStorePersistenceHelper_CODESIGN_FLAGS = --entitlements entitlements.plist
+endif
 
 ifeq ($(EMBEDDED_ROOT_HELPER),1)
 TrollStorePersistenceHelper_CFLAGS += -DEMBEDDED_ROOT_HELPER=1

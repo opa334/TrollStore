@@ -25,7 +25,7 @@
 	}
 }
 
-- (void)downloadTrollStoreAndDo:(void (^)(NSString* localTrollStoreTarPath))doHandler
+- (void)downloadTrollStoreAndRun:(void (^)(NSString* localTrollStoreTarPath))doHandler
 {
 	NSURL* trollStoreURL = [NSURL URLWithString:@"https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.tar"];
 	NSURLRequest* trollStoreRequest = [NSURLRequest requestWithURL:trollStoreURL];
@@ -59,7 +59,7 @@
 	[downloadTask resume];
 }
 
-- (void)_updateOrInstallTrollStore:(BOOL)update
+- (void)_installTrollStoreComingFromUpdateFlow:(BOOL)update
 {
 	if(update)
 	{
@@ -70,7 +70,7 @@
 		[TSPresentationDelegate startActivity:@"Installing TrollStore"];
 	}
 
-	[self downloadTrollStoreAndDo:^(NSString* tmpTarPath)
+	[self downloadTrollStoreAndRun:^(NSString* tmpTarPath)
 	{
 		int ret = spawnRoot(rootHelperPath(), @[@"install-trollstore", tmpTarPath], nil, nil);
 		[[NSFileManager defaultManager] removeItemAtPath:tmpTarPath error:nil];
@@ -112,12 +112,12 @@
 
 - (void)installTrollStorePressed
 {
-	[self _updateOrInstallTrollStore:NO];
+	[self _installTrollStoreComingFromUpdateFlow:NO];
 }
 
 - (void)updateTrollStorePressed
 {
-	[self _updateOrInstallTrollStore:YES];
+	[self _installTrollStoreComingFromUpdateFlow:YES];
 }
 
 - (void)rebuildIconCachePressed

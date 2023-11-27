@@ -5,7 +5,7 @@
 @interface TSListControllerShared : PSListController
 - (BOOL)isTrollStore;
 - (NSString*)getTrollStoreVersion;
-- (void)downloadTrollStoreAndDo:(void (^)(NSString* localTrollStoreTarPath))doHandler;
+- (void)downloadTrollStoreAndRun:(void (^)(NSString* localTrollStoreTarPath))doHandler;
 - (void)installTrollStorePressed;
 - (void)updateTrollStorePressed;
 - (void)rebuildIconCachePressed;

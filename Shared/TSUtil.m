@@ -3,6 +3,7 @@
 #import <Foundation/Foundation.h>
 #import <spawn.h>
 #import <sys/sysctl.h>
+#import <mach-o/dyld.h>
 
 @interface PSAppDataUsagePolicyCache : NSObject
 + (instancetype)sharedInstance;
@@ -26,17 +27,18 @@ void chineseWifiFixup(void)
 	}
 }
 
-extern char*** _NSGetArgv();
-NSString* safe_getExecutablePath()
+NSString *getExecutablePath(void)
 {
-	char* executablePathC = **_NSGetArgv();
-	return [NSString stringWithUTF8String:executablePathC];
+	uint32_t len = PATH_MAX;
+	char selfPath[len];
+	_NSGetExecutablePath(selfPath, &len);
+	return [NSString stringWithUTF8String:selfPath];
 }
 
 #ifdef EMBEDDED_ROOT_HELPER
 NSString* rootHelperPath(void)
 {
-	return safe_getExecutablePath();
+	return getExecutablePath();
 }
 #else
 NSString* rootHelperPath(void)
