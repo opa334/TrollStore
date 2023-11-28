@@ -562,29 +562,89 @@ int signApp(NSString* appPath)
 		NSLog(@"[signApp] failed to get static code, can't derive entitlements from %@, continuing anways...", mainExecutablePath);
 	}*/
 
-	int (^signFile)(NSString *, NSDictionary *) = ^(NSString *filePath, NSDictionary *entitlements) {
-		NSLog(@"Checking %@", filePath);
+	NSURL* fileURL;
+	NSDirectoryEnumerator *enumerator;
+
+	// Due to how the new CT bug works, in order for data containers to work properly we need to add the
+	// com.apple.private.security.container-required=<bundle-identifier> entitlement to every binary inside a bundle
+	// For this we will want to first collect info about all the bundles in the app by seeking for Info.plist files and adding the ent to the main binary
+	enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
+	while(fileURL = [enumerator nextObject])
+	{
+		NSString *filePath = fileURL.path;
+		if ([filePath.lastPathComponent isEqualToString:@"Info.plist"]) {
+			NSDictionary *infoDict = [NSDictionary dictionaryWithContentsOfFile:filePath];
+			if (!infoDict) continue;
+			NSString *bundleId = infoDict[@"CFBundleIdentifier"];
+			NSString *bundleExecutable = infoDict[@"CFBundleExecutable"];
+			if (!bundleId || !bundleExecutable) continue;
+			NSString *bundleMainExecutablePath = [[filePath stringByDeletingLastPathComponent] stringByAppendingPathComponent:bundleExecutable];
+			if (![[NSFileManager defaultManager] fileExistsAtPath:bundleMainExecutablePath]) continue;
+
+			NSString *packageType = infoDict[@"CFBundlePackageType"];
+
+			// We don't care about frameworks (yet)
+			if ([packageType isEqualToString:@"FMWK"]) continue;
+
+			NSMutableDictionary *entitlementsToUse = dumpEntitlementsFromBinaryAtPath(bundleMainExecutablePath).mutableCopy;
+			if (isSameFile(bundleMainExecutablePath, mainExecutablePath)) {
+				// In the case where the main executable of the app currently has no entitlements at all
+				// We want to ensure it gets signed with fallback entitlements
+				// These mimic the entitlements that Xcodes gives every app it signs
+				if (!entitlementsToUse) {
+					entitlementsToUse = @{
+						@"application-identifier" : @"TROLLTROLL.*",
+						@"com.apple.developer.team-identifier" : @"TROLLTROLL",
+						@"get-task-allow" : (__bridge id)kCFBooleanTrue,
+						@"keychain-access-groups" : @[
+							@"TROLLTROLL.*",
+							@"com.apple.token"
+						],
+					}.mutableCopy;
+				}
+			}
+
+			if (!entitlementsToUse) entitlementsToUse = [NSMutableDictionary new];
+
+			NSObject *containerRequiredO = entitlementsToUse[@"com.apple.private.security.container-required"];
+			BOOL containerRequired = YES;
+			if (containerRequiredO && [containerRequiredO isKindOfClass:[NSNumber class]]) {
+				containerRequired = [(NSNumber *)containerRequiredO boolValue];
+			}
+			else if (containerRequiredO && [containerRequiredO isKindOfClass:[NSString class]]) {
+				// Keep whatever is in it if it's a string...
+				containerRequired = NO;
+			}
+
+			if (containerRequired) {
+				NSObject *noContainerO = entitlementsToUse[@"com.apple.private.security.no-container"];
+				BOOL noContainer = NO;
+				if (noContainerO && [noContainerO isKindOfClass:[NSNumber class]]) {
+					noContainer = [(NSNumber *)noContainerO boolValue];
+				}
+				if (!noContainer) {
+					entitlementsToUse[@"com.apple.private.security.container-required"] = bundleId;
+				}
+			}
+			signAdhoc(bundleMainExecutablePath, entitlementsToUse);
+		}
+	}
+
+	// All entitlement related issues should be fixed at this point, so all we need to do is sign the entire bundle
+	// And then apply the CoreTrust bypass to all executables
+	// XXX: This only works because we're using ldid at the moment and that recursively signs everything
+	signAdhoc(appPath, nil);
+
+	enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
+	while(fileURL = [enumerator nextObject])
+	{
+		NSString *filePath = fileURL.path;
 		FAT *fat = fat_init_from_path(filePath.fileSystemRepresentation);
 		if (fat) {
 			NSLog(@"%@ is binary", filePath);
-			fat_free(fat);
-
-			// First attempt ad hoc signing
-			int r = signAdhoc(filePath, entitlements);
-			if (r != 0) {
-				// If it doesn't work it's not a big deal, that usually happens when the binary had the bypass applied already (Don't ask me why)
-				NSLog(@"[%@] Adhoc signing failed with error code %d, continuing anyways...\n", filePath, r);
-			}
-			else {
-				NSLog(@"[%@] Adhoc signing worked!\n", filePath);
-			}
-
-			fat = fat_init_from_path(filePath.fileSystemRepresentation);
-			if (!fat) return 175; // This should never happen, if it does then everything is fucked
-
-			// Now apply CoreTrust bypass to best slice
 			MachO *machoForExtraction = fat_find_preferred_slice(fat);
 			if (machoForExtraction) {
+				// Extract best slice
 				NSString *tmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSUUID UUID].UUIDString];
 				MemoryStream *sliceStream = macho_get_stream(machoForExtraction);
 				MemoryStream *sliceOutStream = file_stream_init_from_path(tmpPath.fileSystemRepresentation, 0, 0, FILE_STREAM_FLAG_WRITABLE | FILE_STREAM_FLAG_AUTO_EXPAND);
@@ -592,12 +652,10 @@ int signApp(NSString* appPath)
 					memory_stream_copy_data(sliceStream, 0, sliceOutStream, 0, memory_stream_get_size(sliceStream));
 					memory_stream_free(sliceOutStream);
 
-					// Now we have the single slice at tmpPath, which we will sign and apply the bypass, then copy over the original file
-
-					NSLog(@"[%@] Adhoc signing...", filePath);
-
+					// Now we have the best slice at tmpPath, which we will apply the bypass to, then copy it over the original file
+					// We loose all other slices doing that but they aren't a loss as they wouldn't run either way
 					NSLog(@"[%@] Applying CoreTrust bypass...", filePath);
-					r = apply_coretrust_bypass(tmpPath.fileSystemRepresentation);
+					int r = apply_coretrust_bypass(tmpPath.fileSystemRepresentation);
 					if (r == 0) {
 						NSLog(@"[%@] Applied CoreTrust bypass!", filePath);
 					}
@@ -614,39 +672,9 @@ int signApp(NSString* appPath)
 			}
 			fat_free(fat);
 		}
-		return 0;
-	};
-
-	NSURL* fileURL;
-	NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
-	while(fileURL = [enumerator nextObject])
-	{
-		NSString *filePath = fileURL.path;
-		if (isSameFile(filePath, mainExecutablePath)) {
-			// Skip main executable, we will sign it at the end
-			continue;
-		}
-		int r = signFile(filePath, nil);
-		if (r != 0) return r;
 	}
 
-	// In the case where the main executable currently has no entitlements at all
-	// We want to ensure it gets signed with fallback entitlements
-	// These mimic the entitlements that Xcodes gives every app it signs
-	NSDictionary *entitlementsToUse = nil;
-	NSDictionary* mainExecutableEntitlements = dumpEntitlementsFromBinaryAtPath(mainExecutablePath);
-	if (!mainExecutableEntitlements) {
-		entitlementsToUse = @{
-			@"application-identifier" : @"TROLLTROLL.*",
-			@"com.apple.developer.team-identifier" : @"TROLLTROLL",
-			@"get-task-allow" : (__bridge id)kCFBooleanTrue,
-			@"keychain-access-groups" : @[
-				@"TROLLTROLL.*",
-				@"com.apple.token"
-			],
-		};
-	}
-	return signFile(mainExecutablePath, entitlementsToUse);
+	return 0;
 }
 #endif
 
