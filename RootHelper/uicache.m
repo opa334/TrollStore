@@ -42,7 +42,7 @@ NSDictionary *constructGroupsContainersForEntitlements(NSDictionary *entitlement
 	return nil;
 }
 
-BOOL constructContainerizationForEntitlements(NSDictionary *entitlements) {
+BOOL constructContainerizationForEntitlements(NSDictionary *entitlements, NSString **customContainerOut) {
 	NSNumber *noContainer = entitlements[@"com.apple.private.security.no-container"];
 	if (noContainer && [noContainer isKindOfClass:[NSNumber class]]) {
 		if (noContainer.boolValue) {
@@ -50,11 +50,14 @@ BOOL constructContainerizationForEntitlements(NSDictionary *entitlements) {
 		}
 	}
 
-	NSNumber *containerRequired = entitlements[@"com.apple.private.security.container-required"];
+	NSObject *containerRequired = entitlements[@"com.apple.private.security.container-required"];
 	if (containerRequired && [containerRequired isKindOfClass:[NSNumber class]]) {
-		if (!containerRequired.boolValue) {
+		if (!((NSNumber *)containerRequired).boolValue) {
 			return NO;
 		}
+	}
+	else if (containerRequired && [containerRequired isKindOfClass:[NSString class]]) {
+		*customContainerOut = (NSString *)containerRequired;
 	}
 
 	return YES;
@@ -97,8 +100,14 @@ void registerPath(NSString *path, BOOL unregister, BOOL forceSystem) {
 	if([immutableAppBundleIdentifiers() containsObject:appBundleID.lowercaseString]) return;
 
 	if (appBundleID && !unregister) {
-		MCMContainer *appContainer = [NSClassFromString(@"MCMAppDataContainer") containerWithIdentifier:appBundleID createIfNecessary:YES existed:nil error:nil];
-		NSString *containerPath = [appContainer url].path;
+		NSString *appExecutablePath = [path stringByAppendingPathComponent:appInfoPlist[@"CFBundleExecutable"]];
+		NSDictionary *entitlements = dumpEntitlementsFromBinaryAtPath(appExecutablePath);
+
+		NSString *appDataContainerID = appBundleID;
+		BOOL appContainerized = constructContainerizationForEntitlements(entitlements, &appDataContainerID);
+
+		MCMContainer *appDataContainer = [NSClassFromString(@"MCMAppDataContainer") containerWithIdentifier:appDataContainerID createIfNecessary:YES existed:nil error:nil];
+		NSString *containerPath = [appDataContainer url].path;
 
 		BOOL isRemovableSystemApp = [[NSFileManager defaultManager] fileExistsAtPath:[@"/System/Library/AppSignatures" stringByAppendingPathComponent:appBundleID]];
 		BOOL registerAsUser = [path hasPrefix:@"/var/containers"] && !isRemovableSystemApp && !forceSystem;
@@ -107,12 +116,9 @@ void registerPath(NSString *path, BOOL unregister, BOOL forceSystem) {
 
 		// Add entitlements
 
-		NSString *appExecutablePath = [path stringByAppendingPathComponent:appInfoPlist[@"CFBundleExecutable"]];
-		NSDictionary *entitlements = dumpEntitlementsFromBinaryAtPath(appExecutablePath);
 		if (entitlements) {
 			dictToRegister[@"Entitlements"] = entitlements;
 		}
-		
 
 		// Misc
 	
@@ -120,7 +126,6 @@ void registerPath(NSString *path, BOOL unregister, BOOL forceSystem) {
 		dictToRegister[@"CFBundleIdentifier"] = appBundleID;
 		dictToRegister[@"CodeInfoIdentifier"] = appBundleID;
 		dictToRegister[@"CompatibilityState"] = @0;
-		BOOL appContainerized = constructContainerizationForEntitlements(entitlements);
 		dictToRegister[@"IsContainerized"] = @(appContainerized);
 		if (containerPath) {
 			dictToRegister[@"Container"] = containerPath;
@@ -172,15 +177,17 @@ void registerPath(NSString *path, BOOL unregister, BOOL forceSystem) {
 			NSString *pluginBundleID = [pluginInfoPlist objectForKey:@"CFBundleIdentifier"];
 
 			if (!pluginBundleID) continue;
-			MCMContainer *pluginContainer = [NSClassFromString(@"MCMPluginKitPluginDataContainer") containerWithIdentifier:pluginBundleID createIfNecessary:YES existed:nil error:nil];
+			NSString *pluginExecutablePath = [pluginPath stringByAppendingPathComponent:pluginInfoPlist[@"CFBundleExecutable"]];
+			NSDictionary *pluginEntitlements = dumpEntitlementsFromBinaryAtPath(pluginExecutablePath);
+			NSString *pluginDataContainerID = pluginBundleID;
+			BOOL pluginContainerized = constructContainerizationForEntitlements(pluginEntitlements, &pluginDataContainerID);
+
+			MCMContainer *pluginContainer = [NSClassFromString(@"MCMPluginKitPluginDataContainer") containerWithIdentifier:pluginDataContainerID createIfNecessary:YES existed:nil error:nil];
 			NSString *pluginContainerPath = [pluginContainer url].path;
 
 			NSMutableDictionary *pluginDict = [NSMutableDictionary dictionary];
 
 			// Add entitlements
-
-			NSString *pluginExecutablePath = [pluginPath stringByAppendingPathComponent:pluginInfoPlist[@"CFBundleExecutable"]];
-			NSDictionary *pluginEntitlements = dumpEntitlementsFromBinaryAtPath(pluginExecutablePath);
 			if (pluginEntitlements) {
 				pluginDict[@"Entitlements"] = pluginEntitlements;
 			}
@@ -191,7 +198,7 @@ void registerPath(NSString *path, BOOL unregister, BOOL forceSystem) {
 			pluginDict[@"CFBundleIdentifier"] = pluginBundleID;
 			pluginDict[@"CodeInfoIdentifier"] = pluginBundleID;
 			pluginDict[@"CompatibilityState"] = @0;
-			BOOL pluginContainerized = constructContainerizationForEntitlements(pluginEntitlements);
+			
 			pluginDict[@"IsContainerized"] = @(pluginContainerized);
 			if (pluginContainerPath) {
 				pluginDict[@"Container"] = pluginContainerPath;
