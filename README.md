@@ -6,23 +6,9 @@ It works because of an AMFI/CoreTrust bug where iOS does not verify whether or n
 
 ## Installing TrollStore
 
-### Installation Guides
+For installing TrollStore, refer to the guides at [ios.cfw.guide](https://ios.cfw.guide/installing-trollstore)
 
-| Version / Device | arm64 (A8 - A11) | arm64e (A12 - A17, M1-M2) |
-| --- | --- | --- |
-| 13.7 and below | Not Supported (Both CT Bugs only got introduced in 14.0) | Not Supported (Both CT Bugs only got introduced in 14.0) |
-| 14.0 - 14.8.1 | [checkra1n + TrollHelper](./install_trollhelper.md) | [TrollHelperOTA (arm64e)](./install_trollhelperota_arm64e.md) |
-| 15.0 - 15.4.1 | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md) | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md) |
-| 15.5 beta 1 - 4 | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md) | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md) |
-| 15.5 | Coming Soon | Coming Soon |
-| 15.6 beta 1 - 5 | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md) | [TrollHelperOTA (iOS 15+)](./install_trollhelperota_ios15.md) |
-| 15.6 - 16.5 | Coming Soon | Coming Soon |
-| 16.5.1 - 16.6.1 | Coming Soon | No Installation Method |
-| 16.7 - 16.7.2 | Not Supported (Both CT Bugs fixed) | Not Supported (Both CT Bugs fixed) |
-| 17.0 | Coming Soon | No Installation Method |
-| 17.0.1 and newer | Not Supported (Both CT Bugs fixed) | Not Supported (Both CT Bugs fixed) |
-
-Due to the discovery of a new CoreTrust vulnerability, support for 15.5 - 16.6.1 and 17.0 will be added in the future. Stay on these versions if you want TrollStore. 16.7 and 17.0.1+ will NEVER be supported (unless Apple fucks CoreTrust up a third time...).
+16.7.x and 17.0.1+ will NEVER be supported (unless Apple fucks CoreTrust up a third time...).
 
 ## Updating TrollStore
 
