@@ -5,6 +5,8 @@
 #import <sys/sysctl.h>
 #import <mach-o/dyld.h>
 
+static EXPLOIT_TYPE gPlatformVulnerabilities;
+
 @interface PSAppDataUsagePolicyCache : NSObject
 + (instancetype)sharedInstance;
 - (void)setUsagePoliciesForBundle:(NSString*)bundleId cellular:(BOOL)cellular wifi:(BOOL)wifi;
@@ -521,4 +523,97 @@ NSDictionary* dumpEntitlementsFromBinaryData(NSData* binaryData)
 		[[NSFileManager defaultManager] removeItemAtURL:tmpURL error:nil];
 	}
 	return entitlements;
+}
+
+EXPLOIT_TYPE getDeclaredExploitTypeFromInfoDictionary(NSDictionary *infoDict)
+{
+    NSObject *tsPreAppliedExploitType = infoDict[@"TSPreAppliedExploitType"];
+    if([tsPreAppliedExploitType isKindOfClass:[NSNumber class]])
+    {
+        NSNumber *tsPreAppliedExploitTypeNum = (NSNumber *)tsPreAppliedExploitType;
+        int exploitTypeInt = [tsPreAppliedExploitTypeNum intValue];
+
+        if(exploitTypeInt > 0)
+        {
+            // Convert versions 1, 2, etc... for use with bitmasking
+            return (1 << (exploitTypeInt - 1));
+        }
+        else
+        {
+            NSLog(@"[getDeclaredExploitTypeFromInfoDictionary] rejecting TSPreAppliedExploitType Info.plist value (%i) which is out of range", exploitTypeInt);
+        }
+    }
+
+    // Legacy Info.plist flag - now deprecated, but we treat it as a custom root cert if present
+    NSObject *tsBundleIsPreSigned = infoDict[@"TSBundlePreSigned"];
+    if([tsBundleIsPreSigned isKindOfClass:[NSNumber class]])
+    {
+        NSNumber *tsBundleIsPreSignedNum = (NSNumber *)tsBundleIsPreSigned;
+        if([tsBundleIsPreSignedNum boolValue] == YES)
+        {
+            return EXPLOIT_TYPE_CUSTOM_ROOT_CERTIFICATE_V1;
+        }
+    }
+
+    // No declarations
+    return 0;
+}
+
+void determinePlatformVulnerableExploitTypes(void *context) {
+	size_t size = 0;
+
+	// Get the current build number
+	int mib[2] = {CTL_KERN, KERN_OSVERSION};
+
+	// Get size of buffer
+	sysctl(mib, 2, NULL, &size, NULL, 0);
+
+	// Get the actual value
+	char *os_build = malloc(size);
+	if(!os_build)
+	{
+		// malloc failed
+		perror("malloc buffer for KERN_OSVERSION");
+		return;
+	}
+
+	if (sysctl(mib, 2, os_build, &size, NULL, 0) != 0)
+	{
+		// sysctl failed
+		perror("sysctl KERN_OSVERSION");
+		free(os_build);
+		return;
+	}
+
+
+	if(strncmp(os_build, "19F5070b", 8) <= 0)
+	{
+		// iOS 14.0 - 15.5 beta 4
+		gPlatformVulnerabilities = (EXPLOIT_TYPE_CUSTOM_ROOT_CERTIFICATE_V1 | EXPLOIT_TYPE_CMS_SIGNERINFO_V1);
+	}
+	else if(strncmp(os_build, "19G5027e", 8) >= 0 && strncmp(os_build, "19G5063a", 8) <= 0)
+	{
+		// iOS 15.6 beta 1 - 5
+		gPlatformVulnerabilities = (EXPLOIT_TYPE_CUSTOM_ROOT_CERTIFICATE_V1 | EXPLOIT_TYPE_CMS_SIGNERINFO_V1);
+	}
+	else if(strncmp(os_build, "20G81", 5) <= 0)
+	{
+		// iOS 14.0 - 16.6.1
+		gPlatformVulnerabilities = EXPLOIT_TYPE_CMS_SIGNERINFO_V1;
+	}
+	else if(strncmp(os_build, "21A5248v", 8) >= 0 && strncmp(os_build, "21A331", 6) <= 0)
+	{
+		// iOS 17.0
+		gPlatformVulnerabilities = EXPLOIT_TYPE_CMS_SIGNERINFO_V1;
+	}
+
+	free(os_build);
+}
+
+bool isPlatformVulnerableToExploitType(EXPLOIT_TYPE exploitType) {
+	// Find out what we are vulnerable to
+	static dispatch_once_t once;
+	dispatch_once_f(&once, NULL, determinePlatformVulnerableExploitTypes);
+
+	return (exploitType & gPlatformVulnerabilities) != 0;
 }
