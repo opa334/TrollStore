@@ -34,7 +34,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 		}
 	});
 
-	if (@available(iOS 16, *)) {} else {
+	//if (@available(iOS 16, *)) {} else {
 		fetchLatestLdidVersion(^(NSString* latestVersion)
 		{
 			NSString* ldidVersionPath = [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"ldid.version"];
@@ -54,7 +54,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 				});
 			}
 		});
-	}
+	//}
 }
 
 - (NSMutableArray*)specifiers
@@ -113,7 +113,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 
 		[_specifiers addObject:rebuildIconCacheSpecifier];
 
-		if (@available(iOS 16, *)) { } else {
+		//if (@available(iOS 16, *)) { } else {
 			NSString* ldidPath = [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"ldid"];
 			NSString* ldidVersionPath = [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"ldid.version"];
 			BOOL ldidInstalled = [[NSFileManager defaultManager] fileExistsAtPath:ldidPath];
@@ -188,7 +188,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 				installLdidSpecifier.buttonAction = @selector(installOrUpdateLdidPressed);
 				[_specifiers addObject:installLdidSpecifier];
 			}
-		}
+		//}
 
 		PSSpecifier* persistenceGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
 		persistenceGroupSpecifier.name = @"Persistence";

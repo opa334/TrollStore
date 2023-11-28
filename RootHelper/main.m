@@ -478,11 +478,11 @@ int signApp(NSString* appPath)
 #else
 int signAdhoc(NSString *filePath, NSDictionary *entitlements)
 {
-	if (@available(iOS 16, *)) {
-		return codesign_sign_adhoc(filePath.fileSystemRepresentation, true, entitlements);
-	}
+	//if (@available(iOS 16, *)) {
+	//	return codesign_sign_adhoc(filePath.fileSystemRepresentation, true, entitlements);
+	//}
 	// If iOS 14 is so great, how come there is no iOS 14 2?????
-	else {
+	//else {
 		if(!isLdidInstalled()) return 173;
 
 		NSString *entitlementsPath = nil;
@@ -519,7 +519,7 @@ int signAdhoc(NSString *filePath, NSDictionary *entitlements)
 		{
 			return 175;
 		}
-	}
+	//}
 }
 
 int signApp(NSString* appPath)
@@ -1051,7 +1051,7 @@ int installTrollStore(NSString* pathToTar)
 	NSString* tmpTrollStorePath = [tmpPayloadPath stringByAppendingPathComponent:@"TrollStore.app"];
 	if(![[NSFileManager defaultManager] fileExistsAtPath:tmpTrollStorePath]) return 1;
 
-	if (@available(iOS 16, *)) {} else {
+	//if (@available(iOS 16, *)) {} else {
 		// Transfer existing ldid installation if it exists
 		// But only if the to-be-installed version of TrollStore is 1.5.0 or above
 		// This is to make it possible to downgrade to older versions still
@@ -1084,7 +1084,7 @@ int installTrollStore(NSString* pathToTar)
 				}
 			}
 		}
-	}
+	//}
 
 	// Merge existing URL scheme settings value
 	if(!getTSURLSchemeState(nil))
@@ -1367,12 +1367,12 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 		}
 		else if([cmd isEqualToString:@"install-ldid"])
 		{
-			if (@available(iOS 16, *)) {} else {
+			//if (@available(iOS 16, *)) {} else {
 				if(args.count < 3) return -3;
 				NSString* ldidPath = args[1];
 				NSString* ldidVersion = args[2];
 				installLdid(ldidPath, ldidVersion);
-			}
+			//}
 		}
 		else if([cmd isEqualToString:@"refresh"])
 		{
