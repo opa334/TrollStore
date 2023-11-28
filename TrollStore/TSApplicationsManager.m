@@ -54,12 +54,12 @@ extern NSUserDefaults* trollStoreUserDefaults();
         errorDescription = @"The app's main executable does not exist.";
         break;
         case 175: {
-            //if (@available(iOS 15, *)) {
-            //    errorDescription = @"Failed to sign the app.";
-            //}
-            //else {
+            if (@available(iOS 16, *)) {
+                errorDescription = @"Failed to sign the app.";
+            }
+            else {
                 errorDescription = @"Failed to sign the app. ldid returned a non zero status code.";
-            //}
+            }
         }
         break;
         case 176:
