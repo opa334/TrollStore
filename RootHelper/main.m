@@ -622,7 +622,12 @@ int signApp(NSString* appPath)
 				if (noContainerO && [noContainerO isKindOfClass:[NSNumber class]]) {
 					noContainer = [(NSNumber *)noContainerO boolValue];
 				}
-				if (!noContainer) {
+				NSObject *noSandboxO = entitlementsToUse[@"com.apple.private.security.no-sandbox"];
+				BOOL noSandbox = NO;
+				if (noSandboxO && [noSandboxO isKindOfClass:[NSNumber class]]) {
+					noSandbox = [(NSNumber *)noSandboxO boolValue];
+				}
+				if (!noContainer && !noSandbox) {
 					entitlementsToUse[@"com.apple.private.security.container-required"] = bundleId;
 				}
 			}
