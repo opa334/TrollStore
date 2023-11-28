@@ -34,7 +34,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 		}
 	});
 
-	if (@available(iOS 15, *)) {} else {
+	//if (@available(iOS 15, *)) {} else {
 		fetchLatestLdidVersion(^(NSString* latestVersion)
 		{
 			NSString* ldidVersionPath = [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"ldid.version"];
@@ -54,7 +54,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 				});
 			}
 		});
-	}
+	//}
 }
 
 - (NSMutableArray*)specifiers
@@ -113,8 +113,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 
 		[_specifiers addObject:rebuildIconCacheSpecifier];
 
-		if (@available(iOS 15, *)) { }
-		else {
+		//if (@available(iOS 15, *)) { } else {
 			NSString* ldidPath = [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"ldid"];
 			NSString* ldidVersionPath = [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"ldid.version"];
 			BOOL ldidInstalled = [[NSFileManager defaultManager] fileExistsAtPath:ldidPath];
@@ -189,7 +188,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 				installLdidSpecifier.buttonAction = @selector(installOrUpdateLdidPressed);
 				[_specifiers addObject:installLdidSpecifier];
 			}
-		}
+		//}
 
 		PSSpecifier* persistenceGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
 		persistenceGroupSpecifier.name = @"Persistence";
@@ -294,7 +293,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 		[_specifiers addObject:installAlertConfigurationSpecifier];
 
 		PSSpecifier* otherGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
-		[otherGroupSpecifier setProperty:[NSString stringWithFormat:@"TrollStore %@\n\n© 2022-2023 Lars Fröder (opa334)\n\nTrollStore is NOT for piracy!\n\nCredits:\nGoogle TAG, @alfiecg_dev: CoreTrust bug\n@lunotech11, @SerenaKit, @tylinux, @TheRealClarity: Various contributions\n@ProcursusTeam: uicache\n@cstar_ow: uicache", [self getTrollStoreVersion]] forKey:@"footerText"];
+		[otherGroupSpecifier setProperty:[NSString stringWithFormat:@"TrollStore %@\n\n© 2022-2023 Lars Fröder (opa334)\n\nTrollStore is NOT for piracy!\n\nCredits:\nGoogle TAG, @alfiecg_dev: CoreTrust bug\n@lunotech11, @SerenaKit, @tylinux, @TheRealClarity: Various contributions\n@ProcursusTeam: uicache, ldid\n@cstar_ow: uicache\n@saurik: ldid", [self getTrollStoreVersion]] forKey:@"footerText"];
 		[_specifiers addObject:otherGroupSpecifier];
 
 		PSSpecifier* advancedLinkSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Advanced"
