@@ -2,7 +2,7 @@
 
 **Supported Devices:** All devices
 
-**Supported Versions:** iOS 15.0 - 15.5b4
+**Supported Versions:** iOS 15.0 - 15.5b4, 15.6b1 - 15.6b5
 
 ## Guide
 
