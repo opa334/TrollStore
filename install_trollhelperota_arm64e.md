@@ -20,6 +20,6 @@
 
 7. You can now either delete the "GTA Car Tracker" app, or register it as the persistence helper by opening it and tapping the option at the bottom. If you do this, don't delete the app. 
 
-8. Open the TrollStore app and read the information under "Persistence", and install the Persistence Helper into a system app if you want persistence (not needed if you registered the GTA Car Tracker app as the persistence helper in step 7).
+8. Open the TrollStore app and press "Install ldid" in the Settings tab, then read the information under "Persistence", and install the Persistence Helper into a system app if you want persistence (not needed if you registered the GTA Car Tracker app as the persistence helper in step 7).
 
 9. Done, you can now share IPA files with TrollStore and they will be permanently installed on your device.

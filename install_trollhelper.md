@@ -14,7 +14,9 @@
 
 4. Wait a few seconds, your device should respring and TrollStore will be installed.
 
-5. Done, you can now share IPA files with TrollStore and they will be permanently installed on your device.
+5. Open the TrollStore app and press "Install ldid" in the Settings tab, then read the information under "Persistence", the TrollHelper app on the home screen will be your persistence helper.
+
+6. Done, you can now share IPA files with TrollStore and they will be permanently installed on your device.
 
 ## Unjailbreaking while retaining TrollStore
 

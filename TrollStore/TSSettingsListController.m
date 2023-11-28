@@ -33,6 +33,28 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 			});
 		}
 	});
+
+	if (@available(iOS 15, *)) {} else {
+		fetchLatestLdidVersion(^(NSString* latestVersion)
+		{
+			NSString* ldidVersionPath = [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"ldid.version"];
+			NSString* ldidVersion = nil;
+			NSData* ldidVersionData = [NSData dataWithContentsOfFile:ldidVersionPath];
+			if(ldidVersionData)
+			{
+				ldidVersion = [[NSString alloc] initWithData:ldidVersionData encoding:NSUTF8StringEncoding];
+			}
+			
+			if(![latestVersion isEqualToString:ldidVersion])
+			{
+				_newerLdidVersion = latestVersion;
+				dispatch_async(dispatch_get_main_queue(), ^
+				{
+					[self reloadSpecifiers];
+				});
+			}
+		});
+	}
 }
 
 - (NSMutableArray*)specifiers
@@ -90,6 +112,84 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 		rebuildIconCacheSpecifier.buttonAction = @selector(rebuildIconCachePressed);
 
 		[_specifiers addObject:rebuildIconCacheSpecifier];
+
+		if (@available(iOS 15, *)) { }
+		else {
+			NSString* ldidPath = [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"ldid"];
+			NSString* ldidVersionPath = [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"ldid.version"];
+			BOOL ldidInstalled = [[NSFileManager defaultManager] fileExistsAtPath:ldidPath];
+
+			NSString* ldidVersion = nil;
+			NSData* ldidVersionData = [NSData dataWithContentsOfFile:ldidVersionPath];
+			if(ldidVersionData)
+			{
+				ldidVersion = [[NSString alloc] initWithData:ldidVersionData encoding:NSUTF8StringEncoding];
+			}
+
+			PSSpecifier* signingGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
+			signingGroupSpecifier.name = @"Signing";
+
+			if(ldidInstalled)
+			{
+				[signingGroupSpecifier setProperty:@"ldid is installed and allows TrollStore to install unsigned IPA files." forKey:@"footerText"];
+			}
+			else
+			{
+				[signingGroupSpecifier setProperty:@"In order for TrollStore to be able to install unsigned IPAs, ldid has to be installed using this button. It can't be directly included in TrollStore because of licensing issues." forKey:@"footerText"];
+			}
+
+			[_specifiers addObject:signingGroupSpecifier];
+
+			if(ldidInstalled)
+			{
+				NSString* installedTitle = @"ldid: Installed";
+				if(ldidVersion)
+				{
+					installedTitle = [NSString stringWithFormat:@"%@ (%@)", installedTitle, ldidVersion];
+				}
+
+				PSSpecifier* ldidInstalledSpecifier = [PSSpecifier preferenceSpecifierNamed:installedTitle
+												target:self
+												set:nil
+												get:nil
+												detail:nil
+												cell:PSStaticTextCell
+												edit:nil];
+				[ldidInstalledSpecifier setProperty:@NO forKey:@"enabled"];
+				ldidInstalledSpecifier.identifier = @"ldidInstalled";
+				[_specifiers addObject:ldidInstalledSpecifier];
+
+				if(_newerLdidVersion && ![_newerLdidVersion isEqualToString:ldidVersion])
+				{
+					NSString* updateTitle = [NSString stringWithFormat:@"Update to %@", _newerLdidVersion];
+					PSSpecifier* ldidUpdateSpecifier = [PSSpecifier preferenceSpecifierNamed:updateTitle
+												target:self
+												set:nil
+												get:nil
+												detail:nil
+												cell:PSButtonCell
+												edit:nil];
+					ldidUpdateSpecifier.identifier = @"updateLdid";
+					[ldidUpdateSpecifier setProperty:@YES forKey:@"enabled"];
+					ldidUpdateSpecifier.buttonAction = @selector(installOrUpdateLdidPressed);
+					[_specifiers addObject:ldidUpdateSpecifier];
+				}
+			}
+			else
+			{
+				PSSpecifier* installLdidSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Install ldid"
+												target:self
+												set:nil
+												get:nil
+												detail:nil
+												cell:PSButtonCell
+												edit:nil];
+				installLdidSpecifier.identifier = @"installLdid";
+				[installLdidSpecifier setProperty:@YES forKey:@"enabled"];
+				installLdidSpecifier.buttonAction = @selector(installOrUpdateLdidPressed);
+				[_specifiers addObject:installLdidSpecifier];
+			}
+		}
 
 		PSSpecifier* persistenceGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
 		persistenceGroupSpecifier.name = @"Persistence";
@@ -263,6 +363,11 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 - (void)respringButtonPressed
 {
 	respring();
+}
+
+- (void)installOrUpdateLdidPressed
+{
+	[TSInstallationController installLdid];
 }
 
 - (void)installPersistenceHelperPressed

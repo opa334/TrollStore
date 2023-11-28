@@ -310,6 +310,11 @@ void fetchLatestTrollStoreVersion(void (^completionHandler)(NSString* latestVers
 	github_fetchLatestVersion(@"opa334/TrollStore", completionHandler);
 }
 
+void fetchLatestLdidVersion(void (^completionHandler)(NSString* latestVersion))
+{
+	github_fetchLatestVersion(@"opa334/ldid", completionHandler);
+}
+
 NSArray* trollStoreInstalledAppContainerPaths()
 {
 	NSMutableArray* appContainerPaths = [NSMutableArray new];
