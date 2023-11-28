@@ -849,16 +849,37 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 	__block NSMutableArray* accessibleContainers = [NSMutableArray new]; //array by design, should be ordered
 	if(!unrestrictedContainerAccess)
 	{
-		[self enumerateAllInfoDictionaries:^(NSString *key, NSObject *value, BOOL *stop) {
-			if([key isEqualToString:@"CFBundleIdentifier"])
+		__block NSString *dataContainer = nil;
+
+		// If com.apple.private.security.container-required Entitlement is a string, prefer it to CFBundleIdentifier
+		[self enumerateAllEntitlements:^(NSString *key, NSObject *value, BOOL *stop) {
+			if([key isEqualToString:@"com.apple.private.security.container-required"])
 			{
-				NSString* valueStr = (NSString*)value;
-				if([valueStr isKindOfClass:NSString.class])
+				NSString* valueString = (NSString*)value;
+				if(valueString && [valueString isKindOfClass:NSString.class])
 				{
-					[accessibleContainers addObject:valueStr];
+					dataContainer = valueString;
 				}
 			}
 		}];
+
+		// Else take CFBundleIdentifier
+		if (!dataContainer) {
+			[self enumerateAllInfoDictionaries:^(NSString *key, NSObject *value, BOOL *stop) {
+				if([key isEqualToString:@"CFBundleIdentifier"])
+				{
+					NSString* valueStr = (NSString*)value;
+					if([valueStr isKindOfClass:NSString.class])
+					{
+						dataContainer = valueStr;
+					}
+				}
+			}];
+		}
+
+		if (dataContainer) {
+			[accessibleContainers addObject:dataContainer];
+		}
 
 		[self enumerateAllEntitlements:^(NSString *key, NSObject *value, BOOL *stop)
 		{
