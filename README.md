@@ -4,6 +4,8 @@ TrollStore is a permasigned jailed app that can permanently install any IPA you 
 
 It works because of an AMFI/CoreTrust bug where iOS does not verify whether or not a root certificate used to sign a binary is legit.
 
+Supported versions: 15.0 - 16.6.1, 17.0
+
 ## Installing TrollStore
 
 For installing TrollStore, refer to the guides at [ios.cfw.guide](https://ios.cfw.guide/installing-trollstore)
