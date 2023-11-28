@@ -562,16 +562,27 @@ int signApp(NSString* appPath)
 		NSLog(@"[signApp] failed to get static code, can't derive entitlements from %@, continuing anways...", mainExecutablePath);
 	}*/
 
-	NSURL* fileURL;
-	NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
-	while(fileURL = [enumerator nextObject])
-	{
-		NSString *filePath = fileURL.path;
+	int (^signFile)(NSString *, NSDictionary *) = ^(NSString *filePath, NSDictionary *entitlements) {
 		NSLog(@"Checking %@", filePath);
 		FAT *fat = fat_init_from_path(filePath.fileSystemRepresentation);
 		if (fat) {
 			NSLog(@"%@ is binary", filePath);
-			// This is FAT or MachO, sign and apply CoreTrust bypass
+			fat_free(fat);
+
+			// First attempt ad hoc signing
+			int r = signAdhoc(filePath, entitlements);
+			if (r != 0) {
+				// If it doesn't work it's not a big deal, that usually happens when the binary had the bypass applied already (Don't ask me why)
+				NSLog(@"[%@] Adhoc signing failed with error code %d, continuing anyways...\n", filePath, r);
+			}
+			else {
+				NSLog(@"[%@] Adhoc signing worked!\n", filePath);
+			}
+
+			fat = fat_init_from_path(filePath.fileSystemRepresentation);
+			if (!fat) return 175; // This should never happen, if it does then everything is fucked
+
+			// Now apply CoreTrust bypass to best slice
 			MachO *machoForExtraction = fat_find_preferred_slice(fat);
 			if (machoForExtraction) {
 				NSString *tmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSUUID UUID].UUIDString];
@@ -584,34 +595,6 @@ int signApp(NSString* appPath)
 					// Now we have the single slice at tmpPath, which we will sign and apply the bypass, then copy over the original file
 
 					NSLog(@"[%@] Adhoc signing...", filePath);
-
-					NSDictionary *entitlementsToUse = nil;
-					if (isSameFile(filePath, mainExecutablePath)) {
-						// In the case where the main executable currently has no entitlements at all
-						// We want to ensure it gets signed with fallback entitlements
-						// These mimic the entitlements that Xcodes gives every app it signs
-						NSDictionary* mainExecutableEntitlements = dumpEntitlementsFromBinaryAtPath(filePath);
-						if (!mainExecutableEntitlements) {
-							entitlementsToUse = @{
-								@"application-identifier" : @"TROLLTROLL.*",
-								@"com.apple.developer.team-identifier" : @"TROLLTROLL",
-								@"get-task-allow" : (__bridge id)kCFBooleanTrue,
-								@"keychain-access-groups" : @[
-									@"TROLLTROLL.*",
-									@"com.apple.token"
-								],
-							};
-						}
-					}
-
-					// First attempt ad hoc signing
-					int r = signAdhoc(tmpPath, entitlementsToUse);
-					if (r != 0) {
-						NSLog(@"[%@] Adhoc signing failed with error code %d, continuing anyways...\n", filePath, r);
-					}
-					else {
-						NSLog(@"[%@] Adhoc signing worked!\n", filePath);
-					}
 
 					NSLog(@"[%@] Applying CoreTrust bypass...", filePath);
 					r = apply_coretrust_bypass(tmpPath.fileSystemRepresentation);
@@ -631,9 +614,39 @@ int signApp(NSString* appPath)
 			}
 			fat_free(fat);
 		}
+		return 0;
+	};
+
+	NSURL* fileURL;
+	NSDirectoryEnumerator *enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
+	while(fileURL = [enumerator nextObject])
+	{
+		NSString *filePath = fileURL.path;
+		if (isSameFile(filePath, mainExecutablePath)) {
+			// Skip main executable, we will sign it at the end
+			continue;
+		}
+		int r = signFile(filePath, nil);
+		if (r != 0) return r;
 	}
 
-	return 0;
+	// In the case where the main executable currently has no entitlements at all
+	// We want to ensure it gets signed with fallback entitlements
+	// These mimic the entitlements that Xcodes gives every app it signs
+	NSDictionary *entitlementsToUse = nil;
+	NSDictionary* mainExecutableEntitlements = dumpEntitlementsFromBinaryAtPath(mainExecutablePath);
+	if (!mainExecutableEntitlements) {
+		entitlementsToUse = @{
+			@"application-identifier" : @"TROLLTROLL.*",
+			@"com.apple.developer.team-identifier" : @"TROLLTROLL",
+			@"get-task-allow" : (__bridge id)kCFBooleanTrue,
+			@"keychain-access-groups" : @[
+				@"TROLLTROLL.*",
+				@"com.apple.token"
+			],
+		};
+	}
+	return signFile(mainExecutablePath, entitlementsToUse);
 }
 #endif
 
