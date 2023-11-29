@@ -36,6 +36,22 @@ typedef enum
 	PERSISTENCE_HELPER_TYPE_ALL = PERSISTENCE_HELPER_TYPE_USER | PERSISTENCE_HELPER_TYPE_SYSTEM
 } PERSISTENCE_HELPER_TYPE;
 
+// EXPLOIT_TYPE is defined as a bitmask as some devices are vulnerable to multiple exploits
+//
+// An app that has had one of these exploits applied ahead of time can declare which exploit
+// was used via the TSPreAppliedExploitType Info.plist key. The corresponding value should be
+// (number of bits to left-shift + 1).
+typedef enum
+{
+	// CVE-2022-26766
+    // TSPreAppliedExploitType = 1
+	EXPLOIT_TYPE_CUSTOM_ROOT_CERTIFICATE_V1 = 1 << 0,
+
+	// CVE-2023-41991
+    // TSPreAppliedExploitType = 2
+	EXPLOIT_TYPE_CMS_SIGNERINFO_V1 = 1 << 1
+} EXPLOIT_TYPE;
+
 extern LSApplicationProxy* findPersistenceHelperApp(PERSISTENCE_HELPER_TYPE allowedTypes);
 
 typedef struct __SecCode const *SecStaticCodeRef;
@@ -61,3 +77,6 @@ extern SecStaticCodeRef getStaticCodeRef(NSString *binaryPath);
 extern NSDictionary* dumpEntitlements(SecStaticCodeRef codeRef);
 extern NSDictionary* dumpEntitlementsFromBinaryAtPath(NSString *binaryPath);
 extern NSDictionary* dumpEntitlementsFromBinaryData(NSData* binaryData);
+
+extern EXPLOIT_TYPE getDeclaredExploitTypeFromInfoDictionary(NSDictionary *infoDict);
+extern bool isPlatformVulnerableToExploitType(EXPLOIT_TYPE exploitType);
