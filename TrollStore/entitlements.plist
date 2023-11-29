@@ -37,10 +37,7 @@
 	<true/>
 	<key>com.apple.CommCenter.fine-grained</key>
 	<array>
-		<string>cellular-plan</string>
-		<string>data-usage</string>
 		<string>data-allowed-write</string>
-		<string>preferences-write</string>
 	</array>
 	<key>com.apple.springboard.opensensitiveurl</key>
 	<true/>

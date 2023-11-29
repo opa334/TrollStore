@@ -6,10 +6,7 @@
 	<string>com.opa334.trollstorepersistencehelper</string>
 	<key>com.apple.CommCenter.fine-grained</key>
 	<array>
-		<string>cellular-plan</string>
-		<string>data-usage</string>
 		<string>data-allowed-write</string>
-		<string>preferences-write</string>
 	</array>
 	<key>com.apple.private.persona-mgmt</key>
 	<true/>
