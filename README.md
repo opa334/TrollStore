@@ -20,7 +20,7 @@ Alternatively (if anything goes wrong), you can download the TrollStore.tar file
 
 ## Uninstalling an app
 
-Apps installed from TrollStore can only be uninstalled from TrollStore itself, tap an app or swipe it to the right in the 'Apps' tab to delete it.
+Apps installed from TrollStore can only be uninstalled from TrollStore itself, tap an app or swipe it to the left in the 'Apps' tab to delete it.
 
 ## Persistence Helper
 
