@@ -7,10 +7,8 @@
 
 static EXPLOIT_TYPE gPlatformVulnerabilities;
 
-@interface PSAppDataUsagePolicyCache : NSObject
-+ (instancetype)sharedInstance;
-- (void)setUsagePoliciesForBundle:(NSString*)bundleId cellular:(BOOL)cellular wifi:(BOOL)wifi;
-@end
+void* _CTServerConnectionCreate(CFAllocatorRef, void *, void *);
+int64_t _CTServerConnectionSetCellularUsagePolicy(CFTypeRef* ct, NSString* identifier, NSDictionary* policies);
 
 #define POSIX_SPAWN_PERSONA_FLAGS_OVERRIDE 1
 extern int posix_spawnattr_set_persona_np(const posix_spawnattr_t* __restrict, uid_t, uint32_t);
@@ -19,14 +17,14 @@ extern int posix_spawnattr_set_persona_gid_np(const posix_spawnattr_t* __restric
 
 void chineseWifiFixup(void)
 {
-	NSBundle *bundle = [NSBundle bundleWithPath:@"/System/Library/PrivateFrameworks/SettingsCellular.framework"];
-	[bundle load];
-
-	PSAppDataUsagePolicyCache* policyCache = [NSClassFromString(@"PSAppDataUsagePolicyCache") sharedInstance];
-	if([policyCache respondsToSelector:@selector(setUsagePoliciesForBundle:cellular:wifi:)])
-	{
-		[policyCache setUsagePoliciesForBundle:NSBundle.mainBundle.bundleIdentifier cellular:true wifi:true];
-	}
+	_CTServerConnectionSetCellularUsagePolicy(
+		_CTServerConnectionCreate(kCFAllocatorDefault, NULL, NULL),
+		NSBundle.mainBundle.bundleIdentifier,
+		@{
+			@"kCTCellularDataUsagePolicy" : @"kCTCellularDataUsagePolicyAlwaysAllow",
+			@"kCTWiFiDataUsagePolicy" : @"kCTCellularDataUsagePolicyAlwaysAllow"
+		}
+	);
 }
 
 NSString *getExecutablePath(void)
