@@ -9,7 +9,7 @@ include $(THEOS)/makefiles/common.mk
 APPLICATION_NAME = TrollStore
 
 TrollStore_FILES = $(wildcard *.m) $(wildcard ../Shared/*.m)
-TrollStore_FRAMEWORKS = UIKit CoreGraphics CoreServices
+TrollStore_FRAMEWORKS = UIKit CoreGraphics CoreServices CoreTelephony
 TrollStore_PRIVATE_FRAMEWORKS = Preferences MobileIcons MobileContainerManager
 TrollStore_LIBRARIES = archive
 TrollStore_CFLAGS = -fobjc-arc -I../Shared
