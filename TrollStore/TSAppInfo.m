@@ -1022,8 +1022,8 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 				NSNumber* valueNum = (NSNumber*)value;
 				if(valueNum && [valueNum isKindOfClass:NSNumber.class])
 				{
-					hasPersonaMngmt = valueNum.boolValue;
-					if(hasPersonaMngmt) *stop = YES;
+					needsDevMode = valueNum.boolValue;
+					if(needsDevMode) *stop = YES;
 				}
 			}
 		}];
