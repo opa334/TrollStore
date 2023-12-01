@@ -20,9 +20,10 @@ extern xpc_object_t xpc_connection_send_message_with_reply_sync(xpc_connection_t
 extern xpc_object_t xpc_dictionary_get_value(xpc_object_t xdict, const char *key);
 
 typedef enum {
-    kAMFIActionArm = 0,
-    kAMFIActionDisable = 1,
-    kAMFIActionStatus = 2,
+    kAMFIActionArm = 0,     // Trigger a prompt asking the user to enable developer mode on the next reboot
+                            // (regardless of current state)
+    kAMFIActionDisable = 1, // Disable developer mode if it's currently enabled. Takes effect immediately.
+    kAMFIActionStatus = 2,  // Returns a dict: {success: bool, status: bool, armed: bool}
 } AMFIXPCAction;
 
 xpc_connection_t startConnection(void) {
