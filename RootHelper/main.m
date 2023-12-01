@@ -10,6 +10,7 @@
 #import <sys/utsname.h>
 #import <mach-o/loader.h>
 #import <mach-o/fat.h>
+#import "devmode.h"
 #ifndef EMBEDDED_ROOT_HELPER
 #import "codesign.h"
 #import "coretrust_bug.h"
@@ -564,6 +565,10 @@ int signApp(NSString* appPath)
 		}
 	}
 
+	// On iOS 16+, any binary with get-task-allow requires developer mode to be enabled, so we will check
+	// while we're at it
+	BOOL requiresDevMode = NO;
+
 	NSURL* fileURL;
 	NSDirectoryEnumerator *enumerator;
 
@@ -607,6 +612,14 @@ int signApp(NSString* appPath)
 			}
 
 			if (!entitlementsToUse) entitlementsToUse = [NSMutableDictionary new];
+
+			// Developer mode does not exist before iOS 16
+			if (@available(iOS 16, *)){
+				NSObject *getTaskAllowO = entitlementsToUse[@"get-task-allow"];
+				if (getTaskAllowO && [getTaskAllowO isKindOfClass:[NSNumber class]]) {
+					requiresDevMode |= [(NSNumber *)getTaskAllowO boolValue];
+				}
+			}
 
 			NSObject *containerRequiredO = entitlementsToUse[@"com.apple.private.security.container-required"];
 			BOOL containerRequired = YES;
@@ -679,6 +692,11 @@ int signApp(NSString* appPath)
 			}
 			fat_free(fat);
 		}
+	}
+
+	if (requiresDevMode) {
+		// Postpone trying to enable dev mode until after the app is (successfully) installed
+		return 180;
 	}
 
 	return 0;
@@ -764,10 +782,19 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 		applyPatchesToInfoDictionary(appBundleToInstallPath);
 	}
 
+	BOOL requiresDevMode = NO;
+
 	if(sign)
 	{
 		int signRet = signApp(appBundleToInstallPath);
-		if(signRet != 0) return signRet;
+		// 180: app requires developer mode; non-fatal
+		if(signRet != 0) {
+			if (signRet == 180) {
+				requiresDevMode = YES;
+			} else {
+				return signRet;
+			}
+		};
 	}
 
 	MCMAppContainer* appContainer = [MCMAppContainer containerWithIdentifier:appId createIfNecessary:NO existed:nil error:nil];
@@ -910,6 +937,23 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 	NSURL* updatedAppURL = findAppURLInBundleURL(appContainer.url);
 	fixPermissionsOfAppBundle(updatedAppURL.path);
 	registerPath(updatedAppURL.path, 0, YES);
+
+	// Handle developer mode after installing and registering the app, to ensure that we
+	// don't arm developer mode but then fail to install the app
+	if (requiresDevMode) {
+		BOOL alreadyEnabled = NO;
+		if (armDeveloperMode(&alreadyEnabled)) {
+			if (!alreadyEnabled) {
+				NSLog(@"[installApp] app requires developer mode and we have successfully armed it");
+				// non-fatal
+				return 180;
+			}
+		} else {
+			NSLog(@"[installApp] failed to arm developer mode");
+			// fatal
+			return 181;
+		}
+	}
 	return 0;
 }
 
@@ -1459,6 +1503,15 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 			{
 				setTSURLSchemeState(newState, nil);
 			}
+		}
+		else if([cmd isEqualToString:@"check-dev-mode"])
+		{
+			ret = checkDeveloperMode();
+		}
+		else if([cmd isEqualToString:@"arm-dev-mode"])
+		{
+			// assumes that checkDeveloperMode() has already been called
+			ret = armDeveloperMode(NULL);
 		}
 
 		NSLog(@"trollstorehelper returning %d", ret);

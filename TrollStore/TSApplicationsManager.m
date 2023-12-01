@@ -74,6 +74,12 @@ extern NSUserDefaults* trollStoreUserDefaults();
         case 179:
         errorDescription = @"The app you tried to install has the same identifier as a system app already installed on the device. The installation has been prevented to protect you from possible bootloops or other issues.";
         break;
+        case 180:
+        errorDescription = @"The app was installed successfully, but requires developer mode to be enabled to run.";
+        break;
+        case 181:
+        errorDescription = @"Failed to enable developer mode.";
+        break;
     }
 
     NSError* error = [NSError errorWithDomain:TrollStoreErrorDomain code:code userInfo:@{NSLocalizedDescriptionKey : errorDescription}];
