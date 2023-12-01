@@ -114,7 +114,7 @@ Afterwards you can use the [spawnRoot function in TSUtil.m](./Shared/TSUtil.m#L7
 
 Google Threat Analysis Group - Found the CoreTrust bug as part of an in-the-wild spyware chain and reported it to Apple.
 
-[@LinusHenze](https://twitter.com/LinusHenze) - Found the installd bypass used to install TrollStore on iOS 14-15.4.1 via TrollHelperOTA, as well as the original CoreTrust bug used in TrollStore 1.0.
+[@LinusHenze](https://twitter.com/LinusHenze) - Found the installd bypass used to install TrollStore on iOS 14-15.6.1 via TrollHelperOTA, as well as the original CoreTrust bug used in TrollStore 1.0.
 
 [Fugu15 Presentation](https://youtu.be/rPTifU1lG7Q)
 
