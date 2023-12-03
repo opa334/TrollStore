@@ -565,8 +565,8 @@ int signApp(NSString* appPath)
 		}
 	}
 
-	// On iOS 16+, any binary with get-task-allow requires developer mode to be enabled, so we will check
-	// while we're at it
+	// On iOS 16+, binaries with certain entitlements requires developer mode to be enabled, so we'll check
+	// while we're fixing entitlements
 	BOOL requiresDevMode = NO;
 
 	NSURL* fileURL;
@@ -615,9 +615,21 @@ int signApp(NSString* appPath)
 
 			// Developer mode does not exist before iOS 16
 			if (@available(iOS 16, *)){
-				NSObject *getTaskAllowO = entitlementsToUse[@"get-task-allow"];
-				if (getTaskAllowO && [getTaskAllowO isKindOfClass:[NSNumber class]]) {
-					requiresDevMode |= [(NSNumber *)getTaskAllowO boolValue];
+				if (!requiresDevMode) {
+					for (NSString* restrictedEntitlementKey in @[
+						@"get-task-allow", 
+						@"task_for_pid-allow", 
+						@"com.apple.system-task-ports",
+						@"com.apple.system-task-ports.control",
+						@"com.apple.system-task-ports.token.control",
+						@"com.apple.private.cs.debugger"
+					]) {
+						NSObject *restrictedEntitlement = entitlementsToUse[restrictedEntitlementKey];
+						if (restrictedEntitlement && [restrictedEntitlement isKindOfClass:[NSNumber class]]) {
+							requiresDevMode |= [(NSNumber *)restrictedEntitlement boolValue];
+							break;
+						}
+					}
 				}
 			}
 
