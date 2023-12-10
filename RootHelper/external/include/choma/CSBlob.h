@@ -12,63 +12,74 @@
 
 // Blob index
 typedef struct __BlobIndex {
-	uint32_t type;
-	uint32_t offset;
+    uint32_t type;
+    uint32_t offset;
 } CS_BlobIndex;
 
 // CMS superblob
 typedef struct __SuperBlob {
-	uint32_t magic;
-	uint32_t length;
-	uint32_t count;
-	CS_BlobIndex index[];
+    uint32_t magic;
+    uint32_t length;
+    uint32_t count;
+    CS_BlobIndex index[];
 } CS_SuperBlob;
 
 typedef struct __GenericBlob {
-	uint32_t magic;					/* magic number */
-	uint32_t length;				/* total length of blob */
-	char data[];
+    uint32_t magic;					/* magic number */
+    uint32_t length;				/* total length of blob */
+    char data[];
 } CS_GenericBlob;
 
 // CMS blob magic types
 enum {
-    CSBLOB_REQUIREMENT = 0xfade0c00,
-    CSBLOB_REQUIREMENTS = 0xfade0c01,
-    CSBLOB_CODEDIRECTORY = 0xfade0c02,
-    CSBLOB_EMBEDDED_SIGNATURE = 0xfade0cc0,
-    CSBLOB_DETACHED_SIGNATURE = 0xfade0cc1,
-    CSBLOB_ENTITLEMENTS = 0xfade7171,
-    CSBLOB_DER_ENTITLEMENTS = 0xfade7172,
-    CSBLOB_SIGNATURE_BLOB = 0xfade0b01
-} CS_BlobType;
+    CSMAGIC_REQUIREMENT = 0xfade0c00,
+    CSMAGIC_REQUIREMENTS = 0xfade0c01,
+    CSMAGIC_CODEDIRECTORY = 0xfade0c02,
+    CSMAGIC_EMBEDDED_SIGNATURE = 0xfade0cc0,
+    CSMAGIC_EMBEDDED_SIGNATURE_OLD = 0xfade0b02,
+    CSMAGIC_EMBEDDED_ENTITLEMENTS = 0xfade7171,
+    CSMAGIC_EMBEDDED_DER_ENTITLEMENTS = 0xfade7172,
+    CSMAGIC_DETACHED_SIGNATURE = 0xfade0cc1,
+    CSMAGIC_BLOBWRAPPER = 0xfade0b01,
+    CSMAGIC_EMBEDDED_LAUNCH_CONSTRAINT = 0xfade8181,
+} CS_BlobMagic;
 
 enum {
     CSSLOT_CODEDIRECTORY = 0,
-	CSSLOT_INFOSLOT = 1,
-	CSSLOT_REQUIREMENTS = 2,
-	CSSLOT_RESOURCEDIR = 3,
-	CSSLOT_APPLICATION = 4,
-	CSSLOT_ENTITLEMENTS = 5,
+    CSSLOT_INFOSLOT = 1,
+    CSSLOT_REQUIREMENTS = 2,
+    CSSLOT_RESOURCEDIR = 3,
+    CSSLOT_APPLICATION = 4,
+    CSSLOT_ENTITLEMENTS = 5,
     CSSLOT_DER_ENTITLEMENTS = 7,
-    CSSLOT_ALTERNATE_CODEDIRECTORIES = 0x1000,
-	CSSLOT_ALTERNATE_CODEDIRECTORY_MAX = 5,
-	CSSLOT_ALTERNATE_CODEDIRECTORY_LIMIT = CSSLOT_ALTERNATE_CODEDIRECTORIES + CSSLOT_ALTERNATE_CODEDIRECTORY_MAX,
-    CSSLOT_SIGNATURESLOT = 0x10000
+    CSSLOT_LAUNCH_CONSTRAINT_SELF = 8,
+    CSSLOT_LAUNCH_CONSTRAINT_PARENT = 9,
+    CSSLOT_LAUNCH_CONSTRAINT_RESPONSIBLE = 10,
+    CSSLOT_LIBRARY_CONSTRAINT = 11,
+
+    CSSLOT_ALTERNATE_CODEDIRECTORIES = 0x1000, /* first alternate CodeDirectory, if any */
+    CSSLOT_ALTERNATE_CODEDIRECTORY_MAX = 5,         /* max number of alternate CD slots */
+    CSSLOT_ALTERNATE_CODEDIRECTORY_LIMIT = CSSLOT_ALTERNATE_CODEDIRECTORIES + CSSLOT_ALTERNATE_CODEDIRECTORY_MAX, /* one past the last */
+
+    CSSLOT_SIGNATURESLOT = 0x10000,
+    CSSLOT_IDENTIFICATIONSLOT = 0x10001,
+    CSSLOT_TICKETSLOT = 0x10002,
 } CS_SlotType;
 
 typedef struct s_CS_DecodedBlob {
-	struct s_CS_DecodedBlob *next;
-	uint32_t type;
-	MemoryStream *stream;
+    struct s_CS_DecodedBlob *next;
+    uint32_t type;
+    MemoryStream *stream;
 } CS_DecodedBlob;
 
 typedef struct s_CS_DecodedSuperBlob {
-	uint32_t magic;
-	struct s_CS_DecodedBlob *firstBlob;
+    uint32_t magic;
+    struct s_CS_DecodedBlob *firstBlob;
 } CS_DecodedSuperBlob;
 
 // Convert blob magic to readable blob type string
-char *cs_blob_magic_to_string(int magic);
+const char *cs_blob_magic_to_string(uint32_t magic);
+const char *cs_slot_type_to_string(uint32_t slotType);
 
 // Extract Code Signature to file
 int macho_extract_cs_to_file(MachO *macho, CS_SuperBlob *superblob);

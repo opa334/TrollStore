@@ -6,6 +6,7 @@
 #define METRIC_TYPE_FUNCTION_XREF 3
 
 typedef struct PFSection {
+	MachO *macho;
 	uint64_t fileoff;
 	uint64_t vmaddr;
 	uint64_t size;
@@ -13,13 +14,16 @@ typedef struct PFSection {
 	bool ownsCache;
 } PFSection;
 
-PFSection *macho_patchfinder_create_section(MachO *macho, const char *filesetEntryId, const char *segName, const char *sectName);
-int macho_patchfinder_cache_section(PFSection *section, MachO *fromMacho);
-void macho_patchfinder_section_free(PFSection *section);
+PFSection *pf_section_init_from_macho(MachO *macho, const char *filesetEntryId, const char *segName, const char *sectName);
+int pf_section_read_at_relative_offset(PFSection *section, uint64_t rel, size_t size, void *outBuf);
+int pf_section_read_at_address(PFSection *section, uint64_t vmaddr, void *outBuf, size_t size);
+uint32_t pf_section_read32(PFSection *section, uint64_t vmaddr);
+int pf_section_set_cached(PFSection *section, bool cached);
+void pf_section_free(PFSection *section);
+
 
 typedef struct MetricShared {
 	uint32_t type;
-	PFSection *section;
 } MetricShared;
 
 
@@ -39,6 +43,5 @@ typedef struct BytePatternMetric {
 	BytePatternAlignment alignment;
 } BytePatternMetric;
 
-BytePatternMetric *macho_patchfinder_create_byte_pattern_metric(PFSection *section, void *bytes, void *mask, size_t nbytes, BytePatternAlignment alignment);
-
-void macho_patchfinder_run_metric(MachO *macho, void *metric, void (^matchBlock)(uint64_t vmaddr, bool *stop));
+BytePatternMetric *pf_create_byte_pattern_metric(void *bytes, void *mask, size_t nbytes, BytePatternAlignment alignment);
+void pf_section_run_metric(PFSection *section, void *metric, void (^matchBlock)(uint64_t vmaddr, bool *stop));

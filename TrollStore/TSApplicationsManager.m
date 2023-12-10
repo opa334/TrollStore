@@ -74,6 +74,9 @@ extern NSUserDefaults* trollStoreUserDefaults();
         case 179:
         errorDescription = @"The app you tried to install has the same identifier as a system app already installed on the device. The installation has been prevented to protect you from possible bootloops or other issues.";
         break;
+        case 180:
+        errorDescription = @"The app you tried to install contains encrypted binaries, which cannot have the CoreTrust bypass applied to them. Please ensure you install decrypted apps.";
+        break;
     }
 
     NSError* error = [NSError errorWithDomain:TrollStoreErrorDomain code:code userInfo:@{NSLocalizedDescriptionKey : errorDescription}];

@@ -30,10 +30,15 @@ FAT *fat_init_from_memory_stream(MemoryStream *stream);
 
 // Initialise a FAT structure using the path to the file
 FAT *fat_init_from_path(const char *filePath);
-//FAT *fat_init_from_path_for_writing(const char *filePath);
 
 // Find macho with cputype and cpusubtype in FAT, returns NULL if not found
 MachO *fat_find_slice(FAT *fat, cpu_type_t cputype, cpu_subtype_t cpusubtype);
+
+// Create a FAT structure from an array of MachO structures
+FAT *fat_create_for_macho_array(char *firstInputPath, MachO **machoArray, int machoArrayCount);
+
+// Add a MachO to the FAT structure
+int fat_add_macho(FAT *fat, MachO *macho);
 
 // Free all elements of the FAT structure
 void fat_free(FAT *fat);

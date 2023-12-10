@@ -666,6 +666,11 @@ int signApp(NSString* appPath)
 					if (r == 0) {
 						NSLog(@"[%@] Applied CoreTrust bypass!", filePath);
 					}
+					if (r == 2) {
+						NSLog(@"[%@] Cannot apply CoreTrust bypass on an encrypted binary!", filePath);
+						fat_free(fat);
+						return 180;
+					}
 					else {
 						NSLog(@"[%@] CoreTrust bypass failed!!! :(", filePath);
 						fat_free(fat);
@@ -740,6 +745,7 @@ void applyPatchesToInfoDictionary(NSString* appPath)
 // 172: no info.plist found in app
 // 173: app is not signed and cannot be signed because ldid not installed or didn't work
 // 174: 
+// 180: tried to sign encrypted binary
 int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate, BOOL useInstalldMethod)
 {
 	NSLog(@"[installApp force = %d]", force);
@@ -1014,6 +1020,7 @@ int uninstallAppById(NSString* appId, BOOL useCustomMethod)
 
 // 166: IPA does not exist or is not accessible
 // 167: IPA does not appear to contain an app
+// 180: IPA contains an encrypted binary
 int installIpa(NSString* ipaPath, BOOL force, BOOL useInstalldMethod)
 {
 	cleanRestrictions();
