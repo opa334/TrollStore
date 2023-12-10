@@ -666,7 +666,7 @@ int signApp(NSString* appPath)
 					if (r == 0) {
 						NSLog(@"[%@] Applied CoreTrust bypass!", filePath);
 					}
-					if (r == 2) {
+					else if (r == 2) {
 						NSLog(@"[%@] Cannot apply CoreTrust bypass on an encrypted binary!", filePath);
 						fat_free(fat);
 						return 180;
