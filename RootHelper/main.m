@@ -915,7 +915,10 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 	// Also permissions need to be fixed
 	NSURL* updatedAppURL = findAppURLInBundleURL(appContainer.url);
 	fixPermissionsOfAppBundle(updatedAppURL.path);
-	registerPath(updatedAppURL.path, 0, YES);
+	if (!registerPath(updatedAppURL.path, 0, YES)) {
+		[[NSFileManager defaultManager] removeItemAtURL:appContainer.url error:nil];
+		return 181;
+	}
 	return 0;
 }
 

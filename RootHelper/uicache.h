@@ -1,1 +1,1 @@
-extern void registerPath(NSString* path, BOOL unregister, BOOL system);
+extern bool registerPath(NSString *path, BOOL unregister, BOOL forceSystem);
