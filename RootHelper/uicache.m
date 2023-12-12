@@ -236,6 +236,11 @@ bool registerPath(NSString *path, BOOL unregister, BOOL forceSystem) {
 
 		if (![workspace registerApplicationDictionary:dictToRegister]) {
 			NSLog(@"Error: Unable to register %@", path);
+			NSLog(@"Used dictionary: {");
+			[dictToRegister enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSObject *obj, BOOL *stop) {
+				NSLog(@"%@ = %@", key, obj);
+			}];
+			NSLog(@"}");
 			return false;
 		}
 	} else {
