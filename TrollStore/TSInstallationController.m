@@ -63,6 +63,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 						UIAlertAction* rebootAction = [UIAlertAction actionWithTitle:@"Reboot Now" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
 						{
 							if(completionBlock) completionBlock(YES, nil);
+							spawnRoot(rootHelperPath(), @[@"reboot"], nil, nil);
 						}];
 						[rebootNotification addAction:rebootAction];
 

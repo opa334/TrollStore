@@ -75,7 +75,7 @@ extern NSUserDefaults* trollStoreUserDefaults();
         errorDescription = @"The app you tried to install has the same identifier as a system app already installed on the device. The installation has been prevented to protect you from possible bootloops or other issues.";
         break;
         case 180:
-        errorDescription = @"The app was installed successfully, but requires developer mode to be enabled to run.";
+        errorDescription = @"The app was installed successfully, but requires developer mode to be enabled to run. After rebooting, select \"Turn On\" to enable developer mode.";
         break;
         case 181:
         errorDescription = @"Failed to enable developer mode.";
