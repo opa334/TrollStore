@@ -625,9 +625,8 @@ int signApp(NSString* appPath)
 						@"com.apple.private.cs.debugger"
 					]) {
 						NSObject *restrictedEntitlement = entitlementsToUse[restrictedEntitlementKey];
-						if (restrictedEntitlement && [restrictedEntitlement isKindOfClass:[NSNumber class]]) {
-							requiresDevMode |= [(NSNumber *)restrictedEntitlement boolValue];
-							break;
+						if (restrictedEntitlement && [restrictedEntitlement isKindOfClass:[NSNumber class]] && [(NSNumber *)restrictedEntitlement boolValue]) {
+							requiresDevMode = YES;
 						}
 					}
 				}
