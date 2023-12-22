@@ -1012,23 +1012,6 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 		}
 	}];
 
-	// Check if any bundles have get-task-allow, which require dev mode enabled on 16+
-	__block BOOL needsDevMode = NO;
-	if (@available(iOS 16.0, *)) {
-		[self enumerateAllEntitlements:^(NSString *key, NSObject *value, BOOL *stop)
-		{
-			if([key isEqualToString:@"get-task-allow"])
-			{
-				NSNumber* valueNum = (NSNumber*)value;
-				if(valueNum && [valueNum isKindOfClass:NSNumber.class])
-				{
-					needsDevMode = valueNum.boolValue;
-					if(needsDevMode) *stop = YES;
-				}
-			}
-		}];
-	}
-
 	NSMutableParagraphStyle* leftAlignment = [[NSMutableParagraphStyle alloc] init];
 	leftAlignment.alignment = NSTextAlignmentLeft;
 
@@ -1085,8 +1068,6 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 	[description appendAttributedString:[[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"\nBundle Identifier: %@", bundleId] attributes:bodyAttributes]];
 	[description appendAttributedString:[[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"\nVersion: %@", version] attributes:bodyAttributes]];
 	[description appendAttributedString:[[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"\nSize: %@", sizeString] attributes:bodyAttributes]];
-	[description appendAttributedString:[[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"\nRequires Developer Mode: %@", needsDevMode ? @"Yes" : @"No"] attributes:bodyAttributes]];
-	
 	[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n\nSandboxing" attributes:headerAttributes]];
 	if(isUnsandboxed)
 	{
