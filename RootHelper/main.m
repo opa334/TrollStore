@@ -1517,12 +1517,13 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 		}
 		else if([cmd isEqualToString:@"check-dev-mode"])
 		{
-			ret = checkDeveloperMode();
+			// switch the result, so 0 is enabled, and 1 is disabled/error
+			ret = !checkDeveloperMode();
 		}
 		else if([cmd isEqualToString:@"arm-dev-mode"])
 		{
 			// assumes that checkDeveloperMode() has already been called
-			ret = armDeveloperMode(NULL);
+			ret = !armDeveloperMode(NULL);
 		}
 
 		NSLog(@"trollstorehelper returning %d", ret);
