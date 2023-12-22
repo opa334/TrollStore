@@ -50,6 +50,8 @@ typedef CFDictionaryRef (*_CFPreferencesCopyMultipleWithContainerType)(CFArrayRe
 
 BOOL _installPersistenceHelper(LSApplicationProxy* appProxy, NSString* sourcePersistenceHelper, NSString* sourceRootHelper);
 
+extern int reboot3(uint64_t flags, ...);
+
 NSArray<LSApplicationProxy*>* applicationsWithGroupId(NSString* groupId)
 {
 	LSEnumerator* enumerator = [LSEnumerator enumeratorForApplicationProxiesWithOptions:0];
@@ -1524,6 +1526,11 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 		{
 			// assumes that checkDeveloperMode() has already been called
 			ret = !armDeveloperMode(NULL);
+		}
+		else if([cmd isEqualToString:@"reboot"])
+		{
+			sync();
+			ret = reboot3(0); // do a normal reboot
 		}
 
 		NSLog(@"trollstorehelper returning %d", ret);
