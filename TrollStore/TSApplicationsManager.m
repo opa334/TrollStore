@@ -80,6 +80,12 @@ extern NSUserDefaults* trollStoreUserDefaults();
         case 181:
         errorDescription = @"Failed to add app to icon cache.";
         break;
+        case 182:
+        errorDescription = @"The app was installed successfully, but requires developer mode to be enabled to run. After rebooting, select \"Turn On\" to enable developer mode.";
+        break;
+        case 183:
+        errorDescription = @"Failed to enable developer mode.";
+        break;
     }
 
     NSError* error = [NSError errorWithDomain:TrollStoreErrorDomain code:code userInfo:@{NSLocalizedDescriptionKey : errorDescription}];

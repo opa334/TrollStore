@@ -32,42 +32,58 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 			{
 				[TSPresentationDelegate stopActivityWithCompletion:^
 				{
-					if(ret != 0)
-					{
+					if (ret == 0) {
+						// success
+						if(completionBlock) completionBlock(YES, nil);
+					} else if (ret == 171) {
+						// recoverable error
 						UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Install Error %d", ret] message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
 						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
 						{
-							if(ret == 171)
-							{
-								if(completionBlock) completionBlock(NO, error);
-							}
+							if(completionBlock) completionBlock(NO, error);
 						}];
 						[errorAlert addAction:closeAction];
 
-						if(ret == 171)
+						UIAlertAction* forceInstallAction = [UIAlertAction actionWithTitle:@"Force Installation" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
 						{
-							UIAlertAction* forceInstallAction = [UIAlertAction actionWithTitle:@"Force Installation" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
-							{
-								[self handleAppInstallFromFile:pathToIPA forceInstall:YES completion:completionBlock];
-							}];
-							[errorAlert addAction:forceInstallAction];
-						}
-						else
-						{
-							UIAlertAction* copyLogAction = [UIAlertAction actionWithTitle:@"Copy Debug Log" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
-							{
-								UIPasteboard* pasteboard = [UIPasteboard generalPasteboard];
-								pasteboard.string = log;
-							}];
-							[errorAlert addAction:copyLogAction];
-						}
+							[self handleAppInstallFromFile:pathToIPA forceInstall:YES completion:completionBlock];
+						}];
+						[errorAlert addAction:forceInstallAction];
 
 						[TSPresentationDelegate presentViewController:errorAlert animated:YES completion:nil];
-					}
+					} else if (ret == 182) {
+						// non-fatal informative message
+						UIAlertController* rebootNotification = [UIAlertController alertControllerWithTitle:@"Reboot Required" message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
+						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action)
+						{
+							if(completionBlock) completionBlock(YES, nil);
+						}];
+						[rebootNotification addAction:closeAction];
 
-					if(ret != 171)
-					{
-						if(completionBlock) completionBlock((BOOL)error, error);
+						UIAlertAction* rebootAction = [UIAlertAction actionWithTitle:@"Reboot Now" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+						{
+							if(completionBlock) completionBlock(YES, nil);
+							spawnRoot(rootHelperPath(), @[@"reboot"], nil, nil);
+						}];
+						[rebootNotification addAction:rebootAction];
+
+						[TSPresentationDelegate presentViewController:rebootNotification animated:YES completion:nil];
+					} else {
+						// unrecoverable error
+						UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Install Error %d", ret] message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
+						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
+						[errorAlert addAction:closeAction];
+
+						UIAlertAction* copyLogAction = [UIAlertAction actionWithTitle:@"Copy Debug Log" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+						{
+							UIPasteboard* pasteboard = [UIPasteboard generalPasteboard];
+							pasteboard.string = log;
+						}];
+						[errorAlert addAction:copyLogAction];
+
+						[TSPresentationDelegate presentViewController:errorAlert animated:YES completion:nil];
+
+						if(completionBlock) completionBlock(NO, error);
 					}
 				}];
 			});

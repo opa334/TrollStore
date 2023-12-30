@@ -55,6 +55,16 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 			}
 		});
 	//}
+
+	if (@available(iOS 16, *))
+	{
+		_devModeEnabled = spawnRoot(rootHelperPath(), @[@"check-dev-mode"], nil, nil) == 0;
+	}
+	else
+	{
+		_devModeEnabled = YES;
+	}
+	[self reloadSpecifiers];
 }
 
 - (NSMutableArray*)specifiers
@@ -80,6 +90,26 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 			[updateTrollStoreSpecifier setProperty:@YES forKey:@"enabled"];
 			updateTrollStoreSpecifier.buttonAction = @selector(updateTrollStorePressed);
 			[_specifiers addObject:updateTrollStoreSpecifier];
+		}
+
+		if(!_devModeEnabled)
+		{
+			PSSpecifier* enableDevModeGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
+			enableDevModeGroupSpecifier.name = @"Developer Mode";
+			[enableDevModeGroupSpecifier setProperty:@"Some apps require developer mode enabled to launch. This requires a reboot to take effect." forKey:@"footerText"];
+			[_specifiers addObject:enableDevModeGroupSpecifier];
+
+			PSSpecifier* enableDevModeSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Enable Developer Mode"
+										target:self
+										set:nil
+										get:nil
+										detail:nil
+										cell:PSButtonCell
+										edit:nil];
+			enableDevModeSpecifier.identifier = @"enableDevMode";
+			[enableDevModeSpecifier setProperty:@YES forKey:@"enabled"];
+			enableDevModeSpecifier.buttonAction = @selector(enableDevModePressed);
+			[_specifiers addObject:enableDevModeSpecifier];
 		}
 
 		PSSpecifier* utilitiesGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
@@ -367,6 +397,37 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 - (void)installOrUpdateLdidPressed
 {
 	[TSInstallationController installLdid];
+}
+
+- (void)enableDevModePressed
+{
+	int ret = spawnRoot(rootHelperPath(), @[@"arm-dev-mode"], nil, nil);
+
+	if (ret == 0) {
+		UIAlertController* rebootNotification = [UIAlertController alertControllerWithTitle:@"Reboot Required"
+			message:@"After rebooting, select \"Turn On\" to enable developer mode."
+			preferredStyle:UIAlertControllerStyleAlert
+		];
+		UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action)
+		{
+			[self reloadSpecifiers];
+		}];
+		[rebootNotification addAction:closeAction];
+
+		UIAlertAction* rebootAction = [UIAlertAction actionWithTitle:@"Reboot Now" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+		{
+			spawnRoot(rootHelperPath(), @[@"reboot"], nil, nil);
+		}];
+		[rebootNotification addAction:rebootAction];
+
+		[TSPresentationDelegate presentViewController:rebootNotification animated:YES completion:nil];
+	} else {
+		UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Error %d", ret] message:@"Failed to enable developer mode." preferredStyle:UIAlertControllerStyleAlert];
+		UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
+		[errorAlert addAction:closeAction];
+
+		[TSPresentationDelegate presentViewController:errorAlert animated:YES completion:nil];
+	}
 }
 
 - (void)installPersistenceHelperPressed

@@ -44,5 +44,9 @@
 		<string>Uninstall</string>
 		<string>UpdatePlaceholderMetadata</string>
 	</array>
+    <key>com.apple.private.amfi.developer-mode-control</key>
+    <true/>
+    <key>com.apple.frontboard.shutdown</key>
+    <true/>
 </dict>
 </plist>
