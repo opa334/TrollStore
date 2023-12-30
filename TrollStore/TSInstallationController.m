@@ -54,7 +54,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 					} else if (ret == 182) {
 						// non-fatal informative message
 						UIAlertController* rebootNotification = [UIAlertController alertControllerWithTitle:@"Reboot Required" message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
-						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action)
 						{
 							if(completionBlock) completionBlock(YES, nil);
 						}];
