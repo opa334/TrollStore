@@ -34,7 +34,7 @@ ifeq ($(EMBEDDED_ROOT_HELPER),1)
 TrollStorePersistenceHelper_CFLAGS += -DEMBEDDED_ROOT_HELPER=1
 TrollStorePersistenceHelper_FILES += $(wildcard ../RootHelper/*.m)
 TrollStorePersistenceHelper_LIBRARIES += archive
-TrollStorePersistenceHelper_PRIVATE_FRAMEWORKS += SpringBoardServices BackBoardServices
+TrollStorePersistenceHelper_PRIVATE_FRAMEWORKS += SpringBoardServices BackBoardServices FrontBoardServices
 endif
 
 include $(THEOS_MAKE_PATH)/application.mk
