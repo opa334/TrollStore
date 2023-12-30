@@ -64,6 +64,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 	{
 		_devModeEnabled = YES;
 	}
+	[self reloadSpecifiers];
 }
 
 - (NSMutableArray*)specifiers
