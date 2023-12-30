@@ -57,6 +57,12 @@ MachO *macho_init(MemoryStream *stream, struct fat_arch_64 archDescriptor);
 // Initialize a single slice macho for writing to it
 MachO *macho_init_for_writing(const char *filePath);
 
+// Create an array of MachO objects from an array of paths
+MachO **macho_array_create_for_paths(char **inputPaths, int inputPathsCount);
+
+// Check if a MachO is encrypted
+bool macho_is_encrypted(MachO *macho);
+
 void macho_free(MachO *macho);
 
 #endif // MACHO_SLICE_H

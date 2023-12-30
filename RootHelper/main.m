@@ -691,6 +691,11 @@ int signApp(NSString* appPath)
 					if (r == 0) {
 						NSLog(@"[%@] Applied CoreTrust bypass!", filePath);
 					}
+					else if (r == 2) {
+						NSLog(@"[%@] Cannot apply CoreTrust bypass on an encrypted binary!", filePath);
+						fat_free(fat);
+						return 180;
+					}
 					else {
 						NSLog(@"[%@] CoreTrust bypass failed!!! :(", filePath);
 						fat_free(fat);
@@ -708,7 +713,7 @@ int signApp(NSString* appPath)
 
 	if (requiresDevMode) {
 		// Postpone trying to enable dev mode until after the app is (successfully) installed
-		return 180;
+		return 182;
 	}
 
 	return 0;
@@ -770,6 +775,7 @@ void applyPatchesToInfoDictionary(NSString* appPath)
 // 172: no info.plist found in app
 // 173: app is not signed and cannot be signed because ldid not installed or didn't work
 // 174: 
+// 180: tried to sign encrypted binary
 int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate, BOOL useInstalldMethod)
 {
 	NSLog(@"[installApp force = %d]", force);
@@ -799,9 +805,9 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 	if(sign)
 	{
 		int signRet = signApp(appBundleToInstallPath);
-		// 180: app requires developer mode; non-fatal
+		// 182: app requires developer mode; non-fatal
 		if(signRet != 0) {
-			if (signRet == 180) {
+			if (signRet == 182) {
 				requiresDevMode = YES;
 			} else {
 				return signRet;
@@ -948,7 +954,10 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 	// Also permissions need to be fixed
 	NSURL* updatedAppURL = findAppURLInBundleURL(appContainer.url);
 	fixPermissionsOfAppBundle(updatedAppURL.path);
-	registerPath(updatedAppURL.path, 0, YES);
+	if (!registerPath(updatedAppURL.path, 0, YES)) {
+		[[NSFileManager defaultManager] removeItemAtURL:appContainer.url error:nil];
+		return 181;
+	}
 
 	// Handle developer mode after installing and registering the app, to ensure that we
 	// don't arm developer mode but then fail to install the app
@@ -958,12 +967,12 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 			if (!alreadyEnabled) {
 				NSLog(@"[installApp] app requires developer mode and we have successfully armed it");
 				// non-fatal
-				return 180;
+				return 182;
 			}
 		} else {
 			NSLog(@"[installApp] failed to arm developer mode");
 			// fatal
-			return 181;
+			return 183;
 		}
 	}
 	return 0;
@@ -1070,6 +1079,7 @@ int uninstallAppById(NSString* appId, BOOL useCustomMethod)
 
 // 166: IPA does not exist or is not accessible
 // 167: IPA does not appear to contain an app
+// 180: IPA contains an encrypted binary
 int installIpa(NSString* ipaPath, BOOL force, BOOL useInstalldMethod)
 {
 	cleanRestrictions();

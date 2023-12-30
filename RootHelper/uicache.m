@@ -81,8 +81,8 @@ NSDictionary *constructEnvironmentVariablesForContainerPath(NSString *containerP
 	};
 }
 
-void registerPath(NSString *path, BOOL unregister, BOOL forceSystem) {
-	if (!path) return;
+bool registerPath(NSString *path, BOOL unregister, BOOL forceSystem) {
+	if (!path) return false;
 
 	LSApplicationWorkspace *workspace = [LSApplicationWorkspace defaultWorkspace];
 	if (unregister && ![[NSFileManager defaultManager] fileExistsAtPath:path]) {
@@ -97,7 +97,7 @@ void registerPath(NSString *path, BOOL unregister, BOOL forceSystem) {
 	NSDictionary *appInfoPlist = [NSDictionary dictionaryWithContentsOfFile:[path stringByAppendingPathComponent:@"Info.plist"]];
 	NSString *appBundleID = [appInfoPlist objectForKey:@"CFBundleIdentifier"];
 
-	if([immutableAppBundleIdentifiers() containsObject:appBundleID.lowercaseString]) return;
+	if([immutableAppBundleIdentifiers() containsObject:appBundleID.lowercaseString]) return false;
 
 	if (appBundleID && !unregister) {
 		NSString *appExecutablePath = [path stringByAppendingPathComponent:appInfoPlist[@"CFBundleExecutable"]];
@@ -236,11 +236,19 @@ void registerPath(NSString *path, BOOL unregister, BOOL forceSystem) {
 
 		if (![workspace registerApplicationDictionary:dictToRegister]) {
 			NSLog(@"Error: Unable to register %@", path);
+			NSLog(@"Used dictionary: {");
+			[dictToRegister enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSObject *obj, BOOL *stop) {
+				NSLog(@"%@ = %@", key, obj);
+			}];
+			NSLog(@"}");
+			return false;
 		}
 	} else {
 		NSURL *url = [NSURL fileURLWithPath:path];
 		if (![workspace unregisterApplication:url]) {
 			NSLog(@"Error: Unable to register %@", path);
+			return false;
 		}
 	}
+	return true;
 }

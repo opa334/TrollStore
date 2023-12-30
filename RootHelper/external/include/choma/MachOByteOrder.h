@@ -99,6 +99,13 @@
     applier(lc, dataoff); \
     applier(lc, datasize);
 
+#define ENCRYPTION_INFO_COMMAND_APPLY_BYTE_ORDER(eic, applier) \
+    applier(eic, cmd); \
+    applier(eic, cmdsize); \
+    applier(eic, cryptoff); \
+    applier(eic, cryptsize); \
+    applier(eic, cryptid);
+
 #define BLOB_INDEX_APPLY_BYTE_ORDER(bi, applier) \
     applier(bi, type); \
     applier(bi, offset);
