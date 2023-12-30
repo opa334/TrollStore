@@ -1,4 +1,4 @@
-TARGET := iphone:clang:16.4:14.0
+TARGET := iphone:clang:16.5:14.0
 INSTALL_TARGET_PROCESSES = TrollStore
 ARCHS = arm64
 
