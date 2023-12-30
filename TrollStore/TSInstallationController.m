@@ -51,7 +51,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 						[errorAlert addAction:forceInstallAction];
 
 						[TSPresentationDelegate presentViewController:errorAlert animated:YES completion:nil];
-					} else if (ret == 180) {
+					} else if (ret == 182) {
 						// non-fatal informative message
 						UIAlertController* rebootNotification = [UIAlertController alertControllerWithTitle:@"Reboot Required" message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
 						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)

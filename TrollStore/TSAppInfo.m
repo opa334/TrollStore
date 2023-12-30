@@ -1068,6 +1068,7 @@ extern UIImage* imageWithSize(UIImage* image, CGSize size);
 	[description appendAttributedString:[[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"\nBundle Identifier: %@", bundleId] attributes:bodyAttributes]];
 	[description appendAttributedString:[[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"\nVersion: %@", version] attributes:bodyAttributes]];
 	[description appendAttributedString:[[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"\nSize: %@", sizeString] attributes:bodyAttributes]];
+	
 	[description appendAttributedString:[[NSAttributedString alloc] initWithString:@"\n\nSandboxing" attributes:headerAttributes]];
 	if(isUnsandboxed)
 	{
