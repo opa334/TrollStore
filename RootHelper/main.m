@@ -21,6 +21,7 @@
 #endif
 
 #import <SpringBoardServices/SpringBoardServices.h>
+#import <FrontBoardServices/FBSSystemService.h>
 #import <Security/Security.h>
 
 #ifdef EMBEDDED_ROOT_HELPER
@@ -49,8 +50,6 @@ typedef CFArrayRef (*_CFPreferencesCopyKeyListWithContainerType)(CFStringRef app
 typedef CFDictionaryRef (*_CFPreferencesCopyMultipleWithContainerType)(CFArrayRef keysToFetch, CFStringRef applicationID, CFStringRef userName, CFStringRef hostName, CFStringRef containerPath);
 
 BOOL _installPersistenceHelper(LSApplicationProxy* appProxy, NSString* sourcePersistenceHelper, NSString* sourceRootHelper);
-
-extern int reboot3(uint64_t flags, ...);
 
 NSArray<LSApplicationProxy*>* applicationsWithGroupId(NSString* groupId)
 {
@@ -1529,8 +1528,9 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 		}
 		else if([cmd isEqualToString:@"reboot"])
 		{
-			sync();
-			ret = reboot3(0); // do a normal reboot
+			[[FBSSystemService sharedService] reboot];
+			// Give the system some time to reboot
+			sleep(1);
 		}
 
 		NSLog(@"trollstorehelper returning %d", ret);

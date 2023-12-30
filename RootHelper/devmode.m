@@ -63,6 +63,8 @@ BOOL getDeveloperModeState(xpc_connection_t connection) {
         return NO;
     }
 
+    NSLog(@"[getDeveloperModeState] got reply %@", reply);
+
     NSObject* success = reply[@"success"];
     if (!success || ![success isKindOfClass:[NSNumber class]] || ![(NSNumber*)success boolValue]) {
         NSLog(@"[getDeveloperModeState] request failed with error %@", reply[@"error"]);
