@@ -1,15 +1,10 @@
 @import Foundation;
 
+#ifndef __XPC_H__
 // Types
 typedef NSObject* xpc_object_t;
 typedef xpc_object_t xpc_connection_t;
 typedef void (^xpc_handler_t)(xpc_object_t object);
-
-// Serialization
-extern CFTypeRef _CFXPCCreateCFObjectFromXPCObject(xpc_object_t xpcattrs);
-extern xpc_object_t _CFXPCCreateXPCObjectFromCFObject(CFTypeRef attrs);
-extern xpc_object_t _CFXPCCreateXPCMessageWithCFObject(CFTypeRef obj);
-extern CFTypeRef _CFXPCCreateCFObjectFromXPCMessage(xpc_object_t obj);
 
 // Communication
 extern xpc_connection_t xpc_connection_create_mach_service(const char* name, dispatch_queue_t targetq, uint64_t flags);
@@ -18,6 +13,14 @@ extern void xpc_connection_resume(xpc_connection_t connection);
 extern void xpc_connection_send_message_with_reply(xpc_connection_t connection, xpc_object_t message, dispatch_queue_t replyq, xpc_handler_t handler);
 extern xpc_object_t xpc_connection_send_message_with_reply_sync(xpc_connection_t connection, xpc_object_t message);
 extern xpc_object_t xpc_dictionary_get_value(xpc_object_t xdict, const char *key);
+#endif
+
+// Serialization
+extern CFTypeRef _CFXPCCreateCFObjectFromXPCObject(xpc_object_t xpcattrs);
+extern xpc_object_t _CFXPCCreateXPCObjectFromCFObject(CFTypeRef attrs);
+extern xpc_object_t _CFXPCCreateXPCMessageWithCFObject(CFTypeRef obj);
+extern CFTypeRef _CFXPCCreateCFObjectFromXPCMessage(xpc_object_t obj);
+
 
 typedef enum {
     kAMFIActionArm = 0,     // Trigger a prompt asking the user to enable developer mode on the next reboot
