@@ -379,9 +379,9 @@ UIImage* imageWithSize(UIImage* image, CGSize size)
 				_cachedIcons[appId] = iconImage;
 				dispatch_async(dispatch_get_main_queue(), ^{
 					NSIndexPath *curIndexPath = [NSIndexPath indexPathForRow:[_cachedAppInfos indexOfObject:appInfo] inSection:0];
-					if([tableView.indexPathsForVisibleRows containsObject:curIndexPath])
+					UITableViewCell *curCell = [tableView cellForRowAtIndexPath:curIndexPath];
+					if(curCell)
 					{
-						UITableViewCell *curCell = [tableView cellForRowAtIndexPath:curIndexPath];
 						curCell.imageView.image = iconImage;
 						[curCell setNeedsLayout];
 					}
