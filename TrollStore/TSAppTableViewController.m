@@ -375,14 +375,15 @@ UIImage* imageWithSize(UIImage* image, CGSize size)
 			cell.imageView.image = _placeholderIcon;
 			dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
 			{
-				//usleep(1000 * 5000); // (test delay for debugging)
 				UIImage* iconImage = imageWithSize([UIImage _applicationIconImageForBundleIdentifier:appId format:iconFormatToUse() scale:[UIScreen mainScreen].scale], _placeholderIcon.size);
 				_cachedIcons[appId] = iconImage;
 				dispatch_async(dispatch_get_main_queue(), ^{
-					if([tableView.indexPathsForVisibleRows containsObject:indexPath])
+					NSIndexPath *curIndexPath = [NSIndexPath indexPathForRow:[_cachedAppInfos indexOfObject:appInfo] inSection:0];
+					if([tableView.indexPathsForVisibleRows containsObject:curIndexPath])
 					{
-						cell.imageView.image = iconImage;
-						[cell setNeedsLayout];
+						UITableViewCell *curCell = [tableView cellForRowAtIndexPath:curIndexPath];
+						curCell.imageView.image = iconImage;
+						[curCell setNeedsLayout];
 					}
 				});
 			});
