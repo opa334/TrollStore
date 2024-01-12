@@ -698,16 +698,16 @@ int signApp(NSString* appPath)
 					}
 					else if (r == 2) {
 						NSLog(@"[%@] Cannot apply CoreTrust bypass on an encrypted binary!", filePath);
-						// Check if the second-to-last path component ends with .app
-						// If it is, the main binary is encrypted
-						// If not, it's likely an extension or plugin, which can remain encrypted
-						if ([filePath.pathComponents[filePath.pathComponents.count - 2] hasSuffix:@".app"]) {
+						if (isSameFile(filePath, mainExecutablePath)) {
+							// If this is the main binary, this error is fatal
 							NSLog(@"[%@] Main binary is encrypted, cannot continue!", filePath);
 							fat_free(fat);
 							return 180;
 						}
-						hasAdditionalEncryptedBinaries = YES;
-
+						else {
+							// If not, we can continue but want to show a warning after the app is installed
+							hasAdditionalEncryptedBinaries = YES;
+						}
 					}
 					else {
 						NSLog(@"[%@] CoreTrust bypass failed!!! :(", filePath);
