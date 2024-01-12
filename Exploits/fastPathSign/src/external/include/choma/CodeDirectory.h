@@ -12,7 +12,6 @@
 #include "MachOLoadCommand.h"
 #include "MemoryStream.h"
 
-
 // Code directory blob header
 typedef struct __CodeDirectory {
 	uint32_t magic;
@@ -26,12 +25,15 @@ typedef struct __CodeDirectory {
 	uint32_t codeLimit;
 	uint8_t hashSize;
 	uint8_t hashType;
-	uint8_t spare1;
+	uint8_t platform;
 	uint8_t	pageSize;
 	uint32_t spare2;
+
+	/* Version 0x20100 */
 	uint32_t scatterOffset;
 	uint32_t teamOffset;
-} CS_CodeDirectory;
+} CS_CodeDirectory
+__attribute__ ((aligned(1)));
 
 enum CS_HashType {
 	CS_HASHTYPE_SHA160_160 = 1,
@@ -40,7 +42,7 @@ enum CS_HashType {
 	CS_HASHTYPE_SHA384_384 = 4,
 };
 
-char *csd_code_directory_copy_identity(CS_DecodedBlob *codeDirBlob, uint32_t *offsetOut);
+char *csd_code_directory_copy_identifier(CS_DecodedBlob *codeDirBlob, uint32_t *offsetOut);
 char *csd_code_directory_copy_team_id(CS_DecodedBlob *codeDirBlob, uint32_t *offsetOut);
 int csd_code_directory_set_team_id(CS_DecodedBlob *codeDirBlob, char *newTeamID);
 uint32_t csd_code_directory_get_flags(CS_DecodedBlob *codeDirBlob);

@@ -31,7 +31,7 @@ typedef struct __GenericBlob {
 } CS_GenericBlob;
 
 // CMS blob magic types
-enum {
+typedef enum {
     CSMAGIC_REQUIREMENT = 0xfade0c00,
     CSMAGIC_REQUIREMENTS = 0xfade0c01,
     CSMAGIC_CODEDIRECTORY = 0xfade0c02,
@@ -44,7 +44,7 @@ enum {
     CSMAGIC_EMBEDDED_LAUNCH_CONSTRAINT = 0xfade8181,
 } CS_BlobMagic;
 
-enum {
+typedef enum {
     CSSLOT_CODEDIRECTORY = 0,
     CSSLOT_INFOSLOT = 1,
     CSSLOT_REQUIREMENTS = 2,
@@ -90,8 +90,6 @@ CS_SuperBlob *macho_read_code_signature(MachO *macho);
 
 int macho_replace_code_signature(MachO *macho, CS_SuperBlob *superblob);
 
-int update_load_commands(MachO *macho, CS_SuperBlob *superblob, uint64_t originalSize);
-
 CS_DecodedBlob *csd_blob_init(uint32_t type, CS_GenericBlob *blobData);
 int csd_blob_read(CS_DecodedBlob *blob, uint64_t offset, size_t size, void *outBuf);
 int csd_blob_write(CS_DecodedBlob *blob, uint64_t offset, size_t size, const void *inBuf);
@@ -104,6 +102,7 @@ uint32_t csd_blob_get_type(CS_DecodedBlob *blob);
 void csd_blob_set_type(CS_DecodedBlob *blob, uint32_t type);
 void csd_blob_free(CS_DecodedBlob *blob);
 
+CS_DecodedSuperBlob *csd_superblob_init(void);
 CS_DecodedSuperBlob *csd_superblob_decode(CS_SuperBlob *superblob);
 CS_SuperBlob *csd_superblob_encode(CS_DecodedSuperBlob *decodedSuperblob);
 CS_DecodedBlob *csd_superblob_find_blob(CS_DecodedSuperBlob *superblob, uint32_t type, uint32_t *indexOut);

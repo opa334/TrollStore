@@ -3,9 +3,9 @@
 
 #include <mach-o/loader.h>
 #include "MachO.h"
-#include "CSBlob.h"
 #include "FileStream.h"
 #include "MachOByteOrder.h"
+#include "CSBlob.h"
 
 // Convert load command to load command name
 char *load_command_to_string(int loadCommand);

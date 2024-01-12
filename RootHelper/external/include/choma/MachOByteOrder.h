@@ -131,7 +131,7 @@
     applier(cd, codeLimit); \
     applier(cd, hashSize); \
     applier(cd, hashType); \
-    applier(cd, spare1); \
+    applier(cd, platform); \
     applier(cd, pageSize); \
     applier(cd, spare2); \
     applier(cd, scatterOffset); \
