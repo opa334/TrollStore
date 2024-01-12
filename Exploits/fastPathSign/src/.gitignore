@@ -1,0 +1,3 @@
+external/include/choma
+external/lib/libchoma.*
+external/lib/libcrypto.a
