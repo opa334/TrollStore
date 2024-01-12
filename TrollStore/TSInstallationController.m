@@ -68,6 +68,16 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 						[rebootNotification addAction:rebootAction];
 
 						[TSPresentationDelegate presentViewController:rebootNotification animated:YES completion:nil];
+					} else if (ret == 184) {
+						// warning
+						UIAlertController* warningAlert = [UIAlertController alertControllerWithTitle:@"Warning" message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
+						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action)
+						{
+							if(completionBlock) completionBlock(YES, nil);
+						}];
+						[warningAlert addAction:closeAction];
+
+						[TSPresentationDelegate presentViewController:warningAlert animated:YES completion:nil];
 					} else {
 						// unrecoverable error
 						UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:[NSString stringWithFormat:@"Install Error %d", ret] message:[error localizedDescription] preferredStyle:UIAlertControllerStyleAlert];
