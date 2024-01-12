@@ -80,8 +80,10 @@ update-choma:
 	mkdir -p _build/.choma
 	git clone --recursive https://github.com/opa334/ChOma _build/.choma
 	make -C _build/.choma install TARGET=ios INSTALL_PATH=../../RootHelper/external
+	rm RootHelper/external/lib/libchoma.dylib
 	make -C _build/.choma clean
 	make -C _build/.choma install INSTALL_PATH=../../Exploits/fastPathSign/src/external
+	rm Exploits/fastPathSign/src/external/lib/libchoma.dylib
 	rm -rf _build/.choma
 
 .PHONY: $(TOPTARGETS) pre_build assemble_trollstore make_trollhelper_package make_trollhelper_embedded build_installer15 build_installer64e
