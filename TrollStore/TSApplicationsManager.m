@@ -75,7 +75,7 @@ extern NSUserDefaults* trollStoreUserDefaults();
         errorDescription = @"The app you tried to install has the same identifier as a system app already installed on the device. The installation has been prevented to protect you from possible bootloops or other issues.";
         break;
         case 180:
-        errorDescription = @"The app you tried to install contains encrypted binaries, which cannot have the CoreTrust bypass applied to them. Please ensure you install decrypted apps.";
+        errorDescription = @"The app you tried to install has an encrypted main binary, which cannot have the CoreTrust bypass applied to it. Please ensure you install decrypted apps.";
         break;
         case 181:
         errorDescription = @"Failed to add app to icon cache.";
@@ -86,6 +86,8 @@ extern NSUserDefaults* trollStoreUserDefaults();
         case 183:
         errorDescription = @"Failed to enable developer mode.";
         break;
+        case 184:
+        errorDescription = @"The app was installed successfully, but has additional binaries that are encrypted (e.g. extensions, plugins). The app itself should work, but you may experience broken functionality as a result.";
     }
 
     NSError* error = [NSError errorWithDomain:TrollStoreErrorDomain code:code userInfo:@{NSLocalizedDescriptionKey : errorDescription}];

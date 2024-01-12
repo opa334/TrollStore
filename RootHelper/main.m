@@ -570,6 +570,11 @@ int signApp(NSString* appPath)
 	// while we're fixing entitlements
 	BOOL requiresDevMode = NO;
 
+	// The majority of IPA decryption utilities only decrypt the main executable of the app bundle
+	// As a result, we cannot bail on the entire app if an additional binary is encrypted (e.g. app extensions)
+	// Instead, we will display a warning to the user, and warn them that the app may not work properly
+	BOOL hasAdditionalEncryptedBinaries = NO;
+
 	NSURL* fileURL;
 	NSDirectoryEnumerator *enumerator;
 
@@ -693,8 +698,16 @@ int signApp(NSString* appPath)
 					}
 					else if (r == 2) {
 						NSLog(@"[%@] Cannot apply CoreTrust bypass on an encrypted binary!", filePath);
-						fat_free(fat);
-						return 180;
+						// Check if the second-to-last path component ends with .app
+						// If it is, the main binary is encrypted
+						// If not, it's likely an extension or plugin, which can remain encrypted
+						if ([filePath.pathComponents[filePath.pathComponents.count - 2] hasSuffix:@".app"]) {
+							NSLog(@"[%@] Main binary is encrypted, cannot continue!", filePath);
+							fat_free(fat);
+							return 180;
+						}
+						hasAdditionalEncryptedBinaries = YES;
+
 					}
 					else {
 						NSLog(@"[%@] CoreTrust bypass failed!!! :(", filePath);
@@ -714,6 +727,10 @@ int signApp(NSString* appPath)
 	if (requiresDevMode) {
 		// Postpone trying to enable dev mode until after the app is (successfully) installed
 		return 182;
+	}
+
+	if (hasAdditionalEncryptedBinaries) {
+		return 184;
 	}
 
 	return 0;
@@ -775,7 +792,9 @@ void applyPatchesToInfoDictionary(NSString* appPath)
 // 172: no info.plist found in app
 // 173: app is not signed and cannot be signed because ldid not installed or didn't work
 // 174: 
-// 180: tried to sign encrypted binary
+// 180: tried to sign app where the main binary is encrypted
+// 184: tried to sign app where an additional binary is encrypted
+
 int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate, BOOL useInstalldMethod)
 {
 	NSLog(@"[installApp force = %d]", force);
@@ -801,14 +820,18 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 	}
 
 	BOOL requiresDevMode = NO;
+	BOOL hasAdditionalEncryptedBinaries = NO;
 
 	if(sign)
 	{
 		int signRet = signApp(appBundleToInstallPath);
 		// 182: app requires developer mode; non-fatal
+		// 184: app has additional encrypted binaries; non-fatal
 		if(signRet != 0) {
 			if (signRet == 182) {
 				requiresDevMode = YES;
+			} else if (signRet == 184) {
+				hasAdditionalEncryptedBinaries = YES;
 			} else {
 				return signRet;
 			}
@@ -975,6 +998,13 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 			return 183;
 		}
 	}
+
+	if (hasAdditionalEncryptedBinaries) {
+		NSLog(@"[installApp] app has additional encrypted binaries");
+		// non-fatal
+		return 184;
+	}
+
 	return 0;
 }
 
@@ -1079,7 +1109,8 @@ int uninstallAppById(NSString* appId, BOOL useCustomMethod)
 
 // 166: IPA does not exist or is not accessible
 // 167: IPA does not appear to contain an app
-// 180: IPA contains an encrypted binary
+// 180: IPA's main binary is encrypted
+// 184: IPA contains additional encrypted binaries
 int installIpa(NSString* ipaPath, BOOL force, BOOL useInstalldMethod)
 {
 	cleanRestrictions();
