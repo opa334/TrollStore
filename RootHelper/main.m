@@ -14,10 +14,10 @@
 #ifndef EMBEDDED_ROOT_HELPER
 #import "codesign.h"
 #import "coretrust_bug.h"
-#import <choma/FAT.h>
-#import <choma/MachO.h>
-#import <choma/FileStream.h>
-#import <choma/Host.h>
+#import "FAT.h"
+#import "MachO.h"
+#import "FileStream.h"
+#import "Host.h"
 #endif
 
 #import <SpringBoardServices/SpringBoardServices.h>
