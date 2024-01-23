@@ -15,10 +15,19 @@
 int	 ptrace(int _request, pid_t _pid, caddr_t _addr, int _data);
 
 int main(int argc, const char* argv[]) {
-	RBSProcessPredicate *predicate = [RBSProcessPredicate predicateMatchingBundleIdentifier:@(argv[1])];
-	RBSProcessHandle* process = [RBSProcessHandle handleForPredicate:predicate error:nil];
+	if (argc != 2)
+	{
+		//NSLog(@"trollstorejithelper invoked with unexpected number of arguments");
+		return -1;
+	}
 
-	int pid = process.rbs_pid;
+	int pid;
+	@autoreleasepool {
+ 		RBSProcessPredicate *predicate = [RBSProcessPredicate predicateMatchingBundleIdentifier:@(argv[1])];
+		RBSProcessHandle* process = [RBSProcessHandle handleForPredicate:predicate error:nil];
+		pid = process.rbs_pid;
+	}
+
 	if (!pid)
 	{
 		return ESRCH;
