@@ -21,7 +21,7 @@ int main(int argc, const char* argv[]) {
 	int pid = process.rbs_pid;
 	if (!pid)
 	{
-		return -1;
+		return ESRCH;
 	}
 
 	int ret = ptrace(PT_ATTACHEXC, pid, 0, 0);
