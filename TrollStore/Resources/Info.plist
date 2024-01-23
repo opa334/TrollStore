@@ -190,6 +190,7 @@
 	<false/>
 	<key>TSRootBinaries</key>
 	<array>
+		<string>trollstorejithelper</string>
 		<string>trollstorehelper</string>
 		<string>ldid</string>
 	</array>

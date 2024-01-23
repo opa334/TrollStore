@@ -1,6 +1,6 @@
 TOPTARGETS := all clean update
 
-$(TOPTARGETS): pre_build make_fastPathSign make_roothelper make_trollstore make_trollhelper_embedded make_trollhelper_package assemble_trollstore build_installer15 build_installer64e
+$(TOPTARGETS): pre_build make_fastPathSign make_jithelper make_roothelper make_trollstore make_trollhelper_embedded make_trollhelper_package assemble_trollstore build_installer15 build_installer64e
 
 pre_build:
 	@rm -rf ./_build 2>/dev/null || true
@@ -8,6 +8,9 @@ pre_build:
 
 make_fastPathSign:
 	@$(MAKE) -C ./Exploits/fastPathSign $(MAKECMDGOALS)
+
+make_jithelper:
+	@$(MAKE) -C ./JITHelper FINALPACKAGE=1 $(MAKECMDGOALS)
 
 make_roothelper:
 	@$(MAKE) -C ./RootHelper FINALPACKAGE=1 $(MAKECMDGOALS)
@@ -39,6 +42,7 @@ make_trollhelper_embedded:
 
 assemble_trollstore:
 	@cp ./RootHelper/.theos/obj/trollstorehelper ./TrollStore/.theos/obj/TrollStore.app/trollstorehelper
+	@cp ./JITHelper/.theos/obj/trollstorejithelper ./TrollStore/.theos/obj/TrollStore.app/trollstorejithelper
 	@cp ./TrollHelper/.theos/obj/TrollStorePersistenceHelper.app/TrollStorePersistenceHelper ./TrollStore/.theos/obj/TrollStore.app/PersistenceHelper
 	@export COPYFILE_DISABLE=1
 	@tar -czvf ./_build/TrollStore.tar -C ./TrollStore/.theos/obj TrollStore.app
