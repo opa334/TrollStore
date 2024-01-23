@@ -11,6 +11,7 @@
 #import <mach-o/loader.h>
 #import <mach-o/fat.h>
 #import "devmode.h"
+#import "jit.h"
 #ifndef EMBEDDED_ROOT_HELPER
 #import "codesign.h"
 #import "coretrust_bug.h"
@@ -1572,6 +1573,12 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 			[[FBSSystemService sharedService] reboot];
 			// Give the system some time to reboot
 			sleep(1);
+		}
+		else if([cmd isEqualToString:@"enable-jit"])
+		{
+			if(args.count < 2) return -3;
+			NSString* userAppId = args.lastObject;
+			ret = enableJIT(userAppId);
 		}
 
 		NSLog(@"trollstorehelper returning %d", ret);

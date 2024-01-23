@@ -50,6 +50,7 @@
 - (NSAttributedString*)detailedInfoTitle;
 - (NSAttributedString*)detailedInfoDescription;
 //- (UIImage*)image;
+- (BOOL)isDebuggable;
 - (void)log;
 
 @end

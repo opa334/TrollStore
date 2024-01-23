@@ -16,6 +16,7 @@
 - (int)uninstallApp:(NSString*)appId;
 - (int)uninstallAppByPath:(NSString*)path;
 - (BOOL)openApplicationWithBundleID:(NSString *)appID;
+- (int)enableJITForBundleID:(NSString *)appID;
 - (int)changeAppRegistration:(NSString*)appPath toState:(NSString*)newState;
 
 @end
