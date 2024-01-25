@@ -1,6 +1,7 @@
 #import "TSSceneDelegate.h"
 #import "TSRootViewController.h"
 #import "TSUtil.h"
+#import "TSApplicationsManager.h"
 #import "TSInstallationController.h"
 #import <TSPresentationDelegate.h>
 
@@ -67,7 +68,60 @@
 						[TSInstallationController handleAppInstallFromRemoteURL:URLToInstall completion:nil];
 					}
 				}
+				else if([components.host isEqualToString:@"enable-jit"])
+				{
+					NSString* BundleIDToEnableJIT;
+
+					for(NSURLQueryItem* queryItem in components.queryItems)
+					{
+						if([queryItem.name isEqualToString:@"bundle-id"])
+						{
+							BundleIDToEnableJIT = queryItem.value;
+							break;
+						}
+					}
+
+					if(BundleIDToEnableJIT && [BundleIDToEnableJIT isKindOfClass:NSString.class])
+					{
+						dispatch_async(dispatch_get_main_queue(), ^
+	{
+							[self handleEnableJITForBundleID:BundleIDToEnableJIT];
+						});
+					}
+				}
 			}
+		}
+	}
+}
+
+- (void)handleEnableJITForBundleID:(NSString *)appId
+{
+	TSApplicationsManager* appsManager = [TSApplicationsManager sharedInstance];
+
+	BOOL didOpen = [appsManager openApplicationWithBundleID:appId];
+
+	// if we failed to open the app, show an alert
+	if(!didOpen)
+	{
+		NSString* failMessage = @"";
+		// we don't have TSAppInfo here so we cannot check the registration state
+
+		NSString* failTitle = [NSString stringWithFormat:@"Failed to open %@", appId];
+		UIAlertController* didFailController = [UIAlertController alertControllerWithTitle:failTitle message:failMessage preferredStyle:UIAlertControllerStyleAlert];
+		UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+
+		[didFailController addAction:cancelAction];
+		[TSPresentationDelegate presentViewController:didFailController animated:YES completion:nil];
+	}
+	else
+	{
+		int ret = [appsManager enableJITForBundleID:appId];
+		if (ret != 0)
+		{
+			UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:@"Error" message:[NSString stringWithFormat:@"Error enabling JIT: trollstorehelper returned %d", ret] preferredStyle:UIAlertControllerStyleAlert];
+			UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
+			[errorAlert addAction:closeAction];
+			[TSPresentationDelegate presentViewController:errorAlert animated:YES completion:nil];
 		}
 	}
 }
