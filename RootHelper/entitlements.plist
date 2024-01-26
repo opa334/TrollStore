@@ -48,5 +48,7 @@
     <true/>
     <key>com.apple.frontboard.shutdown</key>
     <true/>
+    <key>com.apple.runningboard.process-state</key>
+    <true/>
 </dict>
 </plist>

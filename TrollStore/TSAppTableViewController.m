@@ -187,7 +187,7 @@ UIImage* imageWithSize(UIImage* image, CGSize size)
 	[TSInstallationController presentInstallationAlertIfEnabledForFile:pathToIPA isRemoteInstall:NO completion:nil];
 }
 
-- (void)openAppPressedForRowAtIndexPath:(NSIndexPath*)indexPath
+- (void)openAppPressedForRowAtIndexPath:(NSIndexPath*)indexPath enableJIT:(BOOL)enableJIT
 {
 	TSApplicationsManager* appsManager = [TSApplicationsManager sharedInstance];
 
@@ -210,6 +210,17 @@ UIImage* imageWithSize(UIImage* image, CGSize size)
 
 		[didFailController addAction:cancelAction];
 		[TSPresentationDelegate presentViewController:didFailController animated:YES completion:nil];
+	}
+	else if (enableJIT)
+	{
+		int ret = [appsManager enableJITForBundleID:appId];
+		if (ret != 0)
+		{
+			UIAlertController* errorAlert = [UIAlertController alertControllerWithTitle:@"Error" message:[NSString stringWithFormat:@"Error enabling JIT: trollstorehelper returned %d", ret] preferredStyle:UIAlertControllerStyleAlert];
+			UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
+			[errorAlert addAction:closeAction];
+			[TSPresentationDelegate presentViewController:errorAlert animated:YES completion:nil];
+		}
 	}
 }
 
@@ -424,10 +435,20 @@ UIImage* imageWithSize(UIImage* image, CGSize size)
 
 	UIAlertAction* openAction = [UIAlertAction actionWithTitle:@"Open" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
 	{
-		[self openAppPressedForRowAtIndexPath:indexPath];
+		[self openAppPressedForRowAtIndexPath:indexPath enableJIT:NO];
 		[self deselectRow];
 	}];
 	[appSelectAlert addAction:openAction];
+
+	if ([appInfo isDebuggable])
+	{
+		UIAlertAction* openWithJITAction = [UIAlertAction actionWithTitle:@"Open with JIT" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+		{
+			[self openAppPressedForRowAtIndexPath:indexPath enableJIT:YES];
+			[self deselectRow];
+		}];
+		[appSelectAlert addAction:openWithJITAction];
+	}
 
 	UIAlertAction* showDetailsAction = [UIAlertAction actionWithTitle:@"Show Details" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
 	{

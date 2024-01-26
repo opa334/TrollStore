@@ -14,6 +14,6 @@ trollstorehelper_CODESIGN_FLAGS = --entitlements entitlements.plist
 trollstorehelper_INSTALL_PATH = /usr/local/bin
 trollstorehelper_LIBRARIES = archive
 trollstorehelper_FRAMEWORKS = CoreTelephony
-trollstorehelper_PRIVATE_FRAMEWORKS = SpringBoardServices BackBoardServices MobileContainerManager FrontBoardServices
+trollstorehelper_PRIVATE_FRAMEWORKS = SpringBoardServices BackBoardServices MobileContainerManager FrontBoardServices RunningBoardServices
 
 include $(THEOS_MAKE_PATH)/tool.mk

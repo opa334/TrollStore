@@ -179,6 +179,11 @@ extern NSUserDefaults* trollStoreUserDefaults();
     return [[LSApplicationWorkspace defaultWorkspace] openApplicationWithBundleID:appId];
 }
 
+- (int)enableJITForBundleID:(NSString *)appId
+{
+    return spawnRoot(rootHelperPath(), @[@"enable-jit", appId], nil, nil);
+}
+
 - (int)changeAppRegistration:(NSString*)appPath toState:(NSString*)newState
 {
     if(!appPath || !newState) return -200;
