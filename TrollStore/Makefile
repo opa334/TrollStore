@@ -12,7 +12,7 @@ TrollStore_FILES = $(wildcard *.m) $(wildcard ../Shared/*.m)
 TrollStore_FRAMEWORKS = UIKit CoreGraphics CoreServices CoreTelephony
 TrollStore_PRIVATE_FRAMEWORKS = Preferences MobileIcons MobileContainerManager
 TrollStore_LIBRARIES = archive
-TrollStore_CFLAGS = -fobjc-arc -I../Shared
+TrollStore_CFLAGS = -fobjc-arc -I../Shared -I$(shell brew --prefix)/opt/libarchive/include
 TrollStore_CODESIGN_FLAGS = --entitlements entitlements.plist
 
 include $(THEOS_MAKE_PATH)/application.mk
