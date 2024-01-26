@@ -1,7 +1,7 @@
 #import "unarchive.h"
 
-#include <libarchive/archive.h>
-#include <libarchive/archive_entry.h>
+#include <archive.h>
+#include <archive_entry.h>
 
 static int
 copy_data(struct archive *ar, struct archive *aw)
