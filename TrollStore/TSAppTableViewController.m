@@ -497,13 +497,25 @@ UIImage* imageWithSize(UIImage* image, CGSize size)
 	[TSPresentationDelegate presentViewController:appSelectAlert animated:YES completion:nil];
 }
 
-- (void)applicationsDidInstall:(id)arg1
+- (void)purgeCachedIconsForApps:(NSArray <LSApplicationProxy *>*)apps
 {
+	for (LSApplicationProxy *appProxy in apps) {
+		NSString *appId = appProxy.bundleIdentifier;
+		if (_cachedIcons[appId]) {
+			[_cachedIcons removeObjectForKey:appId];
+		}
+	}
+}
+
+- (void)applicationsDidInstall:(NSArray <LSApplicationProxy *>*)apps
+{
+	[self purgeCachedIconsForApps:apps];
 	[self reloadTable];
 }
 
-- (void)applicationsDidUninstall:(id)arg1
+- (void)applicationsDidUninstall:(NSArray <LSApplicationProxy *>*)apps
 {
+	[self purgeCachedIconsForApps:apps];
 	[self reloadTable];
 }
 

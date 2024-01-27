@@ -37,8 +37,8 @@ extern NSString *LSInstallTypeKey;
 
 @protocol LSApplicationWorkspaceObserverProtocol <NSObject>
 @optional
--(void)applicationsDidInstall:(id)arg1;
--(void)applicationsDidUninstall:(id)arg1;
+- (void)applicationsDidInstall:(NSArray <LSApplicationProxy *>*)apps;
+- (void)applicationsDidUninstall:(NSArray <LSApplicationProxy *>*)apps;
 @end
 
 @interface LSEnumerator : NSEnumerator
