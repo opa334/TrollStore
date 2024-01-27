@@ -32,7 +32,7 @@ On jailbroken iOS 14 when TrollHelper is used for installation, it is located in
 
 ## URL Scheme
 
-As of version 2.0.12, TrollStore replaces the system URL scheme "apple-magnifier" (this is done so "jailbreak" detections can't detect TrollStore like they could if TrollStore had a unique URL scheme). This URL scheme can be used to install applications right from the browser (1.3 and above), or to enable JIT from the app itself (2.0.12 and above), the format goes as follows:
+As of version 1.3, TrollStore replaces the system URL scheme "apple-magnifier" (this is done so "jailbreak" detections can't detect TrollStore like they could if TrollStore had a unique URL scheme). This URL scheme can be used to install applications right from the browser, or to enable JIT from the app itself (only 2.0.12 and above), the format goes as follows:
 
 - `apple-magnifier://install?url=<URL_to_IPA>`
 - `apple-magnifier://enable-jit?bundle-id=<Bundle_ID>`
