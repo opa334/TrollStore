@@ -10,7 +10,7 @@ Supported versions: 14.0 - 16.6.1, 16.7 RC (20H18), 17.0
 
 For installing TrollStore, refer to the guides at [ios.cfw.guide](https://ios.cfw.guide/installing-trollstore)
 
-16.7.x (excluding 16.7 RC) and 17.0.1+ will NEVER be supported (unless Apple fucks CoreTrust up a third time...).
+16.7.x (excluding 16.7 RC) and 17.0.1+ will NEVER be supported (unless a third CoreTrust bug is discovered, which is unlikely).
 
 ## Updating TrollStore
 
@@ -108,6 +108,10 @@ Afterwards you can use the [spawnRoot function in TSUtil.m](./Shared/TSUtil.m#L7
 - Getting proper platformization (`TF_PLATFORM` / `CS_PLATFORMIZED`)
 - Spawning a launch daemon (Would need `CS_PLATFORMIZED`)
 - Injecting a tweak into a system process (Would need `TF_PLATFORM`, a userland PAC bypass and a PMAP trust level bypass)
+
+### Compilation
+
+To compile TrollStore, ensure [theos](https://theos.dev/docs/installation) is installed. Additionaly ensure [brew](https://brew.sh/) is installed and install [libarchive](https://formulae.brew.sh/formula/libarchive) from brew.
 
 ## Credits and Further Reading
 

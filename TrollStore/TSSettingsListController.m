@@ -323,7 +323,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 		[_specifiers addObject:installAlertConfigurationSpecifier];
 
 		PSSpecifier* otherGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
-		[otherGroupSpecifier setProperty:[NSString stringWithFormat:@"TrollStore %@\n\n© 2022-2024 Lars Fröder (opa334)\n\nTrollStore is NOT for piracy!\n\nCredits:\nGoogle TAG, @alfiecg_dev: CoreTrust bug\n@lunotech11, @SerenaKit, @tylinux, @TheRealClarity: Various contributions\n@ProcursusTeam: uicache, ldid\n@cstar_ow: uicache\n@saurik: ldid", [self getTrollStoreVersion]] forKey:@"footerText"];
+		[otherGroupSpecifier setProperty:[NSString stringWithFormat:@"TrollStore %@\n\n© 2022-2024 Lars Fröder (opa334)\n\nTrollStore is NOT for piracy!\n\nCredits:\nGoogle TAG, @alfiecg_dev: CoreTrust bug\n@lunotech11, @SerenaKit, @tylinux, @TheRealClarity, @dhinakg, @khanhduytran0: Various contributions\n@ProcursusTeam: uicache, ldid\n@cstar_ow: uicache\n@saurik: ldid", [self getTrollStoreVersion]] forKey:@"footerText"];
 		[_specifiers addObject:otherGroupSpecifier];
 
 		PSSpecifier* advancedLinkSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Advanced"
