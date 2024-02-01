@@ -709,6 +709,8 @@ int signApp(NSString* appPath)
 							// If not, we can continue but want to show a warning after the app is installed
 							hasAdditionalEncryptedBinaries = YES;
 						}
+					} else if (r == 3) { // Non-fatal - unsupported MachO type
+						NSLog(@"[%@] Cannot apply CoreTrust bypass on an unsupported MachO type!", filePath);
 					}
 					else {
 						NSLog(@"[%@] CoreTrust bypass failed!!! :(", filePath);
