@@ -798,7 +798,7 @@ void applyPatchesToInfoDictionary(NSString* appPath)
 // 180: tried to sign app where the main binary is encrypted
 // 184: tried to sign app where an additional binary is encrypted
 
-int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate, BOOL useInstalldMethod)
+int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate, BOOL useInstalldMethod, BOOL skipUICache)
 {
 	NSLog(@"[installApp force = %d]", force);
 
@@ -980,9 +980,11 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 	// Also permissions need to be fixed
 	NSURL* updatedAppURL = findAppURLInBundleURL(appContainer.url);
 	fixPermissionsOfAppBundle(updatedAppURL.path);
-	if (!registerPath(updatedAppURL.path, 0, YES)) {
-		[[NSFileManager defaultManager] removeItemAtURL:appContainer.url error:nil];
-		return 181;
+	if (!skipUICache) {
+		if (!registerPath(updatedAppURL.path, 0, YES)) {
+			[[NSFileManager defaultManager] removeItemAtURL:appContainer.url error:nil];
+			return 181;
+		}
 	}
 
 	// Handle developer mode after installing and registering the app, to ensure that we
@@ -1114,7 +1116,7 @@ int uninstallAppById(NSString* appId, BOOL useCustomMethod)
 // 167: IPA does not appear to contain an app
 // 180: IPA's main binary is encrypted
 // 184: IPA contains additional encrypted binaries
-int installIpa(NSString* ipaPath, BOOL force, BOOL useInstalldMethod)
+int installIpa(NSString* ipaPath, BOOL force, BOOL useInstalldMethod, BOOL skipUICache)
 {
 	cleanRestrictions();
 
@@ -1133,7 +1135,7 @@ int installIpa(NSString* ipaPath, BOOL force, BOOL useInstalldMethod)
 		return 168;
 	}
 
-	int ret = installApp(tmpPackagePath, YES, force, NO, useInstalldMethod);
+	int ret = installApp(tmpPackagePath, YES, force, NO, useInstalldMethod, skipUICache);
 	
 	[[NSFileManager defaultManager] removeItemAtPath:tmpPackagePath error:nil];
 
@@ -1236,7 +1238,7 @@ int installTrollStore(NSString* pathToTar)
 		_installPersistenceHelper(persistenceHelperApp, trollStorePersistenceHelper, trollStoreRootHelper);
 	}
 
-	int ret = installApp(tmpPackagePath, NO, YES, YES, YES);
+	int ret = installApp(tmpPackagePath, NO, YES, YES, YES, NO);
 	NSLog(@"[installTrollStore] installApp => %d", ret);
 	[[NSFileManager defaultManager] removeItemAtPath:tmpPackagePath error:nil];
 	return ret;
@@ -1466,8 +1468,9 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 			// use system method when specified, otherwise use custom method
 			BOOL useInstalldMethod = [args containsObject:@"installd"];
 			BOOL force = [args containsObject:@"force"];
+			BOOL skipUICache = [args containsObject:@"skip-uicache"];
 			NSString* ipaPath = args.lastObject;
-			ret = installIpa(ipaPath, force, useInstalldMethod);
+			ret = installIpa(ipaPath, force, useInstalldMethod, skipUICache);
 		}
 		else if([cmd isEqualToString:@"uninstall"])
 		{
