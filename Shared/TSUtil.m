@@ -594,9 +594,9 @@ void determinePlatformVulnerableExploitTypes(void *context) {
 		// iOS 15.6 beta 1 - 5
 		gPlatformVulnerabilities = (EXPLOIT_TYPE_CUSTOM_ROOT_CERTIFICATE_V1 | EXPLOIT_TYPE_CMS_SIGNERINFO_V1);
 	}
-	else if(strncmp(os_build, "20G81", 5) <= 0)
+	else if(strncmp(os_build, "20H18", 5) <= 0)
 	{
-		// iOS 14.0 - 16.6.1
+		// iOS 14.0 - 16.6.1, 16.7 RC
 		gPlatformVulnerabilities = EXPLOIT_TYPE_CMS_SIGNERINFO_V1;
 	}
 	else if(strncmp(os_build, "21A5248v", 8) >= 0 && strncmp(os_build, "21A331", 6) <= 0)
