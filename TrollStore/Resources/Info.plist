@@ -50,7 +50,7 @@
 		<string>iPhoneOS</string>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>2.0.12</string>
+	<string>2.0.13</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIDeviceFamily</key>
@@ -154,7 +154,7 @@
 		</dict>
 	</array>
 	<key>UTExportedTypeDeclarations</key>
-    <array>
+	<array>
 		<dict>
 			<key>UTTypeIdentifier</key>
 			<string>com.opa334.trollstore.tipa</string>
