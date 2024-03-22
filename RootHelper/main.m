@@ -542,7 +542,7 @@ int signApp(NSString* appPath)
 		NSLog(@"[signApp] taking fast path for app which declares use of a supported pre-applied exploit (%@)", mainExecutablePath);
 		return 0;
 	}
-	else
+	else if (declaredPreAppliedExploitType != 0)
 	{
 		NSLog(@"[signApp] app (%@) declares use of a pre-applied exploit that is not supported on this device. Proceeding to re-sign...", mainExecutablePath);
 	}
