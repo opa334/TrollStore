@@ -88,6 +88,8 @@ extern NSUserDefaults* trollStoreUserDefaults();
         break;
         case 184:
         errorDescription = @"The app was installed successfully, but has additional binaries that are encrypted (e.g. extensions, plugins). The app itself should work, but you may experience broken functionality as a result.";
+        case 185:
+        errorDescription = @"Failed to sign the app. The CoreTrust bypass returned a non zero status code.";
     }
 
     NSError* error = [NSError errorWithDomain:TrollStoreErrorDomain code:code userInfo:@{NSLocalizedDescriptionKey : errorDescription}];

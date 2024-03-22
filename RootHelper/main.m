@@ -715,7 +715,7 @@ int signApp(NSString* appPath)
 					else {
 						NSLog(@"[%@] CoreTrust bypass failed!!! :(", filePath);
 						fat_free(fat);
-						return 175;
+						return 185;
 					}
 
 					// tempFile is now signed, overwrite original file at filePath with it
