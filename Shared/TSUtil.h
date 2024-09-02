@@ -3,8 +3,28 @@
 
 #define TrollStoreErrorDomain @"TrollStoreErrorDomain"
 
+#define TS_MARKER @"_TrollStore"
+#define TS_LITE_MARKER @"_TrollStoreLite"
+#define TS_NAME @"TrollStore"
+#define TS_LITE_NAME @"Trollstore Lite"
+
+#ifdef TROLLSTORE_LITE
+#define TS_ACTIVE_MARKER TS_LITE_MARKER
+#define TS_INACTIVE_MARKER TS_MARKER
+#define APP_ID @"com.opa334.TrollStoreLite"
+#define APP_NAME TS_LITE_NAME
+#define OTHER_APP_NAME TS_NAME
+#else
+#define TS_ACTIVE_MARKER TS_MARKER
+#define TS_INACTIVE_MARKER TS_LITE_MARKER
+#define APP_ID @"com.opa334.TrollStore"
+#define APP_NAME TS_NAME
+#define OTHER_APP_NAME TS_LITE_NAME
+#endif
+
 extern void chineseWifiFixup(void);
 extern NSString *getExecutablePath(void);
+extern BOOL shouldRegisterAsUserByDefault(void);
 extern NSString* rootHelperPath(void);
 extern NSString* getNSStringFromFile(int fd);
 extern void printMultilineNSString(NSString* stringToPrint);
@@ -14,10 +34,11 @@ extern void respring(void);
 extern void fetchLatestTrollStoreVersion(void (^completionHandler)(NSString* latestVersion));
 extern void fetchLatestLdidVersion(void (^completionHandler)(NSString* latestVersion));
 
-extern NSArray* trollStoreInstalledAppBundlePaths();
-extern NSArray* trollStoreInstalledAppContainerPaths();
-extern NSString* trollStorePath();
-extern NSString* trollStoreAppPath();
+extern NSArray* trollStoreInstalledAppBundlePaths(void);
+extern NSArray* trollStoreInactiveInstalledAppBundlePaths(void);
+extern NSArray* trollStoreInstalledAppContainerPaths(void);
+extern NSString* trollStorePath(void);
+extern NSString* trollStoreAppPath(void);
 
 extern BOOL isRemovableSystemApp(NSString* appId);
 

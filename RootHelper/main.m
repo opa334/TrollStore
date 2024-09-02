@@ -24,6 +24,7 @@
 #import <SpringBoardServices/SpringBoardServices.h>
 #import <FrontBoardServices/FBSSystemService.h>
 #import <Security/Security.h>
+#import <libroot.h>
 
 #ifdef EMBEDDED_ROOT_HELPER
 #define MAIN_NAME rootHelperMain
@@ -243,6 +244,21 @@ void setTSURLSchemeState(BOOL newState, NSString* customAppPath)
 	}
 }
 
+#ifdef TROLLSTORE_LITE
+
+BOOL isLdidInstalled(void)
+{
+	// Since TrollStore Lite depends on ldid, we assume it exists
+	return YES;
+}
+
+NSString *getLdidPath(void)
+{
+	return JBROOT_PATH(@"/usr/bin/ldid");
+}
+
+#else
+
 void installLdid(NSString* ldidToCopyPath, NSString* ldidVersion)
 {
 	if(![[NSFileManager defaultManager] fileExistsAtPath:ldidToCopyPath]) return;
@@ -270,9 +286,16 @@ BOOL isLdidInstalled(void)
 	return [[NSFileManager defaultManager] fileExistsAtPath:ldidPath];
 }
 
+NSString *getLdidPath(void)
+{
+	return [trollStoreAppPath() stringByAppendingPathComponent:@"ldid"];
+}
+
+#endif
+
 int runLdid(NSArray* args, NSString** output, NSString** errorOutput)
 {
-	NSString* ldidPath = [trollStoreAppPath() stringByAppendingPathComponent:@"ldid"];
+	NSString* ldidPath = getLdidPath();
 	NSMutableArray* argsM = args.mutableCopy ?: [NSMutableArray new];
 	[argsM insertObject:ldidPath.lastPathComponent atIndex:0];
 
@@ -300,6 +323,7 @@ int runLdid(NSArray* args, NSString** output, NSString** errorOutput)
 	
 	pid_t task_pid;
 	int status = -200;
+	NSLog(@"About to spawn ldid (%@) with args %@", ldidPath, args);
 	int spawnError = posix_spawn(&task_pid, [ldidPath fileSystemRepresentation], &action, NULL, (char* const*)argsC, NULL);
 	for (NSUInteger i = 0; i < argCount; i++)
 	{
@@ -309,7 +333,7 @@ int runLdid(NSArray* args, NSString** output, NSString** errorOutput)
 
 	if(spawnError != 0)
 	{
-		NSLog(@"posix_spawn error %d\n", spawnError);
+		NSLog(@"ldid failed to spawn with error %d (%s)\n", spawnError, strerror(spawnError));
 		return spawnError;
 	}
 
@@ -535,6 +559,7 @@ int signApp(NSString* appPath)
 
 	if(![[NSFileManager defaultManager] fileExistsAtPath:mainExecutablePath]) return 174;
 
+#ifndef TROLLSTORE_LITE
 	// Check if the bundle has had a supported exploit pre-applied
 	EXPLOIT_TYPE declaredPreAppliedExploitType = getDeclaredExploitTypeFromInfoDictionary(appInfoDict);
 	if(isPlatformVulnerableToExploitType(declaredPreAppliedExploitType))
@@ -570,6 +595,7 @@ int signApp(NSString* appPath)
 	// On iOS 16+, binaries with certain entitlements requires developer mode to be enabled, so we'll check
 	// while we're fixing entitlements
 	BOOL requiresDevMode = NO;
+#endif
 
 	// The majority of IPA decryption utilities only decrypt the main executable of the app bundle
 	// As a result, we cannot bail on the entire app if an additional binary is encrypted (e.g. app extensions)
@@ -592,6 +618,7 @@ int signApp(NSString* appPath)
 			NSString *bundleId = infoDict[@"CFBundleIdentifier"];
 			NSString *bundleExecutable = infoDict[@"CFBundleExecutable"];
 			if (!bundleId || !bundleExecutable) continue;
+			if ([bundleId isEqualToString:@""] || [bundleExecutable isEqualToString:@""]) continue;
 			NSString *bundleMainExecutablePath = [[filePath stringByDeletingLastPathComponent] stringByAppendingPathComponent:bundleExecutable];
 			if (![[NSFileManager defaultManager] fileExistsAtPath:bundleMainExecutablePath]) continue;
 
@@ -620,6 +647,7 @@ int signApp(NSString* appPath)
 
 			if (!entitlementsToUse) entitlementsToUse = [NSMutableDictionary new];
 
+#ifndef TROLLSTORE_LITE
 			// Developer mode does not exist before iOS 16
 			if (@available(iOS 16, *)){
 				if (!requiresDevMode) {
@@ -664,15 +692,25 @@ int signApp(NSString* appPath)
 					entitlementsToUse[@"com.apple.private.security.container-required"] = bundleId;
 				}
 			}
-			signAdhoc(bundleMainExecutablePath, entitlementsToUse);
+#else
+			// Since TrollStore Lite adhoc signs stuff, this means that on PMAP_CS devices, it will run with "PMAP_CS_IN_LOADED_TRUST_CACHE" trust level
+			// We need to overwrite it so that the app runs as expected (Dopamine 2.1.5+ feature)
+			entitlementsToUse[@"jb.pmap_cs_custom_trust"] = @"PMAP_CS_APP_STORE";
+#endif
+
+			int r = signAdhoc(bundleMainExecutablePath, entitlementsToUse);
+			if (r != 0) return r;
 		}
 	}
 
 	// All entitlement related issues should be fixed at this point, so all we need to do is sign the entire bundle
 	// And then apply the CoreTrust bypass to all executables
 	// XXX: This only works because we're using ldid at the moment and that recursively signs everything
-	signAdhoc(appPath, nil);
+	int r = signAdhoc(appPath, nil);
+	if (r != 0) return r;
 
+#ifndef TROLLSTORE_LITE
+	// Apply CoreTrust bypass
 	enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
 	while(fileURL = [enumerator nextObject])
 	{
@@ -731,6 +769,35 @@ int signApp(NSString* appPath)
 		// Postpone trying to enable dev mode until after the app is (successfully) installed
 		return 182;
 	}
+#else // TROLLSTORE_LITE
+	// Just check for whether anything is fairplay encrypted
+	enumerator = [[NSFileManager defaultManager] enumeratorAtURL:[NSURL fileURLWithPath:appPath] includingPropertiesForKeys:nil options:0 errorHandler:nil];
+	while(fileURL = [enumerator nextObject])
+	{
+		NSString *filePath = fileURL.path;
+		FAT *fat = fat_init_from_path(filePath.fileSystemRepresentation);
+		if (fat) {
+			NSLog(@"%@ is binary", filePath);
+			MachO *macho = fat_find_preferred_slice(fat);
+			if (macho) {
+				if (macho_is_encrypted(macho)) {
+					NSLog(@"[%@] Cannot apply CoreTrust bypass on an encrypted binary!", filePath);
+					if (isSameFile(filePath, mainExecutablePath)) {
+						// If this is the main binary, this error is fatal
+						NSLog(@"[%@] Main binary is encrypted, cannot continue!", filePath);
+						fat_free(fat);
+						return 180;
+					}
+					else {
+						// If not, we can continue but want to show a warning after the app is installed
+						hasAdditionalEncryptedBinaries = YES;
+					}
+				}
+			}
+			fat_free(fat);
+		}
+	}
+#endif
 
 	if (hasAdditionalEncryptedBinaries) {
 		return 184;
@@ -852,11 +919,18 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 		NSURL* appBundleURL = findAppURLInBundleURL(bundleContainerURL);
 
 		// Make sure the installed app is a TrollStore app or the container is empty (or the force flag is set)
-		NSURL* trollStoreMarkURL = [bundleContainerURL URLByAppendingPathComponent:@"_TrollStore"];
+		NSURL* trollStoreMarkURL = [bundleContainerURL URLByAppendingPathComponent:TS_ACTIVE_MARKER];
 		if(appBundleURL && ![trollStoreMarkURL checkResourceIsReachableAndReturnError:nil] && !force)
 		{
 			NSLog(@"[installApp] already installed and not a TrollStore app... bailing out");
 			return 171;
+		}
+		else if (appBundleURL) {
+			// When overwriting an app that has been installed with a different TrollStore flavor, make sure to remove the marker of said flavor
+			NSURL *otherMarkerURL = [bundleContainerURL URLByAppendingPathComponent:TS_INACTIVE_MARKER];
+			if ([otherMarkerURL checkResourceIsReachableAndReturnError:nil]) {
+				[[NSFileManager defaultManager] removeItemAtURL:otherMarkerURL error:nil];
+			}
 		}
 
 		// Terminate app if it's still running
@@ -963,7 +1037,7 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 	appContainer = [MCMAppContainer containerWithIdentifier:appId createIfNecessary:NO existed:nil error:nil];
 
 	// Mark app as TrollStore app
-	NSURL* trollStoreMarkURL = [appContainer.url URLByAppendingPathComponent:@"_TrollStore"];
+	NSURL* trollStoreMarkURL = [appContainer.url URLByAppendingPathComponent:TS_ACTIVE_MARKER];
 	if(![[NSFileManager defaultManager] fileExistsAtPath:trollStoreMarkURL.path])
 	{
 		NSError* creationError;
@@ -981,7 +1055,7 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 	NSURL* updatedAppURL = findAppURLInBundleURL(appContainer.url);
 	fixPermissionsOfAppBundle(updatedAppURL.path);
 	if (!skipUICache) {
-		if (!registerPath(updatedAppURL.path, 0, YES)) {
+		if (!registerPath(updatedAppURL.path, 0, !shouldRegisterAsUserByDefault())) {
 			[[NSFileManager defaultManager] removeItemAtURL:appContainer.url error:nil];
 			return 181;
 		}
@@ -1492,6 +1566,105 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 			NSString* appPath = args.lastObject;
 			ret = uninstallAppByPath(appPath, useCustomMethod);
 		}
+		else if([cmd isEqualToString:@"refresh"])
+		{
+			refreshAppRegistrations(!shouldRegisterAsUserByDefault());
+		}
+		else if([cmd isEqualToString:@"refresh-all"])
+		{
+			cleanRestrictions();
+			//refreshAppRegistrations(NO); // <- fixes app permissions resetting, causes apps to move around on home screen, so I had to disable it
+			[[NSFileManager defaultManager] removeItemAtPath:@"/var/containers/Shared/SystemGroup/systemgroup.com.apple.lsd.iconscache/Library/Caches/com.apple.IconsCache" error:nil];
+			[[LSApplicationWorkspace defaultWorkspace] _LSPrivateRebuildApplicationDatabasesForSystemApps:YES internal:YES user:YES];
+			if (!shouldRegisterAsUserByDefault()) refreshAppRegistrations(YES);
+			killall(@"backboardd", YES);
+		}
+		else if([cmd isEqualToString:@"url-scheme"])
+		{
+			if(args.count < 2) return -3;
+			NSString* modifyArg = args.lastObject;
+			BOOL newState = [modifyArg isEqualToString:@"enable"];
+			if(newState == YES || [modifyArg isEqualToString:@"disable"])
+			{
+				setTSURLSchemeState(newState, nil);
+			}
+		}
+		else if([cmd isEqualToString:@"reboot"])
+		{
+			[[FBSSystemService sharedService] reboot];
+			// Give the system some time to reboot
+			sleep(1);
+		}
+		else if([cmd isEqualToString:@"enable-jit"])
+		{
+			if(args.count < 2) return -3;
+			NSString* userAppId = args.lastObject;
+			ret = enableJIT(userAppId);
+		}
+		else if([cmd isEqualToString:@"modify-registration"])
+		{
+			if(args.count < 3) return -3;
+			NSString* appPath = args[1];
+			NSString* newRegistration = args[2];
+
+			NSString* trollStoreMark = [[appPath stringByDeletingLastPathComponent] stringByAppendingPathComponent:TS_ACTIVE_MARKER];
+			if([[NSFileManager defaultManager] fileExistsAtPath:trollStoreMark])
+			{
+				registerPath(appPath, NO, [newRegistration isEqualToString:@"System"]);
+			}
+		}
+		else if ([cmd isEqualToString:@"transfer-apps"])
+		{
+			bool oneFailed = false;
+			for (NSString *appBundlePath in trollStoreInactiveInstalledAppBundlePaths()) {
+				NSLog(@"Transfering %@...", appBundlePath);
+
+				// Ldid lacks the entitlement to sign in place
+				// So copy to /tmp, resign, then replace >.<
+				NSString *tmpPath = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSUUID UUID].UUIDString];
+				if (![[NSFileManager defaultManager] createDirectoryAtPath:tmpPath withIntermediateDirectories:YES attributes:nil error:nil]) return -3;
+
+				NSString *tmpAppPath = [tmpPath stringByAppendingPathComponent:appBundlePath.lastPathComponent];
+				if (![[NSFileManager defaultManager] copyItemAtPath:appBundlePath toPath:tmpAppPath error:nil]) {
+					[[NSFileManager defaultManager] removeItemAtPath:tmpPath error:nil];
+					oneFailed = true;
+					continue;
+				}
+
+				NSLog(@"Copied %@ to %@", appBundlePath, tmpAppPath);
+
+				int signRet = signApp(tmpAppPath);
+				NSLog(@"Signing %@ returned %d", tmpAppPath, signRet);
+
+				if (signRet == 0 || signRet == 182 || signRet == 184) { // Either 0 or non fatal error codes are fine
+					[[NSFileManager defaultManager] removeItemAtPath:appBundlePath error:nil];
+					[[NSFileManager defaultManager] moveItemAtPath:tmpAppPath toPath:appBundlePath error:nil];
+					[[NSFileManager defaultManager] removeItemAtPath:tmpPath error:nil];
+				}
+				else {
+					[[NSFileManager defaultManager] removeItemAtPath:tmpPath error:nil];
+					oneFailed = true;
+					continue;
+				}
+
+				fixPermissionsOfAppBundle(appBundlePath);
+
+				NSString *containerPath = [appBundlePath stringByDeletingLastPathComponent];
+				NSString *activeMarkerPath = [containerPath stringByAppendingPathComponent:TS_ACTIVE_MARKER];
+				NSString *inactiveMarkerPath = [containerPath stringByAppendingPathComponent:TS_INACTIVE_MARKER];
+
+				NSData* emptyData = [NSData data];
+				[emptyData writeToFile:activeMarkerPath options:0 error:nil];
+
+				[[NSFileManager defaultManager] removeItemAtPath:inactiveMarkerPath error:nil];
+
+				registerPath(appBundlePath, 0, !shouldRegisterAsUserByDefault());
+
+				NSLog(@"Transfered %@!", appBundlePath);
+			}
+			if (oneFailed) ret = -1;
+		}
+#ifndef TROLLSTORE_LITE
 		else if([cmd isEqualToString:@"install-trollstore"])
 		{
 			if(args.count < 2) return -3;
@@ -1516,19 +1689,6 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 				installLdid(ldidPath, ldidVersion);
 			//}
 		}
-		else if([cmd isEqualToString:@"refresh"])
-		{
-			refreshAppRegistrations(YES);
-		}
-		else if([cmd isEqualToString:@"refresh-all"])
-		{
-			cleanRestrictions();
-			//refreshAppRegistrations(NO); // <- fixes app permissions resetting, causes apps to move around on home screen, so I had to disable it
-			[[NSFileManager defaultManager] removeItemAtPath:@"/var/containers/Shared/SystemGroup/systemgroup.com.apple.lsd.iconscache/Library/Caches/com.apple.IconsCache" error:nil];
-			[[LSApplicationWorkspace defaultWorkspace] _LSPrivateRebuildApplicationDatabasesForSystemApps:YES internal:YES user:YES];
-			refreshAppRegistrations(YES);
-			killall(@"backboardd", YES);
-		}
 		else if([cmd isEqualToString:@"install-persistence-helper"])
 		{
 			if(args.count < 2) return -3;
@@ -1552,28 +1712,6 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 			NSString* userAppId = args.lastObject;
 			registerUserPersistenceHelper(userAppId);
 		}
-		else if([cmd isEqualToString:@"modify-registration"])
-		{
-			if(args.count < 3) return -3;
-			NSString* appPath = args[1];
-			NSString* newRegistration = args[2];
-
-			NSString* trollStoreMark = [[appPath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"_TrollStore"];
-			if([[NSFileManager defaultManager] fileExistsAtPath:trollStoreMark])
-			{
-				registerPath(appPath, NO, [newRegistration isEqualToString:@"System"]);
-			}
-		}
-		else if([cmd isEqualToString:@"url-scheme"])
-		{
-			if(args.count < 2) return -3;
-			NSString* modifyArg = args.lastObject;
-			BOOL newState = [modifyArg isEqualToString:@"enable"];
-			if(newState == YES || [modifyArg isEqualToString:@"disable"])
-			{
-				setTSURLSchemeState(newState, nil);
-			}
-		}
 		else if([cmd isEqualToString:@"check-dev-mode"])
 		{
 			// switch the result, so 0 is enabled, and 1 is disabled/error
@@ -1584,18 +1722,7 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 			// assumes that checkDeveloperMode() has already been called
 			ret = !armDeveloperMode(NULL);
 		}
-		else if([cmd isEqualToString:@"reboot"])
-		{
-			[[FBSSystemService sharedService] reboot];
-			// Give the system some time to reboot
-			sleep(1);
-		}
-		else if([cmd isEqualToString:@"enable-jit"])
-		{
-			if(args.count < 2) return -3;
-			NSString* userAppId = args.lastObject;
-			ret = enableJIT(userAppId);
-		}
+#endif
 
 		NSLog(@"trollstorehelper returning %d", ret);
 		return ret;

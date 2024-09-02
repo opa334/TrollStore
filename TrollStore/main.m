@@ -4,7 +4,7 @@
 
 NSUserDefaults* trollStoreUserDefaults(void)
 {
-	return [[NSUserDefaults alloc] initWithSuiteName:[NSHomeDirectory() stringByAppendingPathComponent:@"Library/Preferences/com.opa334.TrollStore.plist"]];
+	return [[NSUserDefaults alloc] initWithSuiteName:[NSHomeDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"Library/Preferences/%@.plist", APP_ID]]];
 }
 
 int main(int argc, char *argv[]) {

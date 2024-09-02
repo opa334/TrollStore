@@ -130,6 +130,7 @@
 // or if it's the one from an old TrollStore version that's no longer supported
 - (void)handleLdidCheck
 {
+#ifndef TROLLSTORE_LITE
 	//if (@available(iOS 16, *)) {} else {
 		NSString* tsAppPath = [NSBundle mainBundle].bundlePath;
 
@@ -141,6 +142,7 @@
 			[TSInstallationController installLdid];
 		}
 	//}
+#endif
 }
 
 - (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions {

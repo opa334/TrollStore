@@ -20,6 +20,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadSpecifiers) name:UIApplicationWillEnterForegroundNotification object:nil];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadSpecifiers) name:@"TrollStoreReloadSettingsNotification" object:nil];
 
+#ifndef TROLLSTORE_LITE
 	fetchLatestTrollStoreVersion(^(NSString* latestVersion)
 	{
 		NSString* currentVersion = [self getTrollStoreVersion];
@@ -64,6 +65,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 	{
 		_devModeEnabled = YES;
 	}
+#endif
 	[self reloadSpecifiers];
 }
 
@@ -73,6 +75,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 	{
 		_specifiers = [NSMutableArray new];
 
+#ifndef TROLLSTORE_LITE
 		if(_newerVersion)
 		{
 			PSSpecifier* updateTrollStoreGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
@@ -111,10 +114,23 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 			enableDevModeSpecifier.buttonAction = @selector(enableDevModePressed);
 			[_specifiers addObject:enableDevModeSpecifier];
 		}
+#endif
 
 		PSSpecifier* utilitiesGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
 		utilitiesGroupSpecifier.name = @"Utilities";
-		[utilitiesGroupSpecifier setProperty:@"If an app does not immediately appear after installation, respring here and it should appear afterwards." forKey:@"footerText"];
+
+		NSString *utilitiesDescription = @"";
+#ifdef TROLLSTORE_LITE
+		if (shouldRegisterAsUserByDefault()) {
+			utilitiesDescription = @"Apps will be registered as User by default since AppSync Unified is installed.\n\n";
+		}
+		else {
+			utilitiesDescription = @"Apps will be registered as System by default since AppSync Unified is not installed. When apps loose their System registration and stop working, press \"Refresh App Registrations\" here to fix them.\n\n";
+		}
+#endif
+		utilitiesDescription = [utilitiesDescription stringByAppendingString:@"If an app does not immediately appear after installation, respring here and it should appear afterwards."];
+
+		[utilitiesGroupSpecifier setProperty:utilitiesDescription forKey:@"footerText"];
 		[_specifiers addObject:utilitiesGroupSpecifier];
 
 		PSSpecifier* respringButtonSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Respring"
@@ -130,6 +146,19 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 
 		[_specifiers addObject:respringButtonSpecifier];
 
+		PSSpecifier* refreshAppRegistrationsSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Refresh App Registrations"
+											target:self
+											set:nil
+											get:nil
+											detail:nil
+											cell:PSButtonCell
+											edit:nil];
+		refreshAppRegistrationsSpecifier.identifier = @"refreshAppRegistrations";
+		[refreshAppRegistrationsSpecifier setProperty:@YES forKey:@"enabled"];
+		refreshAppRegistrationsSpecifier.buttonAction = @selector(refreshAppRegistrationsPressed);
+
+		[_specifiers addObject:refreshAppRegistrationsSpecifier];
+
 		PSSpecifier* rebuildIconCacheSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Rebuild Icon Cache"
 											target:self
 											set:nil
@@ -143,6 +172,23 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 
 		[_specifiers addObject:rebuildIconCacheSpecifier];
 
+		NSArray *inactiveBundlePaths = trollStoreInactiveInstalledAppBundlePaths();
+		if (inactiveBundlePaths.count > 0) {
+			PSSpecifier* transferAppsSpecifier = [PSSpecifier preferenceSpecifierNamed:[NSString stringWithFormat:@"Transfer %zu "OTHER_APP_NAME@" %@", inactiveBundlePaths.count, inactiveBundlePaths.count > 1 ? @"Apps" : @"App"]
+											target:self
+											set:nil
+											get:nil
+											detail:nil
+											cell:PSButtonCell
+											edit:nil];
+			transferAppsSpecifier.identifier = @"transferApps";
+			[transferAppsSpecifier setProperty:@YES forKey:@"enabled"];
+			transferAppsSpecifier.buttonAction = @selector(transferAppsPressed);
+
+			[_specifiers addObject:transferAppsSpecifier];
+		}
+
+#ifndef TROLLSTORE_LITE
 		//if (@available(iOS 16, *)) { } else {
 			NSString* ldidPath = [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"ldid"];
 			NSString* ldidVersionPath = [NSBundle.mainBundle.bundlePath stringByAppendingPathComponent:@"ldid.version"];
@@ -288,6 +334,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 				[_specifiers addObject:_installPersistenceHelperSpecifier];
 			}
 		}
+#endif
 
 		PSSpecifier* installationSettingsGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
 		installationSettingsGroupSpecifier.name = @"Security";
@@ -316,14 +363,14 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 		installAlertConfigurationSpecifier.detailControllerClass = [PSListItemsController class];
 		[installAlertConfigurationSpecifier setProperty:@"installationConfirmationValues" forKey:@"valuesDataSource"];
         [installAlertConfigurationSpecifier setProperty:@"installationConfirmationNames" forKey:@"titlesDataSource"];
-		[installAlertConfigurationSpecifier setProperty:@"com.opa334.TrollStore" forKey:@"defaults"];
+		[installAlertConfigurationSpecifier setProperty:APP_ID forKey:@"defaults"];
 		[installAlertConfigurationSpecifier setProperty:@"installAlertConfiguration" forKey:@"key"];
         [installAlertConfigurationSpecifier setProperty:@0 forKey:@"default"];
 
 		[_specifiers addObject:installAlertConfigurationSpecifier];
 
 		PSSpecifier* otherGroupSpecifier = [PSSpecifier emptyGroupSpecifier];
-		[otherGroupSpecifier setProperty:[NSString stringWithFormat:@"TrollStore %@\n\n© 2022-2024 Lars Fröder (opa334)\n\nTrollStore is NOT for piracy!\n\nCredits:\nGoogle TAG, @alfiecg_dev: CoreTrust bug\n@lunotech11, @SerenaKit, @tylinux, @TheRealClarity, @dhinakg, @khanhduytran0: Various contributions\n@ProcursusTeam: uicache, ldid\n@cstar_ow: uicache\n@saurik: ldid", [self getTrollStoreVersion]] forKey:@"footerText"];
+		[otherGroupSpecifier setProperty:[NSString stringWithFormat:@"%@ %@\n\n© 2022-2024 Lars Fröder (opa334)\n\nTrollStore is NOT for piracy!\n\nCredits:\nGoogle TAG, @alfiecg_dev: CoreTrust bug\n@lunotech11, @SerenaKit, @tylinux, @TheRealClarity, @dhinakg, @khanhduytran0: Various contributions\n@ProcursusTeam: uicache, ldid\n@cstar_ow: uicache\n@saurik: ldid", APP_NAME, [self getTrollStoreVersion]] forKey:@"footerText"];
 		[_specifiers addObject:otherGroupSpecifier];
 
 		PSSpecifier* advancedLinkSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Advanced"
@@ -348,6 +395,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 		[donateSpecifier setProperty:@YES forKey:@"enabled"];
 		[_specifiers addObject:donateSpecifier];
 
+#ifndef TROLLSTORE_LITE
 		// Uninstall TrollStore
 		PSSpecifier* uninstallTrollStoreSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Uninstall TrollStore"
 										target:self
@@ -361,7 +409,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 		[uninstallTrollStoreSpecifier setProperty:NSClassFromString(@"PSDeleteButtonCell") forKey:@"cellClass"];
 		uninstallTrollStoreSpecifier.buttonAction = @selector(uninstallTrollStorePressed);
 		[_specifiers addObject:uninstallTrollStoreSpecifier];
-
+#endif
 		/*PSSpecifier* doTheDashSpecifier = [PSSpecifier preferenceSpecifierNamed:@"Do the Dash"
 										target:self
 										set:nil
@@ -439,7 +487,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 		{
 			if([[NSFileManager defaultManager] fileExistsAtPath:[@"/System/Library/AppSignatures" stringByAppendingPathComponent:appProxy.bundleIdentifier]])
 			{
-				NSURL* trollStoreMarkURL = [appProxy.bundleURL.URLByDeletingLastPathComponent URLByAppendingPathComponent:@"_TrollStore"];
+				NSURL* trollStoreMarkURL = [appProxy.bundleURL.URLByDeletingLastPathComponent URLByAppendingPathComponent:TS_ACTIVE_MARKER];
 				if(![trollStoreMarkURL checkResourceIsReachableAndReturnError:nil])
 				{
 					[appCandidates addObject:appProxy];
@@ -469,6 +517,52 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 	[selectAppAlert addAction:cancelAction];
 
 	[TSPresentationDelegate presentViewController:selectAppAlert animated:YES completion:nil];
+}
+
+- (void)transferAppsPressed
+{
+	UIAlertController *confirmationAlert = [UIAlertController alertControllerWithTitle:@"Transfer Apps" message:[NSString stringWithFormat:@"This option will transfer %zu apps from "OTHER_APP_NAME@" to "APP_NAME@". Continue?", trollStoreInactiveInstalledAppBundlePaths().count] preferredStyle:UIAlertControllerStyleAlert];
+	
+	UIAlertAction* transferAction = [UIAlertAction actionWithTitle:@"Transfer" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+	{
+		[TSPresentationDelegate startActivity:@"Transfering"];
+		dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
+		{
+			NSString *log;
+			int transferRet = spawnRoot(rootHelperPath(), @[@"transfer-apps"], nil, &log);
+
+			dispatch_async(dispatch_get_main_queue(), ^
+			{
+				[TSPresentationDelegate stopActivityWithCompletion:^
+				{
+					[self reloadSpecifiers];
+
+					if (transferRet != 0) {
+						NSArray *remainingApps = trollStoreInactiveInstalledAppBundlePaths();
+						UIAlertController *errorAlert = [UIAlertController alertControllerWithTitle:@"Transfer Failed" message:[NSString stringWithFormat:@"Failed to transfer %zu %@", remainingApps.count, remainingApps.count > 1 ? @"apps" : @"app"] preferredStyle:UIAlertControllerStyleAlert];
+
+						UIAlertAction* copyLogAction = [UIAlertAction actionWithTitle:@"Copy Debug Log" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
+						{
+							UIPasteboard* pasteboard = [UIPasteboard generalPasteboard];
+							pasteboard.string = log;
+						}];
+						[errorAlert addAction:copyLogAction];
+
+						UIAlertAction* closeAction = [UIAlertAction actionWithTitle:@"Close" style:UIAlertActionStyleDefault handler:nil];
+						[errorAlert addAction:closeAction];
+
+						[TSPresentationDelegate presentViewController:errorAlert animated:YES completion:nil];
+					}
+				}];
+			});
+		});
+	}];
+	[confirmationAlert addAction:transferAction];
+
+	UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+	[confirmationAlert addAction:cancelAction];
+
+	[TSPresentationDelegate presentViewController:confirmationAlert animated:YES completion:nil];
 }
 
 - (id)getURLSchemeEnabledForSpecifier:(PSSpecifier*)specifier

@@ -1,4 +1,5 @@
 #import "TSSettingsAdvancedListController.h"
+#import "TSUtil.h"
 #import <Preferences/PSSpecifier.h>
 
 extern NSUserDefaults* trollStoreUserDefaults();
@@ -39,7 +40,7 @@ extern NSUserDefaults* trollStoreUserDefaults();
 											edit:nil];
 		[installationMethodSegmentSpecifier setProperty:@YES forKey:@"enabled"];
 		installationMethodSegmentSpecifier.identifier = @"installationMethodSegment";
-		[installationMethodSegmentSpecifier setProperty:@"com.opa334.TrollStore" forKey:@"defaults"];
+		[installationMethodSegmentSpecifier setProperty:APP_ID forKey:@"defaults"];
 		[installationMethodSegmentSpecifier setProperty:@"installationMethod" forKey:@"key"];
 		installationMethodSegmentSpecifier.values = @[@0, @1];
 		installationMethodSegmentSpecifier.titleDictionary = @{@0 : @"installd", @1 : @"Custom"};
@@ -71,7 +72,7 @@ extern NSUserDefaults* trollStoreUserDefaults();
 											edit:nil];
 		[uninstallationMethodSegmentSpecifier setProperty:@YES forKey:@"enabled"];
 		uninstallationMethodSegmentSpecifier.identifier = @"uninstallationMethodSegment";
-		[uninstallationMethodSegmentSpecifier setProperty:@"com.opa334.TrollStore" forKey:@"defaults"];
+		[uninstallationMethodSegmentSpecifier setProperty:APP_ID forKey:@"defaults"];
 		[uninstallationMethodSegmentSpecifier setProperty:@"uninstallationMethod" forKey:@"key"];
 		uninstallationMethodSegmentSpecifier.values = @[@0, @1];
 		uninstallationMethodSegmentSpecifier.titleDictionary = @{@0 : @"installd", @1 : @"Custom"};

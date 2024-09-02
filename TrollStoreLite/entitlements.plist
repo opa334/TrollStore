@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>application-identifier</key>
+	<string>com.opa334.TrollStore</string>
+	<key>platform-application</key>
+	<true/>
+	<key>com.apple.security.exception.files.absolute-path.read-write</key>
+	<array>
+		<string>/</string>
+	</array>
+	<key>com.apple.security.exception.iokit-user-client-class</key>
+	<array>
+		<string>AGXDeviceUserClient</string>
+		<string>IOSurfaceRootUserClient</string>
+	</array>
+	<key>com.apple.private.security.no-sandbox</key>
+	<true/>
+	<key>com.apple.private.persona-mgmt</key>
+	<true/>
+	<key>com.apple.private.security.container-manager</key>
+	<true/>
+	<key>com.apple.private.coreservices.canmaplsdatabase</key>
+	<true/>
+	<key>com.apple.lsapplicationworkspace.rebuildappdatabases</key>
+	<true/>
+	<key>com.apple.private.MobileContainerManager.allowed</key>
+	<true/>
+	<key>com.apple.private.MobileInstallationHelperService.InstallDaemonOpsEnabled</key>
+	<true/>
+	<key>com.apple.private.MobileInstallationHelperService.allowed</key>
+	<true/>
+	<key>com.apple.private.uninstall.deletion</key>
+	<true/>
+	<key>com.apple.private.security.storage.MobileDocuments</key>
+	<true/>
+	<key>com.apple.CommCenter.fine-grained</key>
+	<array>
+		<string>data-allowed-write</string>
+	</array>
+	<key>com.apple.springboard.opensensitiveurl</key>
+	<true/>
+</dict>
+</plist>

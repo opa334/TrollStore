@@ -4,6 +4,7 @@
 #import <spawn.h>
 #import <sys/sysctl.h>
 #import <mach-o/dyld.h>
+#import <libroot.h>
 
 static EXPLOIT_TYPE gPlatformVulnerabilities;
 
@@ -34,6 +35,25 @@ NSString *getExecutablePath(void)
 	_NSGetExecutablePath(selfPath, &len);
 	return [NSString stringWithUTF8String:selfPath];
 }
+
+#ifdef TROLLSTORE_LITE
+
+BOOL shouldRegisterAsUserByDefault(void)
+{
+	if ([[NSFileManager defaultManager] fileExistsAtPath:JBROOT_PATH(@"/Library/MobileSubstrate/DynamicLibraries/AppSyncUnified-FrontBoard.dylib")]) {
+		return YES;
+	}
+	return NO;
+}
+
+#else
+
+BOOL shouldRegisterAsUserByDefault(void)
+{
+	return NO;
+}
+
+#endif
 
 #ifdef EMBEDDED_ROOT_HELPER
 NSString* rootHelperPath(void)
@@ -315,7 +335,7 @@ void fetchLatestLdidVersion(void (^completionHandler)(NSString* latestVersion))
 	github_fetchLatestVersion(@"opa334/ldid", completionHandler);
 }
 
-NSArray* trollStoreInstalledAppContainerPaths()
+NSArray* trollStoreInstalledAppContainerPathsInternal(NSString *marker)
 {
 	NSMutableArray* appContainerPaths = [NSMutableArray new];
 
@@ -336,11 +356,12 @@ NSArray* trollStoreInstalledAppContainerPaths()
 		BOOL exists = [[NSFileManager defaultManager] fileExistsAtPath:containerPath isDirectory:&isDirectory];
 		if(exists && isDirectory)
 		{
-			NSString* trollStoreMark = [containerPath stringByAppendingPathComponent:@"_TrollStore"];
+			NSString* trollStoreMark = [containerPath stringByAppendingPathComponent:marker];
 			if([[NSFileManager defaultManager] fileExistsAtPath:trollStoreMark])
 			{
 				NSString* trollStoreApp = [containerPath stringByAppendingPathComponent:@"TrollStore.app"];
-				if(![[NSFileManager defaultManager] fileExistsAtPath:trollStoreApp])
+				NSString* trollStoreLiteApp = [containerPath stringByAppendingPathComponent:@"TrollStoreLite.app"];
+				if(![[NSFileManager defaultManager] fileExistsAtPath:trollStoreApp] && ![[NSFileManager defaultManager] fileExistsAtPath:trollStoreLiteApp])
 				{
 					[appContainerPaths addObject:containerPath];
 				}
@@ -351,10 +372,15 @@ NSArray* trollStoreInstalledAppContainerPaths()
 	return appContainerPaths.copy;
 }
 
-NSArray* trollStoreInstalledAppBundlePaths()
+NSArray *trollStoreInstalledAppContainerPaths(void)
+{
+	return trollStoreInstalledAppContainerPathsInternal(TS_ACTIVE_MARKER);
+}
+
+NSArray* trollStoreInstalledAppBundlePathsInternal(NSString *marker)
 {
 	NSMutableArray* appPaths = [NSMutableArray new];
-	for(NSString* containerPath in trollStoreInstalledAppContainerPaths())
+	for(NSString* containerPath in trollStoreInstalledAppContainerPathsInternal(marker))
 	{
 		NSArray* items = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:containerPath error:nil];
 		if(!items) return nil;
@@ -370,10 +396,20 @@ NSArray* trollStoreInstalledAppBundlePaths()
 	return appPaths.copy;
 }
 
+NSArray *trollStoreInstalledAppBundlePaths(void)
+{
+	return trollStoreInstalledAppBundlePathsInternal(TS_ACTIVE_MARKER);
+}
+
+NSArray *trollStoreInactiveInstalledAppBundlePaths(void)
+{
+	return trollStoreInstalledAppBundlePathsInternal(TS_INACTIVE_MARKER);
+}
+
 NSString* trollStorePath()
 {
 	NSError* mcmError;
-	MCMAppContainer* appContainer = [MCMAppContainer containerWithIdentifier:@"com.opa334.TrollStore" createIfNecessary:NO existed:NULL error:&mcmError];
+	MCMAppContainer* appContainer = [MCMAppContainer containerWithIdentifier:APP_ID createIfNecessary:NO existed:NULL error:&mcmError];
 	if(!appContainer) return nil;
 	return appContainer.url.path;
 }

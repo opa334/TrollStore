@@ -3,7 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleExecutable</key>
-	<string>TrollStore</string>
+	<string>TrollStoreLite</string>
+	<key>CFBundleDisplayName</key>
+	<string>TrollStore Lite</string>
 	<key>CFBundleIcons</key>
 	<dict>
 		<key>CFBundlePrimaryIcon</key>
@@ -38,7 +40,7 @@
 		</dict>
 	</dict>
 	<key>CFBundleIdentifier</key>
-	<string>com.opa334.TrollStore</string>
+	<string>com.opa334.TrollStoreLite</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
@@ -132,16 +134,6 @@
 		</dict>
 		<dict>
 			<key>CFBundleTypeName</key>
-			<string>TrollStore Update</string>
-			<key>LSHandlerRank</key>
-			<string>Default</string>
-			<key>LSItemContentTypes</key>
-			<array>
-				<string>public.tar-archive</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleTypeName</key>
 			<string>AirDrop friendly iOS app</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
@@ -154,7 +146,7 @@
 		</dict>
 	</array>
 	<key>UTExportedTypeDeclarations</key>
-	<array>
+    <array>
 		<dict>
 			<key>UTTypeIdentifier</key>
 			<string>com.opa334.trollstore.tipa</string>
@@ -191,7 +183,6 @@
 	<key>TSRootBinaries</key>
 	<array>
 		<string>trollstorehelper</string>
-		<string>ldid</string>
 	</array>
 </dict>
 </plist>

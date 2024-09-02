@@ -42,7 +42,7 @@ extern NSUserDefaults* trollStoreUserDefaults();
         errorDescription = @"Failed to create container for app bundle.";
         break;
         case 171:
-        errorDescription = @"A non-TrollStore app with the same identifier is already installed. If you are absolutely sure it is not, you can force install it.";
+        errorDescription = @"A non "APP_NAME@" or a "OTHER_APP_NAME@" app with the same identifier is already installed. If you are absolutely sure it is not, you can force install it.";
         break;
         case 172:
         errorDescription = @"The app does not contain an Info.plist file.";
