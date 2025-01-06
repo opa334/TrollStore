@@ -20,19 +20,19 @@ Alternatively (if anything goes wrong), you can download the TrollStore.tar file
 
 ## Uninstalling an app
 
-Apps installed from TrollStore can only be uninstalled from TrollStore itself, tap an app or swipe it to the left in the 'Apps' tab to delete it.
+Apps installed from TrollStore can only be uninstalled from TrollStore itself; tap an app or swipe it to the left in the 'Apps' tab to delete it.
 
 ## Persistence Helper
 
-The CoreTrust bug used in TrollStore is only enough to install "System" apps, this is because FrontBoard has an additional security check (it calls libmis) every time before a user app is launched. Unfortunately it is not possible to install new "System" apps that stay through an icon cache reload. Therefore, when iOS reloads the icon cache, all TrollStore installed apps including TrollStore itself will revert back to "User" state and will no longer launch.
+The CoreTrust bug used in TrollStore is only enough to install "System" apps; this is because FrontBoard has an additional security check (it calls libmis) every time before a user app is launched. Unfortunately, it is not possible to install new "System" apps that stay through an icon cache reload. Therefore, when iOS reloads the icon cache, all TrollStore installed apps including TrollStore itself will revert back to "User" state and will no longer launch.
 
-The only way to work around this is to install a persistence helper into a system app, this helper can then be used to reregister TrollStore and its installed apps as "System" so that they become launchable again, an option for this is available in TrollStore settings.
+The only way to work around this is to install a persistence helper into a system app; this helper can then be used to reregister TrollStore and its installed apps as "System" so that they become launchable again; an option for this is available in TrollStore settings.
 
-On jailbroken iOS 14 when TrollHelper is used for installation, it is located in /Applications and will persist as a "System" app through icon cache reloads, therefore TrollHelper is used as the persistence helper on iOS 14.
+On jailbroken iOS 14 when TrollHelper is used for installation, it is located in /Applications and will persist as a "System" app through icon cache reloads; therefore, TrollHelper is used as the persistence helper on iOS 14.
 
 ## URL Scheme
 
-As of version 1.3, TrollStore replaces the system URL scheme "apple-magnifier" (this is done so "jailbreak" detections can't detect TrollStore like they could if TrollStore had a unique URL scheme). This URL scheme can be used to install applications right from the browser, or to enable JIT from the app itself (only 2.0.12 and above), the format goes as follows:
+As of version 1.3, TrollStore replaces the system URL scheme "apple-magnifier" (this is done so "jailbreak" detections can't detect TrollStore like they could if TrollStore had a unique URL scheme). This URL scheme can be used to install applications right from the browser or to enable JIT from the app itself (only 2.0.12 and above); the format goes as follows:
 
 - `apple-magnifier://install?url=<URL_to_IPA>`
 - `apple-magnifier://enable-jit?bundle-id=<Bundle_ID>`
@@ -41,11 +41,11 @@ On devices that don't have TrollStore (1.3+) installed, this will just open the 
 
 ## Features
 
-The binaries inside an IPA can have arbitrary entitlements, fakesign them with ldid and the entitlements you want (`ldid -S<path/to/entitlements.plist> <path/to/binary>`) and TrollStore will preserve the entitlements when resigning them with the fake root certificate on installation. This gives you a lot of possibilities, some of which are explained below.
+The binaries inside an IPA can have arbitrary entitlements; fakesign them with ldid and the entitlements you want (`ldid -S<path/to/entitlements.plist> <path/to/binary>`) and TrollStore will preserve the entitlements when resigning them with the fake root certificate on installation. This gives you a lot of possibilities, some of which are explained below.
 
 ### Banned entitlements
 
-iOS 15 on A12+ has banned the following three entitlements related to running unsigned code, these are impossible to get without a PPL bypass, apps signed with them will crash on launch.
+iOS 15 on A12+ has banned the following three entitlements related to running unsigned code; these are impossible to get without a PPL bypass; apps signed with them will crash on launch.
 
 `com.apple.private.cs.debugger`
 
@@ -81,9 +81,9 @@ You might also need the platform-application entitlement in order for these to w
 <true/>
 ```
 
-Please note that the platform-application entitlement causes side effects such as some parts of the sandbox becoming tighter, so you may need additional private entitlements to circumvent that. (For example afterwards you need an exception entitlement for every single IOKit user client class you want to access).
+Please note that the platform-application entitlement causes side effects such as some parts of the sandbox becoming tighter, so you may need additional private entitlements to circumvent that. (For example, afterwards you need an exception entitlement for every single IOKit user client class you want to access).
 
-In order for an app with `com.apple.private.security.no-sandbox` and `platform-application` to be able to access it's own data container, you might need the additional entitlement:
+In order for an app with `com.apple.private.security.no-sandbox` and `platform-application` to be able to access its own data container, you might need the additional entitlement:
 
 ```xml
 <key>com.apple.private.security.storage.AppDataContainers</key>
@@ -92,7 +92,7 @@ In order for an app with `com.apple.private.security.no-sandbox` and `platform-a
 
 ### Root Helpers
 
-When your app is not sandboxed, you can spawn other binaries using posix_spawn, you can also spawn binaries as root with the following entitlement:
+When your app is not sandboxed, you can spawn other binaries using posix_spawn; you can also spawn binaries as root with the following entitlement:
 
 ```xml
 <key>com.apple.private.persona-mgmt</key>
@@ -111,7 +111,7 @@ Afterwards you can use the [spawnRoot function in TSUtil.m](./Shared/TSUtil.m#L7
 
 ### Compilation
 
-To compile TrollStore, ensure [theos](https://theos.dev/docs/installation) is installed. Additionaly ensure [brew](https://brew.sh/) is installed and install [libarchive](https://formulae.brew.sh/formula/libarchive) from brew.
+To compile TrollStore, ensure [theos](https://theos.dev/docs/installation) is installed. Additionally, ensure [brew](https://brew.sh/) is installed, and install [libarchive](https://formulae.brew.sh/formula/libarchive) from brew.
 
 ## Credits and Further Reading
 
