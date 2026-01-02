@@ -58,6 +58,12 @@ int extract(NSString* fileToExtract, NSString* extractionPath)
             return 1;
         
         NSString* currentFile = [NSString stringWithUTF8String:archive_entry_pathname(entry)];
+        if (currentFile.length == 0) {
+            continue;
+        }
+        if ([currentFile hasPrefix:@"/"] || [currentFile containsString:@".."]) {
+            return 1;
+        }
         NSString* fullOutputPath = [extractionPath stringByAppendingPathComponent:currentFile];
         //printf("extracting %@ to %@\n", currentFile, fullOutputPath);
         archive_entry_set_pathname(entry, fullOutputPath.fileSystemRepresentation);
