@@ -1169,7 +1169,7 @@ int uninstallAppByPath(NSString* appPath, BOOL useCustomMethod)
 
 	NSString* standardizedAppPath = appPath.stringByStandardizingPath;
 
-	if(![standardizedAppPath hasPrefix:@"/var/containers/Bundle/Application/"] && standardizedAppPath.pathComponents.count == 5)
+	if(![standardizedAppPath hasPrefix:@"/var/containers/Bundle/Application/"] || standardizedAppPath.pathComponents.count < 5)
 	{
 		return 1;
 	}
