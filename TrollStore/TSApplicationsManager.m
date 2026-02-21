@@ -91,19 +91,26 @@ extern NSUserDefaults* trollStoreUserDefaults();
         break;
         case 185:
         errorDescription = @"Failed to sign the app. The CoreTrust bypass returned a non zero status code.";
+        break;
+        case 186:
+        errorDescription = @"This app is already installed using the opposite install mode (Stealth vs Normal). Uninstall it first before switching modes.";
     }
 
     NSError* error = [NSError errorWithDomain:TrollStoreErrorDomain code:code userInfo:@{NSLocalizedDescriptionKey : errorDescription}];
     return error;
 }
 
-- (int)installIpa:(NSString*)pathToIpa force:(BOOL)force log:(NSString**)logOut
+- (int)installIpa:(NSString*)pathToIpa force:(BOOL)force stealth:(BOOL)stealth log:(NSString**)logOut
 {
     NSMutableArray* args = [NSMutableArray new];
     [args addObject:@"install"];
     if(force)
     {
         [args addObject:@"force"];
+    }
+    if(stealth)
+    {
+        [args addObject:@"stealth"];
     }
     NSNumber* installationMethodToUseNum = [trollStoreUserDefaults() objectForKey:@"installationMethod"];
     int installationMethodToUse = installationMethodToUseNum ? installationMethodToUseNum.intValue : 1;
@@ -120,11 +127,6 @@ extern NSUserDefaults* trollStoreUserDefaults();
     int ret = spawnRoot(rootHelperPath(), args, nil, logOut);
     [[NSNotificationCenter defaultCenter] postNotificationName:@"ApplicationsChanged" object:nil];
     return ret;
-}
-
-- (int)installIpa:(NSString*)pathToIpa
-{
-    return [self installIpa:pathToIpa force:NO log:nil];
 }
 
 - (int)uninstallApp:(NSString*)appId

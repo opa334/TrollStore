@@ -9,7 +9,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 
 @implementation TSInstallationController
 
-+ (void)handleAppInstallFromFile:(NSString*)pathToIPA forceInstall:(BOOL)force completion:(void (^)(BOOL, NSError*))completionBlock
++ (void)handleAppInstallFromFile:(NSString*)pathToIPA forceInstall:(BOOL)force stealthInstall:(BOOL)stealth completion:(void (^)(BOOL, NSError*))completionBlock
 {
 	dispatch_async(dispatch_get_main_queue(), ^
 	{
@@ -18,7 +18,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 		{
 			// Install IPA
 			NSString* log;
-			int ret = [[TSApplicationsManager sharedInstance] installIpa:pathToIPA force:force log:&log];
+			int ret = [[TSApplicationsManager sharedInstance] installIpa:pathToIPA force:force stealth:stealth log:&log];
 
 			NSError* error;
 			if(ret != 0)
@@ -46,7 +46,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 
 						UIAlertAction* forceInstallAction = [UIAlertAction actionWithTitle:@"Force Installation" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action)
 						{
-							[self handleAppInstallFromFile:pathToIPA forceInstall:YES completion:completionBlock];
+							[self handleAppInstallFromFile:pathToIPA forceInstall:YES stealthInstall:stealth completion:completionBlock];
 						}];
 						[errorAlert addAction:forceInstallAction];
 
@@ -120,7 +120,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 	{
 		if(installAlertConfiguration == 2 || (installAlertConfiguration == 1 && !remoteInstall))
 		{
-			[self handleAppInstallFromFile:pathToIPA completion:completionBlock];
+			[self handleAppInstallFromFile:pathToIPA forceInstall:NO stealthInstall:NO completion:completionBlock];
 			return;
 		}
 	}
@@ -137,9 +137,15 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 				installAlert.attributedMessage = [appInfo detailedInfoDescription];
 				UIAlertAction* installAction = [UIAlertAction actionWithTitle:@"Install" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action)
 				{
-					[self handleAppInstallFromFile:pathToIPA completion:completionBlock];
+					[self handleAppInstallFromFile:pathToIPA forceInstall:NO stealthInstall:NO completion:completionBlock];
 				}];
 				[installAlert addAction:installAction];
+
+				UIAlertAction* stealthInstallAction = [UIAlertAction actionWithTitle:@"Stealth Install" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action)
+				{
+					[self handleAppInstallFromFile:pathToIPA forceInstall:NO stealthInstall:YES completion:completionBlock];
+				}];
+				[installAlert addAction:stealthInstallAction];
 
 				UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction* action)
 				{
@@ -159,11 +165,6 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 			}
 		});
 	}];
-}
-
-+ (void)handleAppInstallFromFile:(NSString*)pathToIPA completion:(void (^)(BOOL, NSError*))completionBlock
-{
-	[self handleAppInstallFromFile:pathToIPA forceInstall:NO completion:completionBlock];
 }
 
 + (void)handleAppInstallFromRemoteURL:(NSURL*)remoteURL completion:(void (^)(BOOL, NSError*))completionBlock
