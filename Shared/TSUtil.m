@@ -406,12 +406,64 @@ NSArray *trollStoreInactiveInstalledAppBundlePaths(void)
 	return trollStoreInstalledAppBundlePathsInternal(TS_INACTIVE_MARKER);
 }
 
+static NSString* trollStoreContainerPathForAppIdentifier(NSString* appId)
+{
+	if(![appId isKindOfClass:NSString.class] || appId.length == 0) return nil;
+
+	MCMAppContainer* appContainer = [MCMAppContainer containerWithIdentifier:appId createIfNecessary:NO existed:NULL error:nil];
+	NSString* appContainerPath = appContainer.url.path;
+	if(!appContainerPath) return nil;
+
+	NSString* appPath = [appContainerPath stringByAppendingPathComponent:@"TrollStore.app"];
+	if(![[NSFileManager defaultManager] fileExistsAtPath:appPath]) return nil;
+	return appContainerPath;
+}
+
+NSString* installedStealthAppIdForOriginalAppId(NSString* originalAppId)
+{
+	if(![originalAppId isKindOfClass:NSString.class] || originalAppId.length == 0) return nil;
+
+	LSEnumerator* enumerator = [LSEnumerator enumeratorForApplicationProxiesWithOptions:0];
+	LSApplicationProxy* appProxy;
+	while(appProxy = [enumerator nextObject])
+	{
+		if(!appProxy.installed) continue;
+
+		NSString* appPath = appProxy.bundleURL.path;
+		if(![appPath isKindOfClass:NSString.class] || appPath.length == 0) continue;
+
+		NSDictionary* infoDict = [NSDictionary dictionaryWithContentsOfFile:[appPath stringByAppendingPathComponent:@"Info.plist"]];
+		NSString* installedOriginalAppId = infoDict[@"TSOriginalBundleIdentifier"];
+		NSString* installedAppId = infoDict[@"CFBundleIdentifier"];
+		if([installedOriginalAppId isKindOfClass:NSString.class] &&
+		   [installedAppId isKindOfClass:NSString.class] &&
+		   installedAppId.length > 0 &&
+		   [installedOriginalAppId.lowercaseString isEqualToString:originalAppId.lowercaseString])
+		{
+			return installedAppId;
+		}
+	}
+
+	return nil;
+}
+
 NSString* trollStorePath()
 {
+#ifndef TROLLSTORE_LITE
+	NSString* appContainerPath = trollStoreContainerPathForAppIdentifier(APP_ID);
+	if(appContainerPath) return appContainerPath;
+
+	appContainerPath = trollStoreContainerPathForAppIdentifier(@"com.opa334.trollstore");
+	if(appContainerPath) return appContainerPath;
+
+	NSString* stealthAppId = installedStealthAppIdForOriginalAppId(@"com.opa334.trollstore");
+	return trollStoreContainerPathForAppIdentifier(stealthAppId);
+#else
 	NSError* mcmError;
 	MCMAppContainer* appContainer = [MCMAppContainer containerWithIdentifier:APP_ID createIfNecessary:NO existed:NULL error:&mcmError];
 	if(!appContainer) return nil;
 	return appContainer.url.path;
+#endif
 }
 
 NSString* trollStoreAppPath()

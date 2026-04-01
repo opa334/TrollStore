@@ -11,8 +11,7 @@
 - (NSArray*)installedAppPaths;
 
 - (NSError*)errorForCode:(int)code;
-- (int)installIpa:(NSString*)pathToIpa force:(BOOL)force log:(NSString**)logOut;
-- (int)installIpa:(NSString*)pathToIpa;
+- (int)installIpa:(NSString*)pathToIpa force:(BOOL)force stealth:(BOOL)stealth log:(NSString**)logOut;
 - (int)uninstallApp:(NSString*)appId;
 - (int)uninstallAppByPath:(NSString*)path;
 - (BOOL)openApplicationWithBundleID:(NSString *)appID;

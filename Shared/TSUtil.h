@@ -39,6 +39,7 @@ extern NSArray* trollStoreInactiveInstalledAppBundlePaths(void);
 extern NSArray* trollStoreInstalledAppContainerPaths(void);
 extern NSString* trollStorePath(void);
 extern NSString* trollStoreAppPath(void);
+extern NSString* installedStealthAppIdForOriginalAppId(NSString* originalAppId);
 
 extern BOOL isRemovableSystemApp(NSString* appId);
 

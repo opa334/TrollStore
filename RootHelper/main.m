@@ -807,7 +807,13 @@ int signApp(NSString* appPath)
 }
 #endif
 
-void applyPatchesToInfoDictionary(NSString* appPath)
+NSString* randomStealthBundleIdentifierSuffix(void)
+{
+	uint64_t randomValue = ((uint64_t)arc4random() << 32) | arc4random();
+	return [NSString stringWithFormat:@"TS_%016llX", randomValue];
+}
+
+void applyPatchesToInfoDictionary(NSString* appPath, BOOL stealthInstall, BOOL stripURLSchemesInStealth)
 {
 	NSURL* appURL = [NSURL fileURLWithPath:appPath];
 	NSURL* infoPlistURL = [appURL URLByAppendingPathComponent:@"Info.plist"];
@@ -817,41 +823,84 @@ void applyPatchesToInfoDictionary(NSString* appPath)
 	// Enable Notifications
 	infoDictM[@"SBAppUsesLocalNotifications"] = @1;
 
-	// Remove system claimed URL schemes if existant
-	NSSet* appleSchemes = systemURLSchemes();
-	NSArray* CFBundleURLTypes = infoDictM[@"CFBundleURLTypes"];
-	if([CFBundleURLTypes isKindOfClass:[NSArray class]])
+	if(stealthInstall)
 	{
-		NSMutableArray* CFBundleURLTypesM = [NSMutableArray new];
-
-		for(NSDictionary* URLType in CFBundleURLTypes)
+		NSString* originalAppId = infoDictM[@"TSOriginalBundleIdentifier"];
+		if(![originalAppId isKindOfClass:NSString.class] || originalAppId.length == 0)
 		{
-			if(![URLType isKindOfClass:[NSDictionary class]]) continue;
-
-			NSMutableDictionary* modifiedURLType = URLType.mutableCopy;
-			NSArray* URLSchemes = URLType[@"CFBundleURLSchemes"];
-			if(URLSchemes)
-			{
-				NSMutableSet* URLSchemesSet = [NSMutableSet setWithArray:URLSchemes];
-				for(NSString* existingURLScheme in [URLSchemesSet copy])
-				{
-					if(![existingURLScheme isKindOfClass:[NSString class]])
-					{
-						[URLSchemesSet removeObject:existingURLScheme];
-						continue;
-					}
-
-					if([appleSchemes containsObject:existingURLScheme.lowercaseString])
-					{
-						[URLSchemesSet removeObject:existingURLScheme];
-					}
-				}
-				modifiedURLType[@"CFBundleURLSchemes"] = [URLSchemesSet allObjects];
-			}
-			[CFBundleURLTypesM addObject:modifiedURLType.copy];
+			originalAppId = infoDictM[@"CFBundleIdentifier"];
 		}
 
-		infoDictM[@"CFBundleURLTypes"] = CFBundleURLTypesM.copy;
+		if([originalAppId isKindOfClass:NSString.class] && originalAppId.length > 0)
+		{
+			NSString* stealthAppIdToUse = installedStealthAppIdForOriginalAppId(originalAppId);
+			if(!stealthAppIdToUse)
+			{
+				NSString* currentAppId = infoDictM[@"CFBundleIdentifier"];
+				NSString* currentOriginalAppId = infoDictM[@"TSOriginalBundleIdentifier"];
+				BOOL hasExistingStealthIdInInfoPlist = [currentAppId isKindOfClass:NSString.class] &&
+														currentAppId.length > 0 &&
+														![currentAppId isEqualToString:originalAppId] &&
+														[currentOriginalAppId isKindOfClass:NSString.class] &&
+														[currentOriginalAppId isEqualToString:originalAppId];
+				if(hasExistingStealthIdInInfoPlist)
+				{
+					stealthAppIdToUse = currentAppId;
+				}
+				else
+				{
+					stealthAppIdToUse = [originalAppId stringByAppendingFormat:@".%@", randomStealthBundleIdentifierSuffix()];
+				}
+			}
+
+			infoDictM[@"TSOriginalBundleIdentifier"] = originalAppId;
+			infoDictM[@"CFBundleIdentifier"] = stealthAppIdToUse;
+		}
+
+		if(stripURLSchemesInStealth)
+		{
+			// Strip URL schemes in stealth mode.
+			[infoDictM removeObjectForKey:@"CFBundleURLTypes"];
+		}
+	}
+	else
+	{
+		// Remove system claimed URL schemes if existant
+		NSSet* appleSchemes = systemURLSchemes();
+		NSArray* CFBundleURLTypes = infoDictM[@"CFBundleURLTypes"];
+		if([CFBundleURLTypes isKindOfClass:[NSArray class]])
+		{
+			NSMutableArray* CFBundleURLTypesM = [NSMutableArray new];
+
+			for(NSDictionary* URLType in CFBundleURLTypes)
+			{
+				if(![URLType isKindOfClass:[NSDictionary class]]) continue;
+
+				NSMutableDictionary* modifiedURLType = URLType.mutableCopy;
+				NSArray* URLSchemes = URLType[@"CFBundleURLSchemes"];
+				if(URLSchemes)
+				{
+					NSMutableSet* URLSchemesSet = [NSMutableSet setWithArray:URLSchemes];
+					for(NSString* existingURLScheme in [URLSchemesSet copy])
+					{
+						if(![existingURLScheme isKindOfClass:[NSString class]])
+						{
+							[URLSchemesSet removeObject:existingURLScheme];
+							continue;
+						}
+
+						if([appleSchemes containsObject:existingURLScheme.lowercaseString])
+						{
+							[URLSchemesSet removeObject:existingURLScheme];
+						}
+					}
+					modifiedURLType[@"CFBundleURLSchemes"] = [URLSchemesSet allObjects];
+				}
+				[CFBundleURLTypesM addObject:modifiedURLType.copy];
+			}
+
+			infoDictM[@"CFBundleURLTypes"] = CFBundleURLTypesM.copy;
+		}
 	}
 
 	[infoDictM writeToURL:infoPlistURL error:nil];
@@ -864,29 +913,54 @@ void applyPatchesToInfoDictionary(NSString* appPath)
 // 174: 
 // 180: tried to sign app where the main binary is encrypted
 // 184: tried to sign app where an additional binary is encrypted
+// 186: stealth/non-stealth install mode conflicts with an existing install
 
-int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate, BOOL useInstalldMethod, BOOL skipUICache)
+int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate, BOOL useInstalldMethod, BOOL skipUICache, BOOL stealthInstall, BOOL stripURLSchemesInStealth)
 {
-	NSLog(@"[installApp force = %d]", force);
+	NSLog(@"[installApp force = %d, stealthInstall = %d]", force, stealthInstall);
 
 	NSString* appPayloadPath = [appPackagePath stringByAppendingPathComponent:@"Payload"];
 
 	NSString* appBundleToInstallPath = findAppPathInBundlePath(appPayloadPath);
 	if(!appBundleToInstallPath) return 167;
 
-	NSString* appId = appIdForAppPath(appBundleToInstallPath);
-	if(!appId) return 176;
+	NSDictionary* appInfoDict = infoDictionaryForAppPath(appBundleToInstallPath);
+	if(!appInfoDict) return 172;
 
-	if(([appId.lowercaseString isEqualToString:@"com.opa334.trollstore"] && !isTSUpdate) || [immutableAppBundleIdentifiers() containsObject:appId.lowercaseString])
+	NSString* originalAppId = appInfoDict[@"CFBundleIdentifier"];
+	if(![originalAppId isKindOfClass:NSString.class] || originalAppId.length == 0) return 176;
+
+	NSSet* immutableBundleIds = immutableAppBundleIdentifiers();
+	BOOL isTrollStoreIdentifier = [originalAppId.lowercaseString isEqualToString:@"com.opa334.trollstore"] || [originalAppId.lowercaseString hasPrefix:@"com.opa334.trollstore."];
+	if((isTrollStoreIdentifier && !isTSUpdate) || [immutableBundleIds containsObject:originalAppId.lowercaseString])
 	{
 		return 179;
 	}
 
-	if(!infoDictionaryForAppPath(appBundleToInstallPath)) return 172;
-
 	if(!isTSUpdate)
 	{
-		applyPatchesToInfoDictionary(appBundleToInstallPath);
+		NSString* existingStealthAppId = installedStealthAppIdForOriginalAppId(originalAppId);
+		BOOL hasStealthInstall = [existingStealthAppId isKindOfClass:NSString.class] && existingStealthAppId.length > 0;
+		BOOL hasNonStealthInstall = [LSApplicationProxy applicationProxyForIdentifier:originalAppId].installed;
+
+		// Disallow mixing install modes for the same original app identifier.
+		if((stealthInstall && hasNonStealthInstall) || (!stealthInstall && hasStealthInstall))
+		{
+			return 186;
+		}
+	}
+
+	if(!isTSUpdate || stealthInstall)
+	{
+		applyPatchesToInfoDictionary(appBundleToInstallPath, stealthInstall, stripURLSchemesInStealth);
+	}
+
+	NSString* appId = appIdForAppPath(appBundleToInstallPath);
+	if(!appId) return 176;
+
+	if([immutableBundleIds containsObject:appId.lowercaseString])
+	{
+		return 179;
 	}
 
 	BOOL requiresDevMode = NO;
@@ -1190,7 +1264,7 @@ int uninstallAppById(NSString* appId, BOOL useCustomMethod)
 // 167: IPA does not appear to contain an app
 // 180: IPA's main binary is encrypted
 // 184: IPA contains additional encrypted binaries
-int installIpa(NSString* ipaPath, BOOL force, BOOL useInstalldMethod, BOOL skipUICache)
+int installIpa(NSString* ipaPath, BOOL force, BOOL useInstalldMethod, BOOL skipUICache, BOOL stealthInstall)
 {
 	cleanRestrictions();
 
@@ -1209,7 +1283,7 @@ int installIpa(NSString* ipaPath, BOOL force, BOOL useInstalldMethod, BOOL skipU
 		return 168;
 	}
 
-	int ret = installApp(tmpPackagePath, YES, force, NO, useInstalldMethod, skipUICache);
+	int ret = installApp(tmpPackagePath, YES, force, NO, useInstalldMethod, skipUICache, stealthInstall, YES);
 	
 	[[NSFileManager defaultManager] removeItemAtPath:tmpPackagePath error:nil];
 
@@ -1261,6 +1335,9 @@ int installTrollStore(NSString* pathToTar)
 
 	NSString* tmpTrollStorePath = [tmpPayloadPath stringByAppendingPathComponent:@"TrollStore.app"];
 	if(![[NSFileManager defaultManager] fileExistsAtPath:tmpTrollStorePath]) return 1;
+	NSString* previousTrollStorePath = trollStorePath();
+	NSString* previousTrollStoreAppPath = trollStoreAppPath();
+	NSString* previousTrollStoreAppId = appIdForAppPath(previousTrollStoreAppPath);
 
 	//if (@available(iOS 16, *)) {} else {
 		// Transfer existing ldid installation if it exists
@@ -1312,8 +1389,21 @@ int installTrollStore(NSString* pathToTar)
 		_installPersistenceHelper(persistenceHelperApp, trollStorePersistenceHelper, trollStoreRootHelper);
 	}
 
-	int ret = installApp(tmpPackagePath, NO, YES, YES, YES, NO);
+	int ret = installApp(tmpPackagePath, NO, YES, YES, YES, NO, YES, NO);
 	NSLog(@"[installTrollStore] installApp => %d", ret);
+	NSString* targetTrollStoreAppId = (ret == 0) ? appIdForAppPath(tmpTrollStorePath) : nil;
+	if(ret == 0 && previousTrollStorePath && previousTrollStoreAppPath && previousTrollStoreAppId && targetTrollStoreAppId)
+	{
+		BOOL didChangeBundleId = ![previousTrollStoreAppId isEqualToString:targetTrollStoreAppId];
+		MCMAppContainer* targetContainer = [MCMAppContainer containerWithIdentifier:targetTrollStoreAppId createIfNecessary:NO existed:nil error:nil];
+		BOOL sameContainerPath = [previousTrollStorePath isEqualToString:targetContainer.url.path];
+		if(didChangeBundleId && !sameContainerPath)
+		{
+			// Migrate away from legacy non-stealth install by removing the old app container.
+			registerPath(previousTrollStoreAppPath, YES, YES);
+			[[NSFileManager defaultManager] removeItemAtPath:previousTrollStorePath error:nil];
+		}
+	}
 	[[NSFileManager defaultManager] removeItemAtPath:tmpPackagePath error:nil];
 	return ret;
 }
@@ -1547,8 +1637,9 @@ int MAIN_NAME(int argc, char *argv[], char *envp[])
 			BOOL useInstalldMethod = [args containsObject:@"installd"];
 			BOOL force = [args containsObject:@"force"];
 			BOOL skipUICache = [args containsObject:@"skip-uicache"];
+			BOOL stealthInstall = [args containsObject:@"stealth"];
 			NSString* ipaPath = args.lastObject;
-			ret = installIpa(ipaPath, force, useInstalldMethod, skipUICache);
+			ret = installIpa(ipaPath, force, useInstalldMethod, skipUICache, stealthInstall);
 		}
 		else if([cmd isEqualToString:@"uninstall"])
 		{
