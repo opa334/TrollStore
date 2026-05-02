@@ -125,7 +125,7 @@ extern NSUserDefaults* trollStoreUserDefaults(void);
 			utilitiesDescription = @"Apps will be registered as User by default since AppSync Unified is installed.\n\n";
 		}
 		else {
-			utilitiesDescription = @"Apps will be registered as System by default since AppSync Unified is not installed. When apps loose their System registration and stop working, press \"Refresh App Registrations\" here to fix them.\n\n";
+			utilitiesDescription = @"Apps will be registered as System by default since AppSync Unified is not installed. When apps lose their System registration and stop working, press \"Refresh App Registrations\" here to fix them.\n\n";
 		}
 #endif
 		utilitiesDescription = [utilitiesDescription stringByAppendingString:@"If an app does not immediately appear after installation, respring here and it should appear afterwards."];

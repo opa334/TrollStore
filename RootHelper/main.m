@@ -244,6 +244,10 @@ void setTSURLSchemeState(BOOL newState, NSString* customAppPath)
 	}
 }
 
+NSArray *getCurrentPlatforms(void)
+{
+    return infoDictionaryForAppPath(trollStoreAppPath())[@"CFBundleSupportedPlatforms"];
+}
 #ifdef TROLLSTORE_LITE
 
 BOOL isLdidInstalled(void)
@@ -864,6 +868,7 @@ void applyPatchesToInfoDictionary(NSString* appPath)
 // 174: 
 // 180: tried to sign app where the main binary is encrypted
 // 184: tried to sign app where an additional binary is encrypted
+// 186: application is for the wrong platform
 
 int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate, BOOL useInstalldMethod, BOOL skipUICache)
 {
@@ -883,6 +888,23 @@ int installApp(NSString* appPackagePath, BOOL sign, BOOL force, BOOL isTSUpdate,
 	}
 
 	if(!infoDictionaryForAppPath(appBundleToInstallPath)) return 172;
+    
+    NSArray* currentPlatforms = getCurrentPlatforms();
+    NSArray* supportedPlatforms = infoDictionaryForAppPath(appBundleToInstallPath)[@"CFBundleSupportedPlatforms"];
+    
+    BOOL platformMatch = NO;
+    for (NSString *platform in supportedPlatforms)
+    {
+        if ([currentPlatforms containsObject:platform])
+        {
+            platformMatch = YES;
+            break;
+        }
+    }
+    
+    if (!platformMatch) return 186;
+    
+    // if (![supportedPlatforms containsObject:@"iPhoneOS"]) return 186;
 
 	if(!isTSUpdate)
 	{
