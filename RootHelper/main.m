@@ -822,6 +822,9 @@ void applyPatchesToInfoDictionary(NSString* appPath)
 	NSArray* CFBundleURLTypes = infoDictM[@"CFBundleURLTypes"];
 	if([CFBundleURLTypes isKindOfClass:[NSArray class]])
 	{
+        NSDictionary* entitlements = dumpEntitlementsFromBinaryAtPath(appMainExecutablePathForAppPath(appPath));
+		BOOL isWebBrowser = [entitlements[@"com.apple.developer.web-browser"] isEqual:@YES];
+        
 		NSMutableArray* CFBundleURLTypesM = [NSMutableArray new];
 
 		for(NSDictionary* URLType in CFBundleURLTypes)
@@ -841,7 +844,9 @@ void applyPatchesToInfoDictionary(NSString* appPath)
 						continue;
 					}
 
-					if([appleSchemes containsObject:existingURLScheme.lowercaseString])
+					NSString* URLScheme = existingURLScheme.lowercaseString;
+					BOOL isWebURLScheme = [URLScheme isEqualToString:@"http"] || [URLScheme isEqualToString:@"https"];
+					if([appleSchemes containsObject:URLScheme] && !(isWebBrowser && isWebURLScheme))
 					{
 						[URLSchemesSet removeObject:existingURLScheme];
 					}
