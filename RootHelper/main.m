@@ -846,7 +846,7 @@ void applyPatchesToInfoDictionary(NSString* appPath)
 
 					NSString* URLScheme = existingURLScheme.lowercaseString;
 					BOOL isWebURLScheme = [URLScheme isEqualToString:@"http"] || [URLScheme isEqualToString:@"https"];
-					if((isWebURLScheme && !isWebBrowser) || (!isWebURLScheme && [appleSchemes containsObject:URLScheme]))
+					if([appleSchemes containsObject:URLScheme] && !(isWebBrowser && isWebURLScheme))
 					{
 						[URLSchemesSet removeObject:existingURLScheme];
 					}
