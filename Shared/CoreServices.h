@@ -25,6 +25,7 @@ extern NSString *LSInstallTypeKey;
 @interface LSApplicationWorkspace : NSObject
 + (instancetype)defaultWorkspace;
 - (BOOL)registerApplicationDictionary:(NSDictionary*)dict;
+- (BOOL)registerContainerizedApplicationWithInfoDictionaries:(NSArray*)infoDictionaries operationUUID:(NSUUID*)operationUUID requestContext:(id)requestContext saveObserver:(id)saveObserver registrationError:(NSError**)error;
 - (BOOL)unregisterApplication:(id)arg1;
 - (BOOL)_LSPrivateRebuildApplicationDatabasesForSystemApps:(BOOL)arg1 internal:(BOOL)arg2 user:(BOOL)arg3;
 - (BOOL)openApplicationWithBundleID:(NSString *)arg1 ;

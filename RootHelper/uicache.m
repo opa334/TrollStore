@@ -8,6 +8,42 @@
 
 // uicache on steroids
 
+// Registers an app (plus its plugins) through the SPI that installd / InstallCoordination use to
+// report installation results. Starting with iOS 27, lsd refuses registerApplicationDictionary: and
+// ask for this path instead ("Use InstallCoordination to install and uninstall applications on this
+// platform."). lsd expects a flat array of registration dictionaries here, plugins are passed as
+// siblings of the app dictionary instead of being nested under _LSBundlePlugins.
+static BOOL registerInstallResult(LSApplicationWorkspace *workspace, NSDictionary *dictToRegister)
+{
+	SEL registerSel = @selector(registerContainerizedApplicationWithInfoDictionaries:operationUUID:requestContext:saveObserver:registrationError:);
+	if (![workspace respondsToSelector:registerSel]) return NO;
+
+	NSMutableDictionary *appDict = [dictToRegister mutableCopy];
+	NSMutableArray *infoDictionaries = [NSMutableArray arrayWithObject:appDict];
+
+	id plugins = dictToRegister[@"_LSBundlePlugins"];
+	if ([plugins isKindOfClass:[NSDictionary class]]) {
+		[appDict removeObjectForKey:@"_LSBundlePlugins"];
+		for (NSString *pluginBundleID in [[(NSDictionary *)plugins allKeys] sortedArrayUsingSelector:@selector(compare:)]) {
+			[infoDictionaries addObject:plugins[pluginBundleID]];
+		}
+	}
+
+	// The return value of this SPI is not a reliable success indicator, the registration error is:
+	// lsd reports failures through it, the same way installd receives them.
+	NSError *registrationError = nil;
+	[workspace registerContainerizedApplicationWithInfoDictionaries:infoDictionaries
+	                                                  operationUUID:[NSUUID UUID]
+	                                                 requestContext:nil
+	                                                  saveObserver:nil
+	                                              registrationError:&registrationError];
+	if (registrationError) {
+		NSLog(@"InstallCoordination registration failed: %@", registrationError);
+		return NO;
+	}
+	return YES;
+}
+
 extern NSSet<NSString*>* immutableAppBundleIdentifiers(void);
 extern NSDictionary* dumpEntitlementsFromBinaryAtPath(NSString* binaryPath);
 
@@ -234,7 +270,11 @@ bool registerPath(NSString *path, BOOL unregister, BOOL forceSystem) {
 		}
 		[dictToRegister setObject:bundlePlugins forKey:@"_LSBundlePlugins"];
 
-		if (![workspace registerApplicationDictionary:dictToRegister]) {
+		BOOL registered = [workspace registerApplicationDictionary:dictToRegister];
+		if (!registered) {
+			registered = registerInstallResult(workspace, dictToRegister);
+		}
+		if (!registered) {
 			NSLog(@"Error: Unable to register %@", path);
 			NSLog(@"Used dictionary: {");
 			[dictToRegister enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSObject *obj, BOOL *stop) {
